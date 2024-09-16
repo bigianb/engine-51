@@ -192,7 +192,7 @@ void MainWindow::dropEvent(QDropEvent* event)
 {
     QString filename = getFilenameFromMimeData(event->mimeData());
     if (filename.toLower().endsWith("dfs")){
-
+        dfsFile->read(filename.toStdString());
         event->acceptProposedAction();
     }
 }

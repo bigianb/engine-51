@@ -1,5 +1,7 @@
 #include "DFSFile.h"
 
+#include <iostream>
+
 DFSFile::DFSFile()
 {
     buffer = nullptr;
@@ -46,11 +48,11 @@ public:
     unsigned int magic;
     unsigned int version;
     unsigned int checksum;
-    int sectorSize;
+    unsigned int sectorSize;
     unsigned int splitSize;
-    int numFiles;
-    int numSubFiles;
-    int stringsLengthBytes;
+    unsigned int numFiles;
+    unsigned int numSubFiles;
+    unsigned int stringsLengthBytes;
     DFSSubfile* subFileTable;
     DFSFileEntry* files;
     uint16_t* checksums;
@@ -63,7 +65,19 @@ DFSHeader::DFSHeader(const unsigned char* data)
     magic = u32Data[0];
     version = u32Data[1];
     checksum = u32Data[2];
-    if ()
+    if (isValid()) {
+        sectorSize = u32Data[3];
+        splitSize = u32Data[4];
+        numFiles = u32Data[5];
+        numSubFiles = u32Data[6];
+        stringsLengthBytes = u32Data[7];
+        subFileTable = (DFSSubfile*)(data + u32Data[8]);
+        files = (DFSFileEntry*)(data + u32Data[9]);
+        checksums = (uint16_t*)(data + u32Data[10]);
+        strings = (char*)(data + u32Data[11]);
+    } else {
+        std::cerr << "DFS File is not valid" << std::endl;
+    }
 }
 
 void DFSFile::read(std::string path)
