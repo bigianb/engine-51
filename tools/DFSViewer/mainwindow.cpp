@@ -178,14 +178,16 @@ static QString getFilenameFromMimeData(const QMimeData* mimeData)
 void MainWindow::dragEnterEvent(QDragEnterEvent* event)
 {
     QString filename = getFilenameFromMimeData(event->mimeData());
-
-    std::cout << "Got drag from " << qUtf8Printable(filename) << std::endl;
-
-    event->acceptProposedAction();
+    if (filename.toLower().endsWith("dfs")){
+        event->acceptProposedAction();
+    }
 }
 
 void MainWindow::dropEvent(QDropEvent* event)
 {
+    QString filename = getFilenameFromMimeData(event->mimeData());
+    if (filename.toLower().endsWith("dfs")){
 
-    event->acceptProposedAction();
+        event->acceptProposedAction();
+    }
 }
