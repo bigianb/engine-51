@@ -31,6 +31,8 @@ private:
     DfsTreeItem* m_parentItem;
 };
 
+class DFSFile;
+
 class DfsTreeModel : public QAbstractItemModel
 {
     Q_OBJECT
@@ -38,7 +40,7 @@ class DfsTreeModel : public QAbstractItemModel
 public:
     Q_DISABLE_COPY_MOVE(DfsTreeModel)
 
-    explicit DfsTreeModel(QObject* parent = nullptr);
+    explicit DfsTreeModel(DFSFile* dfsFile, QObject* parent = nullptr);
     ~DfsTreeModel() override;
 
     QVariant data(const QModelIndex& index,
@@ -57,6 +59,7 @@ private:
     static void setupModelData(const QList<QStringView>& lines, DfsTreeItem* parent);
 
     std::unique_ptr<DfsTreeItem> rootItem;
+    DFSFile* dfsFile;
 };
 
 class MainWindow : public QMainWindow
@@ -73,6 +76,7 @@ protected:
 
 private:
     DfsTreeModel* dfsTreeModel;
+    DFSFile* dfsFile;
     Ui::MainWindow* ui;
 };
 #endif // MAINWINDOW_H

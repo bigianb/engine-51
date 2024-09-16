@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 
+#include "../../a51lib/DFSFile.h"
+
 #include <iostream>
 
 #include <QDragEnterEvent>
@@ -61,10 +63,11 @@ DfsTreeItem* DfsTreeItem::parentItem()
     return m_parentItem;
 }
 
-DfsTreeModel::DfsTreeModel(QObject* parent)
+DfsTreeModel::DfsTreeModel(DFSFile* dfsFile, QObject* parent)
     : QAbstractItemModel(parent)
     , rootItem(std::make_unique<DfsTreeItem>(QVariantList{tr("Name"), tr("Size")}))
 {
+    this->dfsFile = dfsFile;
 }
 
 DfsTreeModel::~DfsTreeModel()
@@ -152,7 +155,8 @@ MainWindow::MainWindow(QWidget* parent)
 {
     ui->setupUi(this);
 
-    dfsTreeModel = new DfsTreeModel();
+    dfsFile = new DFSFile();
+    dfsTreeModel = new DfsTreeModel(dfsFile);
     ui->treeView->setModel(dfsTreeModel);
 }
 
@@ -160,6 +164,7 @@ MainWindow::~MainWindow()
 {
     delete ui;
     delete dfsTreeModel;
+    delete dfsFile;
 }
 
 static QString getFilenameFromMimeData(const QMimeData* mimeData)

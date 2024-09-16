@@ -1,0 +1,10 @@
+{
+        "files.associations": {
+                "stdexcept": "cpp",
+                "string": "cpp",
+                "locale": "cpp",
+                "new": "cpp",
+                "typeinfo": "cpp",
+                "__config": "cpp"
+        }
+}
