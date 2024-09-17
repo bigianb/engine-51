@@ -1,22 +1,29 @@
 #include "DFSFile.h"
 
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 
 DFSFile::DFSFile()
 {
-    buffer = nullptr;
-    size = 0;
+    dfsData = nullptr;
 }
 
 DFSFile::~DFSFile()
 {
-    if (buffer) {
-        free(buffer);
-        buffer = nullptr;
-    }
+    delete[] dfsData;
+    freeSubfileData();
 }
 
-class DFSSubfile
+void DFSFile::freeSubfileData()
+{
+    for (uint8_t* p : subFileData) {
+        delete[] p;
+    }
+    subFileData.clear();
+}
+
+struct DFSSubfile
 {
     uint32_t offset;
     uint32_t checksumIndex;
@@ -24,7 +31,7 @@ class DFSSubfile
 
 static_assert(sizeof(DFSSubfile) == 8, "DFSSubfile must be 24 bytes long");
 
-class DFSFileEntry
+struct DFSFileEntry
 {
     uint32_t fileNameOffset1;
     uint32_t fileNameOffset2;
@@ -59,7 +66,7 @@ public:
     char* strings;
 };
 
-DFSHeader::DFSHeader(const unsigned char* data)
+DFSHeader::DFSHeader(const uint8_t* data)
 {
     const uint32_t* u32Data = (const uint32_t*)data;
     magic = u32Data[0];
@@ -80,25 +87,114 @@ DFSHeader::DFSHeader(const unsigned char* data)
     }
 }
 
-void DFSFile::read(std::string path)
+int DFSFile::numFiles() const
 {
-    if (buffer) {
-        free(buffer);
-        buffer = nullptr;
+    if (header != nullptr && header->isValid()) {
+        return header->numFiles;
+    }
+    return 0;
+}
+
+int DFSFile::getFileSize(int entryNo) const
+{
+    if (entryNo < 0 || entryNo >= numFiles() || header == nullptr || !header->isValid()) {
+        return 0;
+    }
+    DFSFileEntry& file = header->files[entryNo];
+    return file.length;
+}
+
+uint8_t* DFSFile::getFileData(int entryNo) const
+{
+    if (entryNo < 0 || entryNo >= numFiles() || header == nullptr || !header->isValid()) {
+        return nullptr;
+    }
+    DFSFileEntry& file = header->files[entryNo];
+    int subFileIdx = 0;
+    while(subFileIdx < header->numSubFiles) {
+        if (file.dataOffset < header->subFileTable[subFileIdx].offset){
+            // assumes sub-file offsets are in descending order and entries do not span sub-files.
+            break;
+        }
+        ++subFileIdx;
+    }
+    int subOffset = file.dataOffset;
+    if (subFileIdx > 0){
+        subOffset -= header->subFileTable[subFileIdx-1].offset;
+    }
+    return subFileData[subFileIdx] + subOffset;
+}
+
+std::string DFSFile::getFilename(int entryNo) const
+{
+    if (entryNo < 0 || entryNo >= numFiles() || header == nullptr || !header->isValid()) {
+        return "";
     }
 
+    DFSFileEntry& file = header->files[entryNo];
+    std::string filename;
+    // pathName seems to have the original location on the build machine.
+    //filename += header->strings + file.pathNameOffset;
+    filename += header->strings + file.fileNameOffset1;
+    filename += header->strings + file.fileNameOffset2;
+    filename += header->strings + file.extNameOffset;
+
+    return filename;
+}
+
+std::string DFSFile::getFileExtension(int entryNo) const
+{
+    if (entryNo < 0 || entryNo >= numFiles() || header == nullptr || !header->isValid()) {
+        return "";
+    }
+
+    DFSFileEntry& file = header->files[entryNo];
+    std::string ext = header->strings + file.extNameOffset;
+    return ext;
+}
+
+static uint8_t* readFile(std::string path, size_t& size)
+{
+    uint8_t* data = nullptr;
     FILE* file = fopen(path.c_str(), "r");
     if (file != nullptr) {
         fseek(file, 0, SEEK_END);
         size = ftell(file);
         rewind(file);
 
-        buffer = (unsigned char*)malloc(size);
+        data = new uint8_t[size];
 
-        fread(buffer, 1, size, file);
+        fread(data, 1, size, file);
         fclose(file);
+    }
+    return data;
+}
 
+void DFSFile::read(std::string path)
+{
+    this->path = path;
+    delete[] dfsData;
+    size_t size = 0;
+    dfsData = readFile(path, size);
+    if (dfsData != nullptr) {
         delete header;
-        header = new DFSHeader(buffer);
+        header = new DFSHeader(dfsData);
+    }
+    if (header != nullptr && header->isValid()) {
+        readDataFiles();
+    }
+}
+
+void DFSFile::readDataFiles()
+{
+    freeSubfileData();
+    int subfileNum = 0;
+    std::string pathNoExt = path.substr(0, path.length() - 3);
+    for (int i = 0; i < header->numSubFiles; ++i) {
+        size_t size = 0;
+        std::ostringstream ss;
+        ss << pathNoExt << std::setfill('0') << std::setw(3) << i;
+        uint8_t* p = readFile(ss.str(), size);
+        subFileData.push_back(p);
     }
 }

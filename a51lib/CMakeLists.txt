@@ -6,4 +6,4 @@ target_sources(a51lib PRIVATE
         DFSFile.h
 )
 
-target_compile_features(a51lib PUBLIC cxx_std_17)
+target_compile_features(a51lib PUBLIC cxx_std_20)

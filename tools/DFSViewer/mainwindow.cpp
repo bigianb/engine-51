@@ -4,68 +4,15 @@
 #include "../../a51lib/DFSFile.h"
 
 #include <iostream>
+#include <sstream>
 
 #include <QDragEnterEvent>
 #include <QMimeData>
 #include <QtCore/QDir>
 
-DfsTreeItem::DfsTreeItem(QVariantList data, DfsTreeItem* parent)
-    : m_itemData(std::move(data))
-    , m_parentItem(parent)
-{
-}
-
-void DfsTreeItem::appendChild(std::unique_ptr<DfsTreeItem>&& child)
-{
-    m_childItems.push_back(std::move(child));
-}
-
-DfsTreeItem* DfsTreeItem::child(int row)
-{
-    return row >= 0 && row < childCount() ? m_childItems.at(row).get() : nullptr;
-}
-
-int DfsTreeItem::childCount() const
-{
-    return int(m_childItems.size());
-}
-
-int DfsTreeItem::row() const
-{
-    if (m_parentItem == nullptr) {
-        return 0;
-    }
-    const auto it = std::find_if(
-        m_parentItem->m_childItems.cbegin(), m_parentItem->m_childItems.cend(),
-        [this](const std::unique_ptr<DfsTreeItem>& treeItem) {
-            return treeItem.get() == this;
-        });
-
-    if (it != m_parentItem->m_childItems.cend()) {
-        return std::distance(m_parentItem->m_childItems.cbegin(), it);
-    }
-    Q_ASSERT(false); // should not happen
-    return -1;
-}
-
-int DfsTreeItem::columnCount() const
-{
-    return int(m_itemData.count());
-}
-
-QVariant DfsTreeItem::data(int column) const
-{
-    return m_itemData.value(column);
-}
-
-DfsTreeItem* DfsTreeItem::parentItem()
-{
-    return m_parentItem;
-}
 
 DfsTreeModel::DfsTreeModel(DFSFile* dfsFile, QObject* parent)
     : QAbstractItemModel(parent)
-    , rootItem(std::make_unique<DfsTreeItem>(QVariantList{tr("Name"), tr("Size")}))
 {
     this->dfsFile = dfsFile;
 }
@@ -76,53 +23,26 @@ DfsTreeModel::~DfsTreeModel()
 
 QModelIndex DfsTreeModel::index(int row, int column, const QModelIndex& parent) const
 {
-    if (!hasIndex(row, column, parent)) {
-        return {};
-    }
-
-    DfsTreeItem* parentItem = parent.isValid()
-                                  ? static_cast<DfsTreeItem*>(parent.internalPointer())
-                                  : rootItem.get();
-
-    if (auto* childItem = parentItem->child(row)) {
-        return createIndex(row, column, childItem);
-    }
-    return {};
+    return createIndex(row, column);
 }
 
 QModelIndex DfsTreeModel::parent(const QModelIndex& index) const
 {
-    if (!index.isValid()) {
-        return {};
-    }
-
-    auto* childItem = static_cast<DfsTreeItem*>(index.internalPointer());
-    DfsTreeItem* parentItem = childItem->parentItem();
-
-    return parentItem != rootItem.get()
-               ? createIndex(parentItem->row(), 0, parentItem)
-               : QModelIndex{};
+    return QModelIndex{};
 }
 
 int DfsTreeModel::rowCount(const QModelIndex& parent) const
 {
-    if (parent.column() > 0) {
+    if (dfsFile != nullptr && parent.column() > 0 || parent.isValid()) {
         return 0;
     }
 
-    const DfsTreeItem* parentItem = parent.isValid()
-                                        ? static_cast<const DfsTreeItem*>(parent.internalPointer())
-                                        : rootItem.get();
-
-    return parentItem->childCount();
+    return dfsFile->numFiles();
 }
 
 int DfsTreeModel::columnCount(const QModelIndex& parent) const
 {
-    if (parent.isValid()) {
-        return static_cast<DfsTreeItem*>(parent.internalPointer())->columnCount();
-    }
-    return rootItem->columnCount();
+    return 2;
 }
 
 QVariant DfsTreeModel::data(const QModelIndex& index, int role) const
@@ -130,23 +50,33 @@ QVariant DfsTreeModel::data(const QModelIndex& index, int role) const
     if (!index.isValid() || role != Qt::DisplayRole) {
         return {};
     }
+    if (index.column() == 0){
+        return dfsFile->getFilename(index.row()).c_str();
+    }
 
-    const auto* item = static_cast<const DfsTreeItem*>(index.internalPointer());
-    return item->data(index.column());
-}
-
-Qt::ItemFlags DfsTreeModel::flags(const QModelIndex& index) const
-{
-    return index.isValid()
-               ? QAbstractItemModel::flags(index)
-               : Qt::ItemFlags(Qt::NoItemFlags);
+    return dfsFile->getFileSize(index.row());
 }
 
 QVariant DfsTreeModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    return orientation == Qt::Horizontal && role == Qt::DisplayRole
-               ? rootItem->data(section)
-               : QVariant{};
+    if (role != Qt::DisplayRole)
+        return QVariant();
+
+    if (section == 0){
+        return QVariant("Filename");
+    } else {
+        return "size";
+    }
+}
+
+void DfsTreeModel::doBeginResetModel()
+{
+    beginResetModel();
+}
+
+void DfsTreeModel::doEndResetModel()
+{
+    endResetModel();
 }
 
 MainWindow::MainWindow(QWidget* parent)
@@ -154,6 +84,9 @@ MainWindow::MainWindow(QWidget* parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    ui->treeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+
+    bool ok = connect(ui->treeView, &QAbstractItemView::clicked, this, &MainWindow::treeItemClicked);
 
     dfsFile = new DFSFile();
     dfsTreeModel = new DfsTreeModel(dfsFile);
@@ -165,6 +98,26 @@ MainWindow::~MainWindow()
     delete ui;
     delete dfsTreeModel;
     delete dfsFile;
+}
+
+void MainWindow::treeItemClicked(const QModelIndex &index) {
+    int entryNo = index.row();
+    qDebug() << "Clicked row:" << entryNo;
+    auto extension = dfsFile->getFileExtension(entryNo);
+    qDebug() << "Extension is:" << extension;
+
+    if (extension == ".TXT"){
+        uint8_t* txtData = dfsFile->getFileData(entryNo);
+        int txtLen = dfsFile->getFileSize(entryNo);
+        int i=0;
+        std::ostringstream ss;
+        while (i < txtLen && txtData[i]){
+            ss.put(txtData[i++]);
+        }
+        ui->plainTextEdit->setPlainText(ss.str().c_str());
+    } else {
+        ui->plainTextEdit->setPlainText("Can't parse this format yet.");
+    }
 }
 
 static QString getFilenameFromMimeData(const QMimeData* mimeData)
@@ -192,7 +145,9 @@ void MainWindow::dropEvent(QDropEvent* event)
 {
     QString filename = getFilenameFromMimeData(event->mimeData());
     if (filename.toLower().endsWith("dfs")){
+        dfsTreeModel->doBeginResetModel();
         dfsFile->read(filename.toStdString());
+        dfsTreeModel->doEndResetModel();
         event->acceptProposedAction();
     }
 }

@@ -11,26 +11,6 @@ namespace Ui
 }
 QT_END_NAMESPACE
 
-class DfsTreeItem
-{
-public:
-    explicit DfsTreeItem(QVariantList data, DfsTreeItem* parentItem = nullptr);
-
-    void appendChild(std::unique_ptr<DfsTreeItem>&& child);
-
-    DfsTreeItem* child(int row);
-    int childCount() const;
-    int columnCount() const;
-    QVariant data(int column) const;
-    int row() const;
-    DfsTreeItem* parentItem();
-
-private:
-    std::vector<std::unique_ptr<DfsTreeItem>> m_childItems;
-    QVariantList m_itemData;
-    DfsTreeItem* m_parentItem;
-};
-
 class DFSFile;
 
 class DfsTreeModel : public QAbstractItemModel
@@ -45,7 +25,6 @@ public:
 
     QVariant data(const QModelIndex& index,
                   int role = Qt::DisplayRole) const override;
-    Qt::ItemFlags flags(const QModelIndex& index) const override;
     QVariant headerData(int section, Qt::Orientation orientation,
                         int role = Qt::DisplayRole) const override;
     QModelIndex index(int row, int column,
@@ -55,10 +34,10 @@ public:
     int rowCount(const QModelIndex& parent = {}) const override;
     int columnCount(const QModelIndex& parent = {}) const override;
 
+    void doBeginResetModel();
+    void doEndResetModel();
+    
 private:
-    static void setupModelData(const QList<QStringView>& lines, DfsTreeItem* parent);
-
-    std::unique_ptr<DfsTreeItem> rootItem;
     DFSFile* dfsFile;
 };
 
@@ -69,6 +48,9 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget* parent = nullptr);
     ~MainWindow();
+
+public slots:
+    void treeItemClicked(const QModelIndex &index);
 
 protected:
     void dragEnterEvent(QDragEnterEvent* event) override;
