@@ -2,6 +2,7 @@
 #include "./ui_mainwindow.h"
 
 #include "../../a51lib/DFSFile.h"
+#include "../../a51lib/RigidGeom.h"
 
 #include <iostream>
 #include <sstream>
@@ -102,18 +103,26 @@ MainWindow::~MainWindow()
 
 void MainWindow::treeItemClicked(const QModelIndex &index) {
     int entryNo = index.row();
-    qDebug() << "Clicked row:" << entryNo;
+    //qDebug() << "Clicked row:" << entryNo;
     auto extension = dfsFile->getFileExtension(entryNo);
     qDebug() << "Extension is:" << extension;
 
-    if (extension == ".TXT"){
-        uint8_t* txtData = dfsFile->getFileData(entryNo);
-        int txtLen = dfsFile->getFileSize(entryNo);
+    uint8_t* fileData = dfsFile->getFileData(entryNo);
+    int fileLen = dfsFile->getFileSize(entryNo);
+
+    if (extension == ".TXT" || extension == ".VSH" || extension == ".INFO"){
+        
         int i=0;
         std::ostringstream ss;
-        while (i < txtLen && txtData[i]){
-            ss.put(txtData[i++]);
+        while (i < fileLen && fileData[i]){
+            ss.put(fileData[i++]);
         }
+        ui->plainTextEdit->setPlainText(ss.str().c_str());
+    } else if (extension == ".RIGIDGEOM"){
+        RigidGeom rigidGeom;
+        rigidGeom.read(fileData, fileLen);
+        std::ostringstream ss;
+        rigidGeom.describe(ss);
         ui->plainTextEdit->setPlainText(ss.str().c_str());
     } else {
         ui->plainTextEdit->setPlainText("Can't parse this format yet.");
