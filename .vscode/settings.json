@@ -60,6 +60,12 @@
                 "variant": "cpp",
                 "vector": "cpp",
                 "algorithm": "cpp",
-                "hash_map": "cpp"
+                "hash_map": "cpp",
+                "deque": "cpp",
+                "execution": "cpp",
+                "memory": "cpp",
+                "print": "cpp",
+                "queue": "cpp",
+                "stack": "cpp"
         }
 }

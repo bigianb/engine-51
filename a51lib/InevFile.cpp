@@ -13,6 +13,23 @@ bool InevFile::init(uint8_t* fileData, int len)
     return true;
 }
 
+void InevFile::describe(std::ostringstream& ss)
+{
+    ss << "Inev file" << std::endl;
+    ss << "Version: " << header->version << std::endl;
+    ss << "Num static bytes: " << header->numStaticBytes << std::endl;
+    ss << "Num tables: " << header->numTables << std::endl;
+    ss << "Num dynamic bytes: " << header->numDynamicBytes << std::endl;
+}
+
+void InevFile::read(Quaternion& obj)
+{
+    read(obj.x);
+    read(obj.y);
+    read(obj.z);
+    read(obj.w);
+}
+
 void InevFile::read(Vector3& obj)
 {
     read(obj.x);

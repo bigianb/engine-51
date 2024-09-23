@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+#include <sstream>
+#include <type_traits>
 
 struct InevFileHeader
 {
@@ -12,6 +14,7 @@ struct InevFileHeader
 };
 
 struct BBox;
+struct Quaternion;
 struct Vector3;
 
 class InevFile
@@ -25,13 +28,29 @@ public:
         cursor = 0;
     }
 
+    void describe(std::ostringstream& ss);
+
     bool init(uint8_t* fileData, int len);
 
+    void read(Quaternion&);
     void read(Vector3&);
     void read(BBox&);
     void read(int16_t&);
     void read(uint16_t&);
     void read(float&);
+
+    template< class T >
+    void read( T& obj ) {
+        obj.read(*this);
+    }
+
+    template< typename T >
+    void readArray( T& ptr, int size ) {
+        ptr = new std::remove_pointer_t<T>[size];
+        for (int i=0; i<size; ++i){
+            ptr[i].read(*this);
+        }
+    }
 
 private:
     InevFileHeader* header;

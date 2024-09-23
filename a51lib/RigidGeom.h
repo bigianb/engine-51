@@ -4,10 +4,12 @@
 #include <sstream>
 #include "Geom.h"
 
-
 class RigidGeom
 {
 public:
+    RigidGeom();
+    ~RigidGeom();
+    
     bool read(uint8_t* fileData, int len);
 
     void describe(std::ostringstream& ss);
@@ -34,4 +36,6 @@ private:
     int16_t numVirtualMaterials;
     int16_t numVirtualTextures;
     int16_t stringDataSize;
+
+    Bone* bones;
 };
