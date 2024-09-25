@@ -45,10 +45,7 @@ jobs:
       # uses: jurplel/install-qt-action@f03f05556819ceb3781ee2f455ec44c339d683c0
       uses: jurplel/install-qt-action@v4.0.0
       with:
-        # Whether or not to cache Qt automatically
-        cache: true
-        # Cache key prefix for automatic cache
-        cache-key-prefix: ${{ runner.os }}-${{ matrix.qt-arch }}-QtCache
+        version: 6.7.*
       
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
