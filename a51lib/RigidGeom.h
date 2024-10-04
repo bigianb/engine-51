@@ -38,4 +38,7 @@ private:
     int16_t stringDataSize;
 
     Bone* bones;
+    BoneMask* boneMasks;
+    Property* properties;
+    PropertySection* propertySections;
 };

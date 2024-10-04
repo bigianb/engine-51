@@ -44,5 +44,49 @@ struct Bone
     short rigidBodyIdx;      // Index of rigid body to attach to (or -1 if none)
 
     void read(InevFile&);
+};
 
+#define MAX_ANIM_BONES 80
+
+struct BoneMask
+{
+    int nameOffset;
+    int numBones;
+    float weights[MAX_ANIM_BONES];
+
+    void read(InevFile&);
+};
+
+struct PropertySection
+{
+    short nameOffset;
+    short propertyIdx;
+    short numProperties;
+
+    void read(InevFile&);
+};
+
+struct Property
+{
+    enum type
+    {
+        TYPE_FLOAT,
+        TYPE_INTEGER,
+        TYPE_ANGLE,
+        TYPE_STRING,
+
+        TYPE_TOTAL
+    };
+
+    short nameOffset;
+    short type;
+    union
+    {
+        float floatVal;
+        int intVal;
+        float angle;
+        int stringOffset;
+    } value;
+
+    void read(InevFile&);
 };

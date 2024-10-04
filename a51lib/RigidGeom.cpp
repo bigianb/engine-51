@@ -15,6 +15,38 @@ void Bone::read(InevFile& inevFile)
     inevFile.read(rigidBodyIdx);
 }
 
+void BoneMask::read(InevFile& inevFile)
+{
+    inevFile.read(nameOffset);
+    inevFile.read(numBones);
+    for (int i=0; i < MAX_ANIM_BONES; ++i){
+        inevFile.read(weights[i]);
+    }
+}
+
+void Property::read(InevFile& inevFile)
+{
+    inevFile.read(nameOffset);
+    inevFile.read(type);
+    switch (type)
+    {
+        case Property::TYPE_FLOAT:
+            inevFile.read(value.floatVal);
+            break;
+        case Property::TYPE_INTEGER:
+            inevFile.read(value.intVal);
+            break;
+        case Property::TYPE_ANGLE:
+            inevFile.read(value.angle);
+            break;
+        case Property::TYPE_STRING:
+            inevFile.read(value.stringOffset);
+            break;
+        default:
+            std::cerr << "Uknown Type " << type << std::endl;
+    }
+}
+
 RigidGeom::RigidGeom()
 {
     bones = nullptr;
@@ -60,7 +92,10 @@ bool RigidGeom::read(uint8_t* fileData, int len)
     inevFile.read(stringDataSize);
 
     inevFile.readArray(bones, numBones);
-    
+    inevFile.readArray(boneMasks, numBoneMasks);
+    inevFile.readArray(properties, numProperties);
+    inevFile.readArray(propertySections, numPropertySections);
+
     return ok;
 }
 
