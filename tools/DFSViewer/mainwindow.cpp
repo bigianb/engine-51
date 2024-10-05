@@ -119,7 +119,7 @@ void MainWindow::treeItemClicked(const QModelIndex &index) {
         }
         ui->plainTextEdit->setPlainText(ss.str().c_str());
     } else if (extension == ".RIGIDGEOM"){
-        RigidGeom rigidGeom;
+        Geom rigidGeom;
         rigidGeom.read(fileData, fileLen);
         std::ostringstream ss;
         rigidGeom.describe(ss);

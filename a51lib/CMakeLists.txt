@@ -4,6 +4,7 @@ add_library(a51lib)
 target_sources(a51lib PRIVATE
         DFSFile.cpp
         DFSFile.h
+        Geom.cpp
         Geom.h
         InevFile.cpp
         InevFile.h

@@ -1,6 +1,7 @@
 # Settings tested with clang-format 16
 
 AccessModifierOffset: -4
+AlignConsecutiveDeclarations: Consecutive
 AllowShortBlocksOnASingleLine: Always
 AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: true
