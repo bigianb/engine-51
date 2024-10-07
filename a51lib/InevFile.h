@@ -4,6 +4,8 @@
 #include <sstream>
 #include <type_traits>
 
+#include "VectorMath.h"
+
 struct InevFileHeader
 {
     uint32_t inev;
@@ -12,10 +14,6 @@ struct InevFileHeader
     int32_t numTables;
     int32_t numDynamicBytes;
 };
-
-struct BBox;
-struct Quaternion;
-struct Vector3;
 
 class InevFile
 {

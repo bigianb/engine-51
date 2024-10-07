@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <sstream>
 #include "Geom.h"
+#include "CollisionVolume.h"
 
 class RigidGeom : public Geom
 {
@@ -80,7 +81,7 @@ public:
 
     void read(InevFile&);
 
-    //collision_data      collision;
-    int32_t   nDList;
-    SystemPtr system;
+    CollisionData collision;
+    int32_t       nDList;
+    SystemPtr     system;
 };

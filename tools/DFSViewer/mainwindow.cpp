@@ -119,8 +119,8 @@ void MainWindow::treeItemClicked(const QModelIndex &index) {
         }
         ui->plainTextEdit->setPlainText(ss.str().c_str());
     } else if (extension == ".RIGIDGEOM"){
-        Geom rigidGeom;
-        rigidGeom.read(fileData, fileLen);
+        RigidGeom rigidGeom;
+        rigidGeom.readFile(fileData, fileLen);
         std::ostringstream ss;
         rigidGeom.describe(ss);
         ui->plainTextEdit->setPlainText(ss.str().c_str());

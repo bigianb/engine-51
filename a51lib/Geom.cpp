@@ -160,7 +160,7 @@ Geom::~Geom()
     bones = nullptr;
 }
 
-bool Geom::read(uint8_t* fileData, int len)
+bool Geom::readFile(uint8_t* fileData, int len)
 {
     InevFile inevFile;
     bool     ok = inevFile.init(fileData, len);
@@ -171,7 +171,12 @@ bool Geom::read(uint8_t* fileData, int len)
     std::ostringstream ss;
     inevFile.describe(ss);
     std::cout << ss.str() << std::endl;
+    read(inevFile);
+    return true;
+}
 
+void Geom::read(InevFile& inevFile)
+{
     inevFile.read(bbox);
     inevFile.read(platform);
     inevFile.read(unknown);
@@ -208,10 +213,9 @@ bool Geom::read(uint8_t* fileData, int len)
     inevFile.readNativeArray(lodMasks, numLODs);
     inevFile.readArray(virtualMeshes, numVirtualMeshes);
     //inevFile.readArray(virtualMaterials, numVirtualMaterials);
-    //inevFile.readArray(virtualTextures, numVirtualTextures);
+    inevFile.readArray(virtualTextures, numVirtualTextures);
     inevFile.readNativeArray(stringData, stringDataSize);
 
-    return ok;
 }
 
 const char* describePlatform(int plat)
