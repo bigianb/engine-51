@@ -31,7 +31,6 @@ int InevFile::readAndResolvePtr()
             return ref.pointingAT;
         }
     }
-    cursor += 4;
     std::cerr << "ERROR: No pointer resolution for offset " << cursor << std::endl;
     std::cerr << "known offsets are: " << std::endl;
     for( int i=0; i<resolve.numPointers; i++ )
@@ -39,6 +38,7 @@ int InevFile::readAndResolvePtr()
         const Ref& ref = resolve.table[i];
         std::cerr << ref.offset << " -> " << ref.pointingAT << ", flags = " << ref.flags << std::endl;
     }
+    cursor += 4;
     return 0;
 }
 
