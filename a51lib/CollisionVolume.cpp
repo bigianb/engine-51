@@ -50,6 +50,8 @@ void CollisionData::read(InevFile& inevFile)
     inevFile.read(numLowClusters);
     inevFile.read(numLowVectors);
     inevFile.read(numLowQuads);
+    uint16_t pad;
+    inevFile.read(pad);
     inevFile.readArray(lowClusters, numLowClusters);
     inevFile.readNativeArray(lowVectors, numLowVectors);
     inevFile.readArray(lowQuads, numLowQuads);

@@ -1,6 +1,8 @@
 #include "InevFile.h"
 #include "Geom.h"
 
+#include <iostream>
+
 bool InevFile::init(uint8_t* fileData, int len)
 {
     header = reinterpret_cast<InevFileHeader*>(fileData);
@@ -10,7 +12,34 @@ bool InevFile::init(uint8_t* fileData, int len)
     pStaticData = fileData + sizeof(InevFileHeader);
     pDynamicData = pStaticData + sizeof(header->numStaticBytes);
 
+    resolve.numPointers = header->numTables;
+    static_assert(sizeof(Ref) == 16, "Ref must be 16 bytes long");
+    resolve.table = (Ref* )(pStaticData + header->numStaticBytes - (header->numTables * sizeof(Ref)));
     return true;
+}
+
+int InevFile::readAndResolvePtr()
+{
+    for( int i=0; i<resolve.numPointers; i++ )
+    {
+        const Ref& ref = resolve.table[i];
+        if (ref.offset == cursor){
+            cursor += 4;
+            if (ref.flags != 3){
+                std::cerr << "ERROR: offset in dynamic data not yet supported. Flags = " << ref.flags << std::endl;
+            }
+            return ref.pointingAT;
+        }
+    }
+    cursor += 4;
+    std::cerr << "ERROR: No pointer resolution for offset " << cursor << std::endl;
+    std::cerr << "known offsets are: " << std::endl;
+    for( int i=0; i<resolve.numPointers; i++ )
+    {
+        const Ref& ref = resolve.table[i];
+        std::cerr << ref.offset << " -> " << ref.pointingAT << ", flags = " << ref.flags << std::endl;
+    }
+    return 0;
 }
 
 void InevFile::describe(std::ostringstream& ss)
@@ -32,6 +61,10 @@ void InevFile::read(Quaternion& obj)
 
 void InevFile::read(Vector3& obj)
 {
+    // aligned to 16 bytes on the PS2
+    if (isPS2()){
+        cursor = (cursor + 0x0F) & ~0x0F;
+    }
     read(obj.x);
     read(obj.y);
     read(obj.z);

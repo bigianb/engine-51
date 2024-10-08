@@ -179,6 +179,7 @@ void Geom::read(InevFile& inevFile)
 {
     inevFile.read(bbox);
     inevFile.read(platform);
+    inevFile.setPlatform(platform);
     inevFile.read(unknown);
     inevFile.read(version);
     inevFile.read(numFaces);
@@ -212,9 +213,12 @@ void Geom::read(InevFile& inevFile)
     inevFile.readNativeArray(lodSizes, numLODs);
     inevFile.readNativeArray(lodMasks, numLODs);
     inevFile.readArray(virtualMeshes, numVirtualMeshes);
+    uint32_t x;
+    inevFile.read(x);    // Read the unused virtualMaterials pointer.
     //inevFile.readArray(virtualMaterials, numVirtualMaterials);
     inevFile.readArray(virtualTextures, numVirtualTextures);
     inevFile.readNativeArray(stringData, stringDataSize);
+    inevFile.read(x);   // Read the unused handle
 
 }
 

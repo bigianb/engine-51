@@ -29,7 +29,7 @@ struct DFSSubfile
     uint32_t checksumIndex;
 };
 
-static_assert(sizeof(DFSSubfile) == 8, "DFSSubfile must be 24 bytes long");
+static_assert(sizeof(DFSSubfile) == 8, "DFSSubfile must be 8 bytes long");
 
 struct DFSFileEntry
 {
