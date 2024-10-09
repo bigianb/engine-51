@@ -19,26 +19,26 @@ public:
 
     struct Dlist_Xbox
     {
-        uint32_t  nIndices;
-        uint16_t* pIndices;
+        uint32_t  numIndices;
+        uint16_t* indices;
 
-        uint32_t nPushSize;
-        uint8_t* pPushBuffer;
+        uint32_t pushSize;
+        uint8_t* pushBuffer;
         void*    hPushBuffer;
 
-        uint32_t     nVerts;
-        Vertex_Xbox* pVert;
+        uint32_t     numVerts;
+        Vertex_Xbox* verts;
         void*        hVert;
 
         uint32_t iBone;
-        uint32_t iColor; // Index into color table
+        uint32_t iColour; // Index into color table
 
         void read(InevFile&);
     };
 
     struct Dlist_PS2
     {
-        uint32_t nVerts;
+        uint32_t numVerts;
         int16_t* pUV;       // 2*VertIndex
         int8_t*  pNormal;   // 3*VertIndex
         Vector4* pPosition; // 1:1
@@ -61,11 +61,11 @@ public:
 
     struct Dlist_PC
     {
-        uint32_t  nIndices;
-        uint16_t* pIndices;
+        uint32_t  numIndices;
+        uint16_t* indices;
 
-        uint32_t   nVerts;
-        Vertex_PC* pVert;
+        uint32_t   numVerts;
+        Vertex_PC* verts;
 
         uint32_t iBone;
 
@@ -82,6 +82,6 @@ public:
     void read(InevFile&);
 
     CollisionData collision;
-    int32_t       nDList;
+    int32_t       numDList;
     SystemPtr     system;
 };

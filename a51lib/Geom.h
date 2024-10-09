@@ -2,12 +2,6 @@
 
 #include "VectorMath.h"
 
-struct Colour
-{
-    uint8_t b, g, r, a;
-};
-
-
 
 class InevFile;
 
@@ -270,7 +264,7 @@ public:
 
     void describe(std::ostringstream& ss);
 
-private:
+protected:
     BBox     bbox;
     int16_t  platform;
     uint16_t unknown;

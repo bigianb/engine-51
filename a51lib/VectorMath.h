@@ -1,5 +1,10 @@
 #pragma once
 
+struct Colour
+{
+    uint8_t b, g, r, a;
+};
+
 struct Vector2
 {
     float x, y;

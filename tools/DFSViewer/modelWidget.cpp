@@ -11,7 +11,6 @@ ModelWidget::ModelWidget(QWidget *parent)
 {
 }
 
-//![init-1]
 void ModelWidget::initialize(QRhiCommandBuffer *)
 {
     if (m_rhi != rhi()) {
@@ -27,9 +26,6 @@ void ModelWidget::initialize(QRhiCommandBuffer *)
         m_sampleCount = renderTarget()->sampleCount();
         scene = {};
     }
-//![init-1]
-
-//![init-2]
     if (!scene.vbuf) {
         initScene();
         updateCubeTexture();
@@ -40,9 +36,7 @@ void ModelWidget::initialize(QRhiCommandBuffer *)
     scene.mvp.translate(0, 0, -4);
     updateMvp();
 }
-//![init-2]
 
-//![rotation-update]
 void ModelWidget::updateMvp()
 {
     QMatrix4x4 mvp = scene.mvp * QMatrix4x4(QQuaternion::fromEulerAngles(QVector3D(30, itemData.cubeRotation, 0)).toRotationMatrix());
@@ -50,9 +44,7 @@ void ModelWidget::updateMvp()
         scene.resourceUpdates = m_rhi->nextResourceUpdateBatch();
     scene.resourceUpdates->updateDynamicBuffer(scene.ubuf.get(), 0, 64, mvp.constData());
 }
-//![rotation-update]
 
-//![texture-update]
 void ModelWidget::updateCubeTexture()
 {
     QImage image(CUBE_TEX_SIZE, QImage::Format_RGBA8888);
@@ -69,7 +61,7 @@ void ModelWidget::updateCubeTexture()
         scene.resourceUpdates = m_rhi->nextResourceUpdateBatch();
     scene.resourceUpdates->uploadTexture(scene.cubeTex.get(), image);
 }
-//![texture-update]
+
 
 static QShader getShader(const QString &name)
 {
@@ -79,7 +71,6 @@ static QShader getShader(const QString &name)
 
 void ModelWidget::initScene()
 {
-//![setup-scene]
     scene.vbuf.reset(m_rhi->newBuffer(QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer, sizeof(cube)));
     scene.vbuf->create();
 
@@ -127,10 +118,8 @@ void ModelWidget::initScene()
     scene.ps->setShaderResourceBindings(scene.srb.get());
     scene.ps->setRenderPassDescriptor(renderTarget()->renderPassDescriptor());
     scene.ps->create();
-//![setup-scene]
 }
 
-//![render]
 void ModelWidget::render(QRhiCommandBuffer *cb)
 {
     if (itemData.cubeRotationDirty) {
@@ -162,7 +151,6 @@ void ModelWidget::render(QRhiCommandBuffer *cb)
 
     cb->endPass();
 }
-//![render]
 
 void ModelWidget::releaseResources()
 {

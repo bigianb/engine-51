@@ -10,3 +10,9 @@ Very experimental.
 Install Qt 6 and run cmake. Nothing special - works in a vscode cmake environment just fine.
 
 Github actions build for winodws, linux and macos so you can always look at the workflow there to troubleshoot any issues you see locally.
+
+# Tools
+
+## DFSViewer
+Drag/Drop a DFS file onto the app. Left splitter panel will show contents and file sizes. Click a filename to see a preview in the right hand panel.
+In the right hand pane switch between a text description and a 3d view (not yet implemented)

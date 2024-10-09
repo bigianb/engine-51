@@ -59,12 +59,46 @@ void InevFile::read(Quaternion& obj)
     read(obj.w);
 }
 
+void InevFile::read(Colour& obj)
+{
+    read(obj.b);
+    read(obj.g);
+    read(obj.r);
+    read(obj.a);
+}
+
+void InevFile::read(Vector2& obj)
+{
+    read(obj.x);
+    read(obj.y);
+}
+
 void InevFile::read(Vector3& obj)
 {
     // aligned to 16 bytes on the PS2
+    // Maybe PC too?
     if (isPS2()){
-        cursor = (cursor + 0x0F) & ~0x0F;
+        align16();
     }
+    read(obj.x);
+    read(obj.y);
+    read(obj.z);
+    read(obj.w);
+}
+
+void InevFile::read(Vector3p& obj)
+{
+    read(obj.x);
+    read(obj.y);
+    read(obj.z);
+}
+
+// Same as Vector 3
+void InevFile::read(Vector4& obj)
+{
+    // aligned to 16 bytes on the PS2 and PC
+    align16();
+    
     read(obj.x);
     read(obj.y);
     read(obj.z);

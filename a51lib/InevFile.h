@@ -5,6 +5,7 @@
 #include <sstream>
 #include <type_traits>
 
+#include "PlatformDef.h"
 #include "VectorMath.h"
 
 struct InevFileHeader
@@ -30,15 +31,15 @@ public:
 
     bool isPC()
     {
-        return platform == 1;
+        return platform == PLATFORM_PC;
     }
     bool isPS2()
     {
-        return platform == 4;
+        return platform == PLATFORM_PS2;
     }
     bool isXBOX()
     {
-        return platform == 8;
+        return platform == PLATFORM_XBOX;
     }
 
     void setPlatform(int pf)
@@ -50,8 +51,14 @@ public:
 
     bool init(uint8_t* fileData, int len);
 
+    void align16() { cursor = (cursor + 0x0F) & ~0x0F; }
+
+    void read(Colour&);
     void read(Quaternion&);
+    void read(Vector2&);
     void read(Vector3&);
+    void read(Vector3p&);
+    void read(Vector4&);
     void read(BBox&);
     void read(int8_t&);
     void read(uint8_t&);
