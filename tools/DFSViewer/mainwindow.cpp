@@ -124,6 +124,7 @@ void MainWindow::treeItemClicked(const QModelIndex &index) {
         std::ostringstream ss;
         rigidGeom.describe(ss);
         ui->plainTextEdit->setPlainText(ss.str().c_str());
+        ui->contentTabWidgetPage2->setGeom(rigidGeom);
     } else {
         ui->plainTextEdit->setPlainText("Can't parse this format yet.");
     }

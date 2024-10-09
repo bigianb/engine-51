@@ -3,6 +3,8 @@
 #include <QRhiWidget>
 #include <rhi/qrhi.h>
 
+class RigidGeom;
+
 class ModelWidget : public QRhiWidget
 {
     Q_OBJECT
@@ -13,7 +15,9 @@ public:
     void initialize(QRhiCommandBuffer *cb) override;
     void render(QRhiCommandBuffer *cb) override;
     void releaseResources() override;
-//![data-setters]
+
+    void setGeom(RigidGeom& );
+
     void setCubeTextureText(const QString &s)
     {
         if (itemData.cubeText == s)
@@ -31,7 +35,6 @@ public:
         itemData.cubeRotationDirty = true;
         update();
     }
-//![data-setters]
 
 signals:
     void resized();

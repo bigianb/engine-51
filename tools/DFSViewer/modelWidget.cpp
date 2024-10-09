@@ -1,8 +1,10 @@
-#include "modelWidget.h"
 
-#include "cube.h"
 #include <QFile>
 #include <QPainter>
+
+#include "modelWidget.h"
+#include "cube.h"
+#include "../../a51lib/RigidGeom.h"
 
 static const QSize CUBE_TEX_SIZE(512, 512);
 
@@ -33,7 +35,7 @@ void ModelWidget::initialize(QRhiCommandBuffer *)
 
     scene.mvp = m_rhi->clipSpaceCorrMatrix();
     scene.mvp.perspective(45.0f, m_pixelSize.width() / (float) m_pixelSize.height(), 0.01f, 1000.0f);
-    scene.mvp.translate(0, 0, -4);
+    scene.mvp.translate(0, 0, -400);
     updateMvp();
 }
 
@@ -67,6 +69,20 @@ static QShader getShader(const QString &name)
 {
     QFile f(name);
     return f.open(QIODevice::ReadOnly) ? QShader::fromSerialized(f.readAll()) : QShader();
+}
+
+void ModelWidget::setGeom(RigidGeom& geom)
+{
+    int numVertices = geom.getNumVertices();
+    const int vertexSize = 5 * 4;   // x y z u v as floats
+    scene.vbuf.reset(m_rhi->newBuffer(QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer, numVertices * vertexSize));
+    scene.vbuf->create();
+
+    scene.resourceUpdates = m_rhi->nextResourceUpdateBatch();
+    float *vertexData = geom.getVerticesPUV();
+    scene.resourceUpdates->uploadStaticBuffer(scene.vbuf.get(), vertexData);
+
+    delete[] vertexData;
 }
 
 void ModelWidget::initScene()

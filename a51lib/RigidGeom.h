@@ -81,6 +81,12 @@ public:
 
     void read(InevFile&);
 
+    // Gets the number of vertices returned by getVerticesPUV.
+    int getNumVertices();
+    
+    // Gets the de-indexed vertices (so can contain duplicates) in x,y,z,u,v format.
+    float* getVerticesPUV();
+
     CollisionData collision;
     int32_t       numDList;
     SystemPtr     system;

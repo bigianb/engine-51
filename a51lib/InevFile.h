@@ -53,6 +53,8 @@ public:
 
     void align16() { cursor = (cursor + 0x0F) & ~0x0F; }
 
+    void skip(int n) { cursor += n; }
+
     void read(Colour&);
     void read(Quaternion&);
     void read(Vector2&);
