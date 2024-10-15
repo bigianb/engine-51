@@ -11,6 +11,7 @@ class ModelWidget : public QRhiWidget
 
 public:
     ModelWidget(QWidget *parent = nullptr);
+    ~ModelWidget();
 
     void initialize(QRhiCommandBuffer *cb) override;
     void render(QRhiCommandBuffer *cb) override;

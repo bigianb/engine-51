@@ -13,6 +13,10 @@ ModelWidget::ModelWidget(QWidget *parent)
 {
 }
 
+ModelWidget::~ModelWidget()
+{
+}
+
 void ModelWidget::initialize(QRhiCommandBuffer *)
 {
     if (m_rhi != rhi()) {
@@ -52,11 +56,7 @@ void ModelWidget::updateCubeTexture()
     QImage image(CUBE_TEX_SIZE, QImage::Format_RGBA8888);
     const QRect r(QPoint(0, 0), CUBE_TEX_SIZE);
     QPainter p(&image);
-    p.fillRect(r, QGradient::DeepBlue);
-    QFont font;
-    font.setPointSize(24);
-    p.setFont(font);
-    p.drawText(r, itemData.cubeText);
+    p.fillRect(r, Qt::GlobalColor::darkBlue);
     p.end();
 
     if (!scene.resourceUpdates)
@@ -78,11 +78,15 @@ void ModelWidget::setGeom(RigidGeom& geom)
     scene.vbuf.reset(m_rhi->newBuffer(QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer, numVertices * vertexSize));
     scene.vbuf->create();
 
+    float* vertexData = geom.getVerticesPUV();
+    if (scene.resourceUpdates){
+        scene.resourceUpdates->release();
+    }
     scene.resourceUpdates = m_rhi->nextResourceUpdateBatch();
-    float *vertexData = geom.getVerticesPUV();
     scene.resourceUpdates->uploadStaticBuffer(scene.vbuf.get(), vertexData);
-
     delete[] vertexData;
+
+    update();
 }
 
 void ModelWidget::initScene()

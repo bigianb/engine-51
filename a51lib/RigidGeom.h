@@ -81,6 +81,8 @@ public:
 
     void read(InevFile&);
 
+    void describe(std::ostringstream& ss);
+
     // Gets the number of vertices returned by getVerticesPUV.
     int getNumVertices();
     

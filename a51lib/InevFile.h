@@ -122,14 +122,9 @@ public:
             return;
         }
         int dataOffset = readAndResolvePtr();
-        int startCursor = cursor;
-        cursor = dataOffset;
+
         ptr = new char[size];
-        for (int i = 0; i < size; ++i) {
-            memcpy(ptr, pStaticData + cursor, size);
-            cursor += size;
-        }
-        cursor = startCursor;
+        memcpy(ptr, pStaticData + dataOffset, size);
     }
 
 private:

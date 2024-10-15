@@ -264,6 +264,12 @@ public:
 
     void describe(std::ostringstream& ss);
 
+private:
+    void describeProperty(std::ostringstream& ss, const char* prefix, int propertyIndex);
+    void describeProperies(std::ostringstream& ss);
+    void describeTextures(std::ostringstream& ss);
+    std::string lookupString(int offset);
+
 protected:
     BBox     bbox;
     int16_t  platform;

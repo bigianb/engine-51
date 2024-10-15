@@ -4,6 +4,12 @@
 #include "InevFile.h"
 #include "PlatformDef.h"
 
+void RigidGeom::describe(std::ostringstream& ss)
+{
+    Geom::describe(ss);
+    
+}
+
 void RigidGeom::read(InevFile& inevFile)
 {
     Geom::read(inevFile);

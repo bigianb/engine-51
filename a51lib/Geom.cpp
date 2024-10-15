@@ -235,6 +235,65 @@ const char* describePlatform(int plat)
     return "unknown";
 }
 
+std::string Geom::lookupString(int offset)
+{
+    return std::string(stringData + offset);
+}
+
+void Geom::describeProperty(std::ostringstream& ss, const char* prefix, int propertyIndex)
+{
+    auto& property = properties[propertyIndex];
+    ss << prefix << lookupString(property.nameOffset) << ": ";
+    switch(property.type)
+    {
+        case Property::TYPE_FLOAT:
+            ss << property.value.floatVal;
+            break;
+        case Property::TYPE_ANGLE:
+            ss << property.value.angle;
+            break;
+        case Property::TYPE_INTEGER:
+            ss << property.value.intVal;
+            break;
+        case Property::TYPE_STRING:
+            ss << lookupString(property.value.stringOffset);
+            break;
+        default:
+            ss << "unknown type: " << property.type;
+    }
+    ss << std::endl;
+}
+
+void Geom::describeProperies(std::ostringstream& ss)
+{
+    if (numPropertySections == 0){
+        ss << "  No Properties" << std::endl;
+    }
+
+    for (int ps=0; ps < numPropertySections; ++ps){
+        auto& propertySection = propertySections[ps];
+        std::string name = lookupString(propertySection.nameOffset);
+        ss << "  Section: " << name << std::endl;
+        for (int pi=propertySection.propertyIdx; pi < propertySection.propertyIdx + propertySection.numProperties; ++pi){
+            describeProperty(ss, "    ", pi);
+        }
+    }
+}
+
+void Geom::describeTextures(std::ostringstream& ss)
+{
+    if (numTextures == 0){
+        ss << "  No Textures" << std::endl;
+    }
+
+    for (int i=0; i < numTextures; ++i){
+        auto& texture = textures[i];
+        ss << "  ID: " << i << std::endl;
+        ss << "  Description: " << lookupString(texture.descOffset) << std::endl;
+        ss << "  Filename: " << lookupString(texture.fileNameOffset) << std::endl << std::endl;
+    }
+}
+
 void Geom::describe(std::ostringstream& ss)
 {
     ss << "Platform: " << describePlatform(platform) << std::endl;
@@ -260,4 +319,10 @@ void Geom::describe(std::ostringstream& ss)
     ss << "Number of virtual textures: " << numVirtualTextures << std::endl;
 
     ss << "String data size: " << stringDataSize << std::endl;
+
+    ss << std::endl << "Properties" << std::endl << "----------" << std::endl << std::endl;
+    describeProperies(ss);
+
+    ss << std::endl << "Textures" << std::endl << "--------" << std::endl << std::endl;
+    describeTextures(ss);
 }
