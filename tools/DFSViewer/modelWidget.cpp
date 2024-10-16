@@ -117,7 +117,7 @@ void ModelWidget::initScene()
     scene.ps.reset(m_rhi->newGraphicsPipeline());
     scene.ps->setDepthTest(true);
     scene.ps->setDepthWrite(true);
-    scene.ps->setCullMode(QRhiGraphicsPipeline::Back);
+    scene.ps->setCullMode(QRhiGraphicsPipeline::None);
     scene.ps->setShaderStages({
         { QRhiShaderStage::Vertex, getShader(QLatin1String(":/shaders/texture.vert.qsb")) },
         { QRhiShaderStage::Fragment, getShader(QLatin1String(":/shaders/texture.frag.qsb")) }

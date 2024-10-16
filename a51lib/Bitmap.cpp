@@ -27,7 +27,7 @@ bool Bitmap::readFile(uint8_t* fileData, int len)
         pixelData = new uint8_t[dataSize];
         memcpy(pixelData, fileData + 4*8, dataSize);
         if (clutSize > 0){
-            clutData = new u_int8_t[clutSize];
+            clutData = new uint8_t[clutSize];
             memcpy(clutData, fileData + 4*8 + dataSize, clutSize);
         }
 
