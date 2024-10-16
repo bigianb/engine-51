@@ -131,9 +131,19 @@ void MainWindow::treeItemClicked(const QModelIndex &index) {
         std::ostringstream ss;
         bitmap.describe(ss);
         ui->plainTextEdit->setPlainText(ss.str().c_str());
+        setBitmap(bitmap, ui->imageLabel);
     } else {
         ui->plainTextEdit->setPlainText("Can't parse this format yet.");
     }
+}
+
+void MainWindow::setBitmap(Bitmap& bitmap, QLabel* label)
+{
+    // TODO: is this safe? It assumes that the label takes a copy of the pixmap data.
+    // We may need to ensure that the bitmap lifetime is longer than it being displayed in the label.
+    QImage image(bitmap.pixelData, bitmap.width, bitmap.height, bitmap.physicalWidth * 4, QImage::Format_ARGB32);
+    label->setPixmap(QPixmap::fromImage(image));
+    label->resize(label->pixmap().size());
 }
 
 static QString getFilenameFromMimeData(const QMimeData* mimeData)

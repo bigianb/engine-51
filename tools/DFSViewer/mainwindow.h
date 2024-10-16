@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QLabel>
 #include <QtCore/qabstractitemmodel.h>
 
 QT_BEGIN_NAMESPACE
@@ -41,6 +42,8 @@ private:
     DFSFile* dfsFile;
 };
 
+class Bitmap;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -57,6 +60,8 @@ protected:
     void dropEvent(QDropEvent* event) override;
 
 private:
+    void setBitmap(Bitmap& bitmap, QLabel* label);
+
     DfsTreeModel* dfsTreeModel;
     DFSFile* dfsFile;
     Ui::MainWindow* ui;

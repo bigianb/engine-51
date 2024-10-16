@@ -73,6 +73,10 @@ static QShader getShader(const QString &name)
 
 void ModelWidget::setGeom(RigidGeom& geom)
 {
+    if (!m_rhi){
+        // Window has never been exposed, so rhi is not set-up
+        return;
+    }
     int numVertices = geom.getNumVertices();
     const int vertexSize = 5 * 4;   // x y z u v as floats
     scene.vbuf.reset(m_rhi->newBuffer(QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer, numVertices * vertexSize));
