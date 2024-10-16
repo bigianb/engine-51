@@ -1,5 +1,7 @@
 #include "Bitmap.h"
 
+#include <cstring>
+
 Bitmap::Bitmap()
 {
     pixelData = nullptr;
