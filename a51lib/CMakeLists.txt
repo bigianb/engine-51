@@ -2,6 +2,8 @@
 add_library(a51lib)
 
 target_sources(a51lib PRIVATE
+        Bitmap.cpp
+        Bitmap.h
         CollisionVolume.cpp
         CollisionVolume.h
         DFSFile.cpp

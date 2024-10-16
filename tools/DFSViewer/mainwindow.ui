@@ -29,9 +29,9 @@
       <widget class="QTreeView" name="treeView"/>
       <widget class="QTabWidget" name="contentTabWidget">
        <property name="currentIndex">
-        <number>1</number>
+        <number>2</number>
        </property>
-       <widget class="QWidget" name="contentTabWidgetPage1" native="true">
+       <widget class="QWidget" name="textPage">
         <attribute name="title">
          <string>Text</string>
         </attribute>
@@ -57,7 +57,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="ModelWidget" name="contentTabWidgetPage2" native="true">
+       <widget class="ModelWidget" name="modelPage">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
           <horstretch>0</horstretch>
@@ -68,6 +68,33 @@
          <string>3D</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_3"/>
+       </widget>
+       <widget class="QScrollArea" name="imagePage">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <attribute name="title">
+         <string>Image</string>
+        </attribute>
+        <widget class="QLabel" name="imageLabel">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>8</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="scaledContents">
+          <bool>true</bool>
+         </property>
+        </widget>
        </widget>
       </widget>
      </widget>
@@ -80,7 +107,7 @@
      <x>0</x>
      <y>0</y>
      <width>809</width>
-     <height>37</height>
+     <height>24</height>
     </rect>
    </property>
   </widget>

@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 
+#include "../../a51lib/Bitmap.h"
 #include "../../a51lib/DFSFile.h"
 #include "../../a51lib/RigidGeom.h"
 
@@ -105,7 +106,6 @@ void MainWindow::treeItemClicked(const QModelIndex &index) {
     int entryNo = index.row();
     //qDebug() << "Clicked row:" << entryNo;
     auto extension = dfsFile->getFileExtension(entryNo);
-    qDebug() << "Extension is:" << extension;
 
     uint8_t* fileData = dfsFile->getFileData(entryNo);
     int fileLen = dfsFile->getFileSize(entryNo);
@@ -124,7 +124,13 @@ void MainWindow::treeItemClicked(const QModelIndex &index) {
         std::ostringstream ss;
         rigidGeom.describe(ss);
         ui->plainTextEdit->setPlainText(ss.str().c_str());
-        ui->contentTabWidgetPage2->setGeom(rigidGeom);
+        ui->modelPage->setGeom(rigidGeom);
+    } else if (extension == ".XBMP"){
+        Bitmap bitmap;
+        bitmap.readFile(fileData, fileLen);
+        std::ostringstream ss;
+        bitmap.describe(ss);
+        ui->plainTextEdit->setPlainText(ss.str().c_str());
     } else {
         ui->plainTextEdit->setPlainText("Can't parse this format yet.");
     }
