@@ -12,6 +12,8 @@ target_sources(a51lib PRIVATE
         Geom.h
         InevFile.cpp
         InevFile.h
+        ResourceManager.cpp
+        ResourceManager.h
         RigidGeom.cpp
         RigidGeom.h
         VectorMath.h
