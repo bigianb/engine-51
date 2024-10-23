@@ -6,6 +6,7 @@ add_executable(
 )
 target_link_libraries(
   a51lib_test
+  a51lib
   GTest::gtest_main
 )
 
