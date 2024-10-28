@@ -141,8 +141,8 @@ void MainWindow::setBitmap(Bitmap& bitmap, QLabel* label)
 {
     // TODO: is this safe? It assumes that the label takes a copy of the pixmap data.
     // We may need to ensure that the bitmap lifetime is longer than it being displayed in the label.
-    QImage image(bitmap.pixelData, bitmap.width, bitmap.height, bitmap.physicalWidth * 4, QImage::Format_ARGB32);
-    label->setPixmap(QPixmap::fromImage(image));
+    labelImage = QImage(bitmap.pixelData, bitmap.width, bitmap.height, bitmap.physicalWidth * 4, QImage::Format_ARGB32);
+    label->setPixmap(QPixmap::fromImage(labelImage));
     label->resize(label->pixmap().size());
 }
 

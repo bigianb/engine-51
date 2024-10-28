@@ -62,6 +62,8 @@ protected:
 private:
     void setBitmap(Bitmap& bitmap, QLabel* label);
 
+    QImage labelImage;
+
     DfsTreeModel* dfsTreeModel;
     DFSFile* dfsFile;
     Ui::MainWindow* ui;

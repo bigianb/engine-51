@@ -158,7 +158,7 @@ std::string DFSFile::getFileExtension(int entryNo) const
 static uint8_t* readFile(std::string path, size_t& size)
 {
     uint8_t* data = nullptr;
-    FILE* file = fopen(path.c_str(), "r");
+    FILE* file = fopen(path.c_str(), "rb");
     if (file != nullptr) {
         fseek(file, 0, SEEK_END);
         size = ftell(file);
@@ -176,6 +176,10 @@ void DFSFile::read(std::string path)
 {
     this->path = path;
     delete[] dfsData;
+    dfsData = nullptr;
+    delete header;
+    header = nullptr;
+
     size_t size = 0;
     dfsData = readFile(path, size);
     if (dfsData != nullptr) {
