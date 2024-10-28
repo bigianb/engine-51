@@ -48,4 +48,16 @@ install(TARGETS DFSViewer
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
+if(WIN32)
+  find_program(WINDEPLOYQT_EXE windeployqt HINTS "${QT_BINARY_DIRECTORY}")
+  add_custom_command(TARGET DFSViewer POST_BUILD
+		COMMAND "${WINDEPLOYQT_EXE}" $<IF:$<CONFIG:Debug>,--debug,--release>
+									 --no-translations
+									 --no-compiler-runtime
+									 "$<TARGET_FILE:DFSViewer>"
+	)
+endif()
+
 qt_finalize_executable(DFSViewer)
+
+

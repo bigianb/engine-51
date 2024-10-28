@@ -6,11 +6,13 @@
 
 DFSFile::DFSFile()
 {
+    header = nullptr;
     dfsData = nullptr;
 }
 
 DFSFile::~DFSFile()
 {
+    delete header;
     delete[] dfsData;
     freeSubfileData();
 }
@@ -46,7 +48,7 @@ static_assert(sizeof(DFSFileEntry) == 24, "DFSFileEntry must be 24 bytes long");
 class DFSHeader
 {
 public:
-    DFSHeader(const unsigned char* data);
+    DFSHeader(const uint8_t* data);
     bool isValid()
     {
         return magic == 'XDFS' && version == 3;
