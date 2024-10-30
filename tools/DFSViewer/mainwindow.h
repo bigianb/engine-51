@@ -43,6 +43,7 @@ private:
 };
 
 class Bitmap;
+class RigidGeom;
 
 class MainWindow : public QMainWindow
 {
@@ -62,6 +63,7 @@ protected:
 
 private:
     void setBitmap(Bitmap& bitmap, QLabel* label);
+    void exportGLTF(RigidGeom& rigidGeom, QString fileName);
 
     QImage labelImage;
 
