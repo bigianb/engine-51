@@ -11,7 +11,7 @@
 #include <QDragEnterEvent>
 #include <QMimeData>
 #include <QtCore/QDir>
-
+#include <QFileDialog>
 
 DfsTreeModel::DfsTreeModel(DFSFile* dfsFile, QObject* parent)
     : QAbstractItemModel(parent)
@@ -52,7 +52,7 @@ QVariant DfsTreeModel::data(const QModelIndex& index, int role) const
     if (!index.isValid() || role != Qt::DisplayRole) {
         return {};
     }
-    if (index.column() == 0){
+    if (index.column() == 0) {
         return dfsFile->getFilename(index.row()).c_str();
     }
 
@@ -61,10 +61,11 @@ QVariant DfsTreeModel::data(const QModelIndex& index, int role) const
 
 QVariant DfsTreeModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    if (role != Qt::DisplayRole)
+    if (role != Qt::DisplayRole) {
         return QVariant();
+    }
 
-    if (section == 0){
+    if (section == 0) {
         return QVariant("Filename");
     } else {
         return "size";
@@ -89,6 +90,7 @@ MainWindow::MainWindow(QWidget* parent)
     ui->treeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
     bool ok = connect(ui->treeView, &QAbstractItemView::clicked, this, &MainWindow::treeItemClicked);
+    ok = connect(ui->actionToolbarExportFile, &QAction::triggered, this, &MainWindow::exportTriggered);
 
     dfsFile = new DFSFile();
     dfsTreeModel = new DfsTreeModel(dfsFile);
@@ -102,39 +104,65 @@ MainWindow::~MainWindow()
     delete dfsFile;
 }
 
-void MainWindow::treeItemClicked(const QModelIndex &index) {
+void MainWindow::exportTriggered()
+{
+    auto currentIndex = ui->treeView->selectionModel()->currentIndex();
+    int  entryNo = currentIndex.row();
+    auto extension = dfsFile->getFileExtension(entryNo);
+    if (extension == ".XBMP") {
+        auto origFilename = dfsFile->getBaseFilename(entryNo);
+        QString fileName = QFileDialog::getSaveFileName(this, tr("Export Png"),
+                                                        origFilename.c_str(),
+                                                        tr("PNG Files (*.png)"));
+
+        uint8_t* fileData = dfsFile->getFileData(entryNo);
+        int      fileLen = dfsFile->getFileSize(entryNo);
+        Bitmap   bitmap;
+        bitmap.readFile(fileData, fileLen);
+        auto image = QImage(bitmap.pixelData, bitmap.width, bitmap.height, bitmap.physicalWidth * 4, QImage::Format_ARGB32);
+        image.save(fileName, "PNG");
+    }
+}
+
+void MainWindow::treeItemClicked(const QModelIndex& index)
+{
     int entryNo = index.row();
     //qDebug() << "Clicked row:" << entryNo;
     auto extension = dfsFile->getFileExtension(entryNo);
 
     uint8_t* fileData = dfsFile->getFileData(entryNo);
-    int fileLen = dfsFile->getFileSize(entryNo);
+    int      fileLen = dfsFile->getFileSize(entryNo);
 
-    if (extension == ".TXT" || extension == ".VSH" || extension == ".INFO"){
-        
-        int i=0;
+    bool exportable = false;
+
+    if (extension == ".TXT" || extension == ".VSH" || extension == ".INFO") {
+
+        int                i = 0;
         std::ostringstream ss;
-        while (i < fileLen && fileData[i]){
+        while (i < fileLen && fileData[i]) {
             ss.put(fileData[i++]);
         }
         ui->plainTextEdit->setPlainText(ss.str().c_str());
-    } else if (extension == ".RIGIDGEOM"){
+    } else if (extension == ".RIGIDGEOM") {
         RigidGeom rigidGeom;
         rigidGeom.readFile(fileData, fileLen);
         std::ostringstream ss;
         rigidGeom.describe(ss);
         ui->plainTextEdit->setPlainText(ss.str().c_str());
         ui->modelPage->setGeom(rigidGeom);
-    } else if (extension == ".XBMP"){
+    } else if (extension == ".XBMP") {
         Bitmap bitmap;
         bitmap.readFile(fileData, fileLen);
         std::ostringstream ss;
         bitmap.describe(ss);
         ui->plainTextEdit->setPlainText(ss.str().c_str());
         setBitmap(bitmap, ui->imageLabel);
+        exportable = true;
     } else {
         ui->plainTextEdit->setPlainText("Can't parse this format yet.");
     }
+
+    ui->actionToolbarExportFile->setEnabled(exportable);
 }
 
 void MainWindow::setBitmap(Bitmap& bitmap, QLabel* label)
@@ -162,7 +190,7 @@ static QString getFilenameFromMimeData(const QMimeData* mimeData)
 void MainWindow::dragEnterEvent(QDragEnterEvent* event)
 {
     QString filename = getFilenameFromMimeData(event->mimeData());
-    if (filename.toLower().endsWith("dfs")){
+    if (filename.toLower().endsWith("dfs")) {
         event->acceptProposedAction();
     }
 }
@@ -170,7 +198,7 @@ void MainWindow::dragEnterEvent(QDragEnterEvent* event)
 void MainWindow::dropEvent(QDropEvent* event)
 {
     QString filename = getFilenameFromMimeData(event->mimeData());
-    if (filename.toLower().endsWith("dfs")){
+    if (filename.toLower().endsWith("dfs")) {
         dfsTreeModel->doBeginResetModel();
         dfsFile->read(filename.toStdString());
         dfsTreeModel->doEndResetModel();

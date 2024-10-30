@@ -54,6 +54,7 @@ public:
 
 public slots:
     void treeItemClicked(const QModelIndex &index);
+    void exportTriggered();
 
 protected:
     void dragEnterEvent(QDragEnterEvent* event) override;

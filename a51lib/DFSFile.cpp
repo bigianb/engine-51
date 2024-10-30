@@ -4,26 +4,7 @@
 #include <sstream>
 #include <iomanip>
 
-DFSFile::DFSFile()
-{
-    header = nullptr;
-    dfsData = nullptr;
-}
 
-DFSFile::~DFSFile()
-{
-    delete header;
-    delete[] dfsData;
-    freeSubfileData();
-}
-
-void DFSFile::freeSubfileData()
-{
-    for (uint8_t* p : subFileData) {
-        delete[] p;
-    }
-    subFileData.clear();
-}
 
 struct DFSSubfile
 {
@@ -89,6 +70,27 @@ DFSHeader::DFSHeader(const uint8_t* data)
     }
 }
 
+DFSFile::DFSFile()
+{
+    header = nullptr;
+    dfsData = nullptr;
+}
+
+DFSFile::~DFSFile()
+{
+    delete header;
+    delete[] dfsData;
+    freeSubfileData();
+}
+
+void DFSFile::freeSubfileData()
+{
+    for (uint8_t* p : subFileData) {
+        delete[] p;
+    }
+    subFileData.clear();
+}
+
 int DFSFile::numFiles() const
 {
     if (header != nullptr && header->isValid()) {
@@ -140,6 +142,20 @@ std::string DFSFile::getFilename(int entryNo) const
     filename += header->strings + file.fileNameOffset1;
     filename += header->strings + file.fileNameOffset2;
     filename += header->strings + file.extNameOffset;
+
+    return filename;
+}
+
+std::string DFSFile::getBaseFilename(int entryNo) const
+{
+    if (entryNo < 0 || entryNo >= numFiles() || header == nullptr || !header->isValid()) {
+        return "";
+    }
+
+    DFSFileEntry& file = header->files[entryNo];
+    std::string filename;
+    filename += header->strings + file.fileNameOffset1;
+    filename += header->strings + file.fileNameOffset2;
 
     return filename;
 }

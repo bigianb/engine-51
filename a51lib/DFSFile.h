@@ -14,6 +14,7 @@ public:
 
     int numFiles() const;
     std::string getFilename(int entryNo) const;
+    std::string getBaseFilename(int entryNo) const;
     std::string getFileExtension(int entryNo) const;
     int getFileSize(int entryNo) const;
     uint8_t* getFileData(int entryNo) const;
