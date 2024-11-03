@@ -124,7 +124,7 @@ void MainWindow::exportTriggered()
         int      fileLen = dfsFile->getFileSize(entryNo);
         Bitmap   bitmap;
         bitmap.readFile(fileData, fileLen);
-        auto image = QImage(bitmap.pixelData, bitmap.width, bitmap.height, bitmap.physicalWidth * 4, QImage::Format_ARGB32);
+        auto image = QImage(bitmap.data.pixelData, bitmap.width, bitmap.height, bitmap.physicalWidth * 4, QImage::Format_ARGB32);
         image.save(fileName, "PNG");
     } else if (extension == ".RIGIDGEOM") {
         QString   fileName = QFileDialog::getSaveFileName(this, tr("Export GLTF"),
@@ -273,6 +273,7 @@ void MainWindow::treeItemClicked(const QModelIndex& index)
         std::ostringstream ss;
         bitmap.describe(ss);
         ui->plainTextEdit->setPlainText(ss.str().c_str());
+        bitmap.convertFormat(Bitmap::FMT_32_ARGB_8888);
         setBitmap(bitmap, ui->imageLabel);
         exportable = true;
     } else {
@@ -286,7 +287,7 @@ void MainWindow::setBitmap(Bitmap& bitmap, QLabel* label)
 {
     // TODO: is this safe? It assumes that the label takes a copy of the pixmap data.
     // We may need to ensure that the bitmap lifetime is longer than it being displayed in the label.
-    labelImage = QImage(bitmap.pixelData, bitmap.width, bitmap.height, bitmap.physicalWidth * 4, QImage::Format_ARGB32);
+    labelImage = QImage(bitmap.data.pixelData, bitmap.width, bitmap.height, bitmap.physicalWidth * 4, QImage::Format_ARGB32);
     label->setPixmap(QPixmap::fromImage(labelImage));
     label->resize(label->pixmap().size());
 }
