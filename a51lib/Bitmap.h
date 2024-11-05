@@ -149,7 +149,8 @@ public:
     static const FormatInfo formatInfo[FMT_END_OF_LIST];
 
     void convertFormat(Format DestinationFormat);
-
+    uint8_t* getPixelData(int mip) const;
+    
 private:
     void    unswizzlePS2Clut();
     void    unflip4BitNibbles();
@@ -166,7 +167,7 @@ private:
     {
         return formatInfo[format].BPP;
     }
-    uint8_t* getPixelData(int mip) const;
+    
     int      getMipDataSize(int mip = 0) const;
 
 public:
@@ -194,3 +195,6 @@ public:
 
     uint8_t* clutData;
 };
+
+static_assert(sizeof(Bitmap::Mip) == 8, "Mip must be 8 bytes long");
+

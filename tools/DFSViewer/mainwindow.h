@@ -5,6 +5,8 @@
 #include <QLabel>
 #include <QtCore/qabstractitemmodel.h>
 
+#include "../../a51lib/Bitmap.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui
 {
@@ -65,6 +67,7 @@ private:
     void setBitmap(Bitmap& bitmap, QLabel* label);
     void exportGLTF(RigidGeom& rigidGeom, QString fileName);
 
+    Bitmap labelBitmap;
     QImage labelImage;
 
     DfsTreeModel* dfsTreeModel;

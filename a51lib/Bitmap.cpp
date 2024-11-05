@@ -17,6 +17,9 @@ Bitmap::~Bitmap()
 
 bool Bitmap::readFile(uint8_t* fileData, int len)
 {
+    delete[] data.pixelData; data.pixelData = nullptr;
+    delete[] clutData; clutData = nullptr;
+    
     int32_t* p = (int32_t*)fileData;
     dataSize = p[0];
     clutSize = p[1];
@@ -249,18 +252,18 @@ void Bitmap::unswizzlePS2Clut()
 
 uint8_t* Bitmap::getPixelData(int mip) const
 {
-    if (mip <= 0) {
-        return (data.pixelData);
+    if (mip < 0 || nMips == 0) {
+        return data.pixelData;
     }
-    return (data.pixelData + data.mipData[mip].offset);
+    return data.pixelData + data.mipData[mip].offset;
 }
 
 int Bitmap::getMipDataSize(int mip) const
 {
     if (nMips == 0) {
-        return (dataSize);
+        return dataSize;
     }
-    return ((data.mipData[mip].width * data.mipData[mip].height * formatInfo[format].BPP) >> 3);
+    return (data.mipData[mip].width * data.mipData[mip].height * formatInfo[format].BPP) >> 3;
 }
 
 void Bitmap::unflip4BitNibbles()

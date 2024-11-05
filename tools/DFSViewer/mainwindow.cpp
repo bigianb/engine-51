@@ -268,13 +268,13 @@ void MainWindow::treeItemClicked(const QModelIndex& index)
         ui->modelPage->setGeom(rigidGeom);
         exportable = true;
     } else if (extension == ".XBMP") {
-        Bitmap bitmap;
-        bitmap.readFile(fileData, fileLen);
+        ui->imageLabel->clear();
+        labelBitmap.readFile(fileData, fileLen);
         std::ostringstream ss;
-        bitmap.describe(ss);
+        labelBitmap.describe(ss);
         ui->plainTextEdit->setPlainText(ss.str().c_str());
-        bitmap.convertFormat(Bitmap::FMT_32_ARGB_8888);
-        setBitmap(bitmap, ui->imageLabel);
+        labelBitmap.convertFormat(Bitmap::FMT_32_ARGB_8888);
+        setBitmap(labelBitmap, ui->imageLabel);
         exportable = true;
     } else {
         ui->plainTextEdit->setPlainText("Can't parse this format yet.");
@@ -285,9 +285,9 @@ void MainWindow::treeItemClicked(const QModelIndex& index)
 
 void MainWindow::setBitmap(Bitmap& bitmap, QLabel* label)
 {
-    // TODO: is this safe? It assumes that the label takes a copy of the pixmap data.
-    // We may need to ensure that the bitmap lifetime is longer than it being displayed in the label.
-    labelImage = QImage(bitmap.data.pixelData, bitmap.width, bitmap.height, bitmap.physicalWidth * 4, QImage::Format_ARGB32);
+    // Qimage does not take a copy of the data.
+    // cost cast is required to ensure QImage does not modidy the buffer.
+    labelImage = QImage((const uint8_t*)bitmap.getPixelData(0), bitmap.width, bitmap.height, bitmap.physicalWidth * 4, QImage::Format_ARGB32);
     label->setPixmap(QPixmap::fromImage(labelImage));
     label->resize(label->pixmap().size());
 }
