@@ -4,6 +4,8 @@
 #include <iostream>
 #include <sstream>
 
+class Colour;
+
 class Bitmap
 {
 public:
@@ -149,9 +151,18 @@ public:
     void convertFormat(Format DestinationFormat);
 
 private:
-    void unswizzlePS2Clut();
-    void unflip4BitNibbles();
-    int  getBPP()
+    void    unswizzlePS2Clut();
+    void    unflip4BitNibbles();
+    Colour* decodeToColor(const uint8_t* source, Format sourceFormat, int count);
+    Colour* decodeIndexToColor(const uint8_t* source,
+                               const Colour*  palette,
+                               int            sourceBitsPer,
+                               int            count);
+    void    encodeFromColor(uint8_t*      destination,
+                            Format        destinationFormat,
+                            const Colour* source,
+                            int           count);
+    int     getBPP()
     {
         return formatInfo[format].BPP;
     }
