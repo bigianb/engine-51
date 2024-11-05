@@ -124,6 +124,7 @@ void MainWindow::exportTriggered()
         int      fileLen = dfsFile->getFileSize(entryNo);
         Bitmap   bitmap;
         bitmap.readFile(fileData, fileLen);
+        bitmap.convertFormat(Bitmap::FMT_32_ARGB_8888);
         auto image = QImage(bitmap.data.pixelData, bitmap.width, bitmap.height, bitmap.physicalWidth * 4, QImage::Format_ARGB32);
         image.save(fileName, "PNG");
     } else if (extension == ".RIGIDGEOM") {
@@ -211,7 +212,7 @@ void MainWindow::exportGLTF(RigidGeom& rigidGeom, QString fileName)
 
     // Define the asset. The version is required
     asset.version = "2.0";
-    asset.generator = "tinygltf";
+    asset.generator = "DFSViewer";
 
     // Now all that remains is to tie back all the loose objects into the
     // our single model.
