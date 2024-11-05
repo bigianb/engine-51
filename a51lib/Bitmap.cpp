@@ -511,7 +511,7 @@ Colour* Bitmap::decodeToColor(const uint8_t* source, Format sourceFormat, int co
                 count--;
             }
         }
-    } else {
+    } else if (sourceFormatInfo.BPC == 24){
         // 16 BPP
         while (count > 0) {
             uint16_t* source16 = (uint16_t*)source;
@@ -553,7 +553,11 @@ Colour* Bitmap::decodeToColor(const uint8_t* source, Format sourceFormat, int co
             ++source16;
             pw++;
             count--;
-        }
+        } 
+    } else if (sourceFormatInfo.BPC == 4){
+        std::cerr << "4 bpp image conversion not implemented " << std::endl;
+    } else {
+        std::cerr << "unknown BPC when converting image, " << sourceFormatInfo.BPC << std::endl;
     }
     return output;
 }
