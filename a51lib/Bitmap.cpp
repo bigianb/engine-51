@@ -17,9 +17,11 @@ Bitmap::~Bitmap()
 
 bool Bitmap::readFile(uint8_t* fileData, int len)
 {
-    delete[] data.pixelData; data.pixelData = nullptr;
-    delete[] clutData; clutData = nullptr;
-    
+    delete[] data.pixelData;
+    data.pixelData = nullptr;
+    delete[] clutData;
+    clutData = nullptr;
+
     int32_t* p = (int32_t*)fileData;
     dataSize = p[0];
     clutSize = p[1];
@@ -471,13 +473,86 @@ void Bitmap::encodeFromColor(uint8_t*      destination,
     }
 }
 
+// Coverts a 4x4 DX1 block
+void convertDX1Block(uint16_t* source, Colour* dest, int scanWidth)
+{
+    Colour colour[4];
+
+    colour[0].set565(source[0]);
+    colour[1].set565(source[1]);
+    source += 2;
+    if (source[0] > source[1]) {
+        int r = (colour[0].r * 2 + colour[1].r) / 3;
+        int g = (colour[0].g * 2 + colour[1].g) / 3;
+        int b = (colour[0].b * 2 + colour[1].b) / 3;
+        colour[2].a = 0xff;
+        colour[2].r = (uint8_t)r;
+        colour[2].g = (uint8_t)g;
+        colour[2].b = (uint8_t)b;
+
+        r = (colour[1].r * 2 + colour[0].r) / 3;
+        g = (colour[1].g * 2 + colour[0].g) / 3;
+        b = (colour[1].b * 2 + colour[0].b) / 3;
+        colour[3].a = 0xff;
+        colour[3].r = (uint8_t)r;
+        colour[3].g = (uint8_t)g;
+        colour[3].b = (uint8_t)b;
+
+        int Shift = 0;
+        for (int yy = 0; yy < 4; yy++) {
+            for (int xx = 0; xx < 4; xx++, Shift += 2) {
+                dest[xx] = colour[(source[0] >> Shift) & 3];
+            }
+
+            source += (yy & 1);
+            Shift &= 0x0f;
+            dest += scanWidth;
+        }
+    } else {
+        int r = (colour[0].r + colour[1].r) / 2;
+        int g = (colour[0].g + colour[1].g) / 2;
+        int b = (colour[0].b + colour[1].b) / 2;
+        colour[2].a = 0xff;
+        colour[2].r = (uint8_t)r;
+        colour[2].g = (uint8_t)g;
+        colour[2].b = (uint8_t)b;
+        colour[3].clear();
+
+        int Shift = 0;
+        for (int yy = 0; yy < 4; yy++) {
+            for (int xx = 0; xx < 4; xx++, Shift += 2) {
+                dest[xx] = colour[(source[0] >> Shift) & 3];
+            }
+
+            source += (yy & 1);
+            Shift &= 0x0f;
+            dest += scanWidth;
+        }
+    }
+}
+
+void Bitmap::decodeDXT1ToColour(const uint8_t* source, Colour* dest)
+{
+    uint16_t* source16 = (uint16_t*)source;
+    Colour*   pd = dest;
+    for (int y = 0; y < height; y += 4) {
+        for (int x = 0; x < physicalWidth; x += 4) {
+            convertDX1Block(source16, pd + x, physicalWidth);
+            source16 += 4;
+        }
+        pd += physicalWidth * 4;
+    }
+}
+
 Colour* Bitmap::decodeToColor(const uint8_t* source, Format sourceFormat, int count)
 {
     const FormatInfo& sourceFormatInfo = formatInfo[sourceFormat];
 
     Colour* output = new Colour[count];
     Colour* pw = output;
-    if (sourceFormatInfo.BPC == 32) {
+    if (sourceFormat == FMT_DXT1) {
+        decodeDXT1ToColour(source, output);
+    } else if (sourceFormatInfo.BPC == 32) {
         uint32_t* source32 = (uint32_t*)source;
 
         while (count > 0) {
@@ -511,7 +586,7 @@ Colour* Bitmap::decodeToColor(const uint8_t* source, Format sourceFormat, int co
                 count--;
             }
         }
-    } else if (sourceFormatInfo.BPC == 24){
+    } else if (sourceFormatInfo.BPC == 24) {
         // 16 BPP
         while (count > 0) {
             uint16_t* source16 = (uint16_t*)source;
@@ -553,8 +628,8 @@ Colour* Bitmap::decodeToColor(const uint8_t* source, Format sourceFormat, int co
             ++source16;
             pw++;
             count--;
-        } 
-    } else if (sourceFormatInfo.BPC == 4){
+        }
+    } else if (sourceFormatInfo.BPC == 4) {
         std::cerr << "4 bpp image conversion not implemented " << std::endl;
     } else {
         std::cerr << "unknown BPC when converting image, " << sourceFormatInfo.BPC << std::endl;

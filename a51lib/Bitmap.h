@@ -148,12 +148,13 @@ public:
 
     static const FormatInfo formatInfo[FMT_END_OF_LIST];
 
-    void convertFormat(Format DestinationFormat);
+    void     convertFormat(Format DestinationFormat);
     uint8_t* getPixelData(int mip) const;
-    
+
 private:
     void    unswizzlePS2Clut();
     void    unflip4BitNibbles();
+    void    decodeDXT1ToColour(const uint8_t* source, Colour* dest);
     Colour* decodeToColor(const uint8_t* source, Format sourceFormat, int count);
     Colour* decodeIndexToColor(const uint8_t* source,
                                const Colour*  palette,
@@ -167,8 +168,8 @@ private:
     {
         return formatInfo[format].BPP;
     }
-    
-    int      getMipDataSize(int mip = 0) const;
+
+    int getMipDataSize(int mip = 0) const;
 
 public:
     int          dataSize;
@@ -197,4 +198,3 @@ public:
 };
 
 static_assert(sizeof(Bitmap::Mip) == 8, "Mip must be 8 bytes long");
-
