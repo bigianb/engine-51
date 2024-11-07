@@ -32,7 +32,7 @@ public:
     DFSHeader(const uint8_t* data);
     bool isValid()
     {
-        return magic == 'XDFS' && version == 3;
+        return magic == 'XDFS' && (version == 3 || version == 1);
     }
 
     unsigned int magic;
@@ -54,17 +54,22 @@ DFSHeader::DFSHeader(const uint8_t* data)
     const uint32_t* u32Data = (const uint32_t*)data;
     magic = u32Data[0];
     version = u32Data[1];
-    checksum = u32Data[2];
+    int idx = 2;
     if (isValid()) {
-        sectorSize = u32Data[3];
-        splitSize = u32Data[4];
-        numFiles = u32Data[5];
-        numSubFiles = u32Data[6];
-        stringsLengthBytes = u32Data[7];
-        subFileTable = (DFSSubfile*)(data + u32Data[8]);
-        files = (DFSFileEntry*)(data + u32Data[9]);
-        checksums = (uint16_t*)(data + u32Data[10]);
-        strings = (char*)(data + u32Data[11]);
+        if (version == 3){
+            checksum = u32Data[idx++];
+        }
+        sectorSize = u32Data[idx++];
+        splitSize = u32Data[idx++];
+        numFiles = u32Data[idx++];
+        numSubFiles = u32Data[idx++];
+        stringsLengthBytes = u32Data[idx++];
+        subFileTable = (DFSSubfile*)(data + u32Data[idx++]);
+        files = (DFSFileEntry*)(data + u32Data[idx++]);
+        if (version == 3){
+            checksums = (uint16_t*)(data + u32Data[idx++]);
+        }
+        strings = (char*)(data + u32Data[idx++]);
     } else {
         std::cerr << "DFS File is not valid" << std::endl;
     }
