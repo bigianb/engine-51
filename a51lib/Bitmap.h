@@ -155,6 +155,7 @@ private:
     void    unswizzlePS2Clut();
     void    unflip4BitNibbles();
     void    decodeDXT1ToColour(const uint8_t* source, Colour* dest);
+    void    decodeDXT5ToColour(const uint8_t* source, Colour* dest);
     Colour* decodeToColor(const uint8_t* source, Format sourceFormat, int count);
     Colour* decodeIndexToColor(const uint8_t* source,
                                const Colour*  palette,

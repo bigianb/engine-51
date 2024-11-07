@@ -473,6 +473,45 @@ void Bitmap::encodeFromColor(uint8_t*      destination,
     }
 }
 
+// https://en.wikipedia.org/wiki/S3_Texture_Compression
+void convertDX5Alpha(uint16_t* source, Colour* dest, int scanWidth)
+{
+    uint8_t alpha[8];
+
+    uint8_t* s8 = (uint8_t*)source;
+
+    alpha[0] = s8[0];
+    alpha[1] = s8[1];
+    if (alpha[0] > alpha[1]) {
+        alpha[2] = (uint8_t)((6 * alpha[0] + alpha[1]) / 7);
+        alpha[3] = (uint8_t)((5 * alpha[0] + 2 * alpha[1]) / 7);
+        alpha[4] = (uint8_t)((4 * alpha[0] + 3 * alpha[1]) / 7);
+        alpha[5] = (uint8_t)((3 * alpha[0] + 4 * alpha[1]) / 7);
+        alpha[6] = (uint8_t)((2 * alpha[0] + 5 * alpha[1]) / 7);
+        alpha[7] = (uint8_t)((alpha[0] + 6 * alpha[1]) / 7);
+    } else {
+        alpha[2] = (uint8_t)((4 * alpha[0] + alpha[1]) / 5);
+        alpha[3] = (uint8_t)((3 * alpha[0] + 2 * alpha[1]) / 5);
+        alpha[4] = (uint8_t)((2 * alpha[0] + 3 * alpha[1]) / 5);
+        alpha[5] = (uint8_t)((alpha[0] + 4 * alpha[1]) / 5);
+        alpha[6] = 0;
+        alpha[7] = 255;
+    }
+    int shift = 0;
+    uint64_t bits = source[3];
+    bits <<= 16;
+    bits |= source[2];
+    bits <<= 16;
+    bits |= source[1];
+    for (int y = 0; y < 4; y++) {
+        for (int x = 0; x < 4; x++) {
+            dest[x].a = alpha[(bits >> shift) & 7];
+            shift += 3;
+        }
+        dest += scanWidth;
+    }
+}
+
 // Coverts a 4x4 DX1 block
 void convertDX1Block(uint16_t* source, Colour* dest, int scanWidth)
 {
@@ -480,7 +519,7 @@ void convertDX1Block(uint16_t* source, Colour* dest, int scanWidth)
 
     colour[0].set565(source[0]);
     colour[1].set565(source[1]);
-    source += 2;
+
     if (source[0] > source[1]) {
         int r = (colour[0].r * 2 + colour[1].r) / 3;
         int g = (colour[0].g * 2 + colour[1].g) / 3;
@@ -497,17 +536,6 @@ void convertDX1Block(uint16_t* source, Colour* dest, int scanWidth)
         colour[3].r = (uint8_t)r;
         colour[3].g = (uint8_t)g;
         colour[3].b = (uint8_t)b;
-
-        int Shift = 0;
-        for (int yy = 0; yy < 4; yy++) {
-            for (int xx = 0; xx < 4; xx++, Shift += 2) {
-                dest[xx] = colour[(source[0] >> Shift) & 3];
-            }
-
-            source += (yy & 1);
-            Shift &= 0x0f;
-            dest += scanWidth;
-        }
     } else {
         int r = (colour[0].r + colour[1].r) / 2;
         int g = (colour[0].g + colour[1].g) / 2;
@@ -517,17 +545,15 @@ void convertDX1Block(uint16_t* source, Colour* dest, int scanWidth)
         colour[2].g = (uint8_t)g;
         colour[2].b = (uint8_t)b;
         colour[3].clear();
-
-        int Shift = 0;
-        for (int yy = 0; yy < 4; yy++) {
-            for (int xx = 0; xx < 4; xx++, Shift += 2) {
-                dest[xx] = colour[(source[0] >> Shift) & 3];
-            }
-
-            source += (yy & 1);
-            Shift &= 0x0f;
-            dest += scanWidth;
+    }
+    uint64_t bits = source[2] | (source[3] << 16);
+    int shift = 0;
+    for (int y = 0; y < 4; y++) {
+        for (int x = 0; x < 4; x++) {
+            dest[x] = colour[(bits >> shift) & 3];
+            shift += 2;
         }
+        dest += scanWidth;
     }
 }
 
@@ -544,6 +570,20 @@ void Bitmap::decodeDXT1ToColour(const uint8_t* source, Colour* dest)
     }
 }
 
+void Bitmap::decodeDXT5ToColour(const uint8_t* source, Colour* dest)
+{
+    uint16_t* source16 = (uint16_t*)source;
+    Colour*   pd = dest;
+    for (int y = 0; y < height; y += 4) {
+        for (int x = 0; x < physicalWidth; x += 4) {
+            convertDX1Block(source16 + 4, pd + x, physicalWidth);
+            convertDX5Alpha(source16, pd + x, physicalWidth);
+            source16 += 8;
+        }
+        pd += physicalWidth * 4;
+    }
+}
+
 Colour* Bitmap::decodeToColor(const uint8_t* source, Format sourceFormat, int count)
 {
     const FormatInfo& sourceFormatInfo = formatInfo[sourceFormat];
@@ -552,6 +592,8 @@ Colour* Bitmap::decodeToColor(const uint8_t* source, Format sourceFormat, int co
     Colour* pw = output;
     if (sourceFormat == FMT_DXT1) {
         decodeDXT1ToColour(source, output);
+    } else if (sourceFormat == FMT_DXT5) {
+        decodeDXT5ToColour(source, output);
     } else if (sourceFormatInfo.BPC == 32) {
         uint32_t* source32 = (uint32_t*)source;
 
