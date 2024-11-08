@@ -512,15 +512,29 @@ void convertDX5Alpha(uint16_t* source, Colour* dest, int scanWidth)
     }
 }
 
+void convertDX2Alpha(uint16_t* source, Colour* dest, int scanWidth)
+{
+    int shift = 0;
+
+    for (int y = 0; y < 4; y++) {
+        // 4 bits per alpha, so 1 uint16 per row.
+        uint16_t bits = source[y];
+        for (int x = 0; x < 4; x++) {
+            dest[x].a = ((bits >> (x * 4)) << 4) & 0xF0;
+        }
+        dest += scanWidth;
+    }
+}
+
 // Coverts a 4x4 DX1 block
-void convertDX1Block(uint16_t* source, Colour* dest, int scanWidth)
+void convertDX1Block(uint16_t* source, Colour* dest, int scanWidth, bool force4Colour = false)
 {
     Colour colour[4];
 
     colour[0].set565(source[0]);
     colour[1].set565(source[1]);
 
-    if (source[0] > source[1]) {
+    if (force4Colour || (source[0] > source[1])) {
         int r = (colour[0].r * 2 + colour[1].r) / 3;
         int g = (colour[0].g * 2 + colour[1].g) / 3;
         int b = (colour[0].b * 2 + colour[1].b) / 3;
@@ -570,6 +584,20 @@ void Bitmap::decodeDXT1ToColour(const uint8_t* source, Colour* dest)
     }
 }
 
+void Bitmap::decodeDXT2ToColour(const uint8_t* source, Colour* dest)
+{
+    uint16_t* source16 = (uint16_t*)source;
+    Colour*   pd = dest;
+    for (int y = 0; y < height; y += 4) {
+        for (int x = 0; x < physicalWidth; x += 4) {
+            convertDX1Block(source16 + 4, pd + x, physicalWidth, true);
+            convertDX2Alpha(source16, pd + x, physicalWidth);
+            source16 += 8;
+        }
+        pd += physicalWidth * 4;
+    }
+}
+
 void Bitmap::decodeDXT5ToColour(const uint8_t* source, Colour* dest)
 {
     uint16_t* source16 = (uint16_t*)source;
@@ -592,7 +620,9 @@ Colour* Bitmap::decodeToColor(const uint8_t* source, Format sourceFormat, int co
     Colour* pw = output;
     if (sourceFormat == FMT_DXT1) {
         decodeDXT1ToColour(source, output);
-    } else if (sourceFormat == FMT_DXT5) {
+    }else if (sourceFormat == FMT_DXT2 || sourceFormat == FMT_DXT3) {
+        decodeDXT2ToColour(source, output);
+    } else if (sourceFormat == FMT_DXT4 || sourceFormat == FMT_DXT5) {
         decodeDXT5ToColour(source, output);
     } else if (sourceFormatInfo.BPC == 32) {
         uint32_t* source32 = (uint32_t*)source;
