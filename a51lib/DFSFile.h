@@ -23,6 +23,7 @@ public:
 private:
     void readDataFiles();
     void freeSubfileData();
+    uint32_t getSubfileOffset(int idx) const;
 
     std::string path;
 

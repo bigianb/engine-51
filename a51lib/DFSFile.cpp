@@ -5,14 +5,16 @@
 #include <iomanip>
 
 
+struct DFSSubfile1
+{
+    uint32_t offset;
+};
 
-struct DFSSubfile
+struct DFSSubfile3
 {
     uint32_t offset;
     uint32_t checksumIndex;
 };
-
-static_assert(sizeof(DFSSubfile) == 8, "DFSSubfile must be 8 bytes long");
 
 struct DFSFileEntry
 {
@@ -43,7 +45,10 @@ public:
     unsigned int numFiles;
     unsigned int numSubFiles;
     unsigned int stringsLengthBytes;
-    DFSSubfile* subFileTable;
+
+    DFSSubfile1* subFileTable1;
+    DFSSubfile3* subFileTable3;
+
     DFSFileEntry* files;
     uint16_t* checksums;
     char* strings;
@@ -64,7 +69,13 @@ DFSHeader::DFSHeader(const uint8_t* data)
         numFiles = u32Data[idx++];
         numSubFiles = u32Data[idx++];
         stringsLengthBytes = u32Data[idx++];
-        subFileTable = (DFSSubfile*)(data + u32Data[idx++]);
+        if (version == 1){
+            subFileTable1 = (DFSSubfile1*)(data + u32Data[idx++]);
+            subFileTable3 = nullptr;
+        } else {
+            subFileTable1 = nullptr;
+            subFileTable3 = (DFSSubfile3*)(data + u32Data[idx++]);
+        }
         files = (DFSFileEntry*)(data + u32Data[idx++]);
         if (version == 3){
             checksums = (uint16_t*)(data + u32Data[idx++]);
@@ -113,6 +124,14 @@ int DFSFile::getFileSize(int entryNo) const
     return file.length;
 }
 
+uint32_t DFSFile::getSubfileOffset(int idx) const
+{
+    if (header->subFileTable1 != nullptr){
+        return header->subFileTable1[idx].offset;
+    }
+    return header->subFileTable3[idx].offset;
+}
+
 uint8_t* DFSFile::getFileData(int entryNo) const
 {
     if (entryNo < 0 || entryNo >= numFiles() || header == nullptr || !header->isValid()) {
@@ -121,7 +140,7 @@ uint8_t* DFSFile::getFileData(int entryNo) const
     DFSFileEntry& file = header->files[entryNo];
     int subFileIdx = 0;
     while(subFileIdx < header->numSubFiles) {
-        if (file.dataOffset < header->subFileTable[subFileIdx].offset){
+        if (file.dataOffset < getSubfileOffset(subFileIdx)){
             // assumes sub-file offsets are in descending order and entries do not span sub-files.
             break;
         }
@@ -129,7 +148,7 @@ uint8_t* DFSFile::getFileData(int entryNo) const
     }
     int subOffset = file.dataOffset;
     if (subFileIdx > 0){
-        subOffset -= header->subFileTable[subFileIdx-1].offset;
+        subOffset -= getSubfileOffset(subFileIdx-1);
     }
     return subFileData[subFileIdx] + subOffset;
 }
