@@ -13,6 +13,10 @@ void RigidGeom::describe(std::ostringstream& ss)
 void RigidGeom::read(InevFile& inevFile)
 {
     Geom::read(inevFile);
+    if (version != 41){
+        // TODO: figure out other versions
+        return;
+    }
     inevFile.read(collision);
     inevFile.align16();
     inevFile.read(numDList);

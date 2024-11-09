@@ -179,8 +179,14 @@ void Geom::read(InevFile& inevFile)
 {
     inevFile.read(bbox);
     inevFile.read(platform);
-    inevFile.setPlatform(platform);
+    if (platform > 8){
+        // xbox demo has a float followed by the platform
+        inevFile.skip(2);
+        inevFile.read(platform);
+    }
     inevFile.read(unknown);
+    inevFile.setPlatform(platform);
+    
     inevFile.read(version);
     inevFile.read(numFaces);
     inevFile.read(numVertices);
@@ -199,6 +205,11 @@ void Geom::read(InevFile& inevFile)
     inevFile.read(numVirtualMaterials);
     inevFile.read(numVirtualTextures);
     inevFile.read(stringDataSize);
+
+    if (version != 41){
+        // other versions will crash.
+        return;
+    }
 
     inevFile.readArray(bones, numBones);
     inevFile.readArray(boneMasks, numBoneMasks);
