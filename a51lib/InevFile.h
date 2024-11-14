@@ -42,6 +42,8 @@ public:
         return platform == PLATFORM_XBOX;
     }
 
+    int findOffsetForPtr(int ptr);
+
     void setPlatform(int pf)
     {
         platform = pf;
@@ -54,6 +56,8 @@ public:
     void align16() { cursor = (cursor + 0x0F) & ~0x0F; }
 
     void skip(int n) { cursor += n; }
+
+    int readInt();
 
     void read(Colour&);
     void read(Quaternion&);

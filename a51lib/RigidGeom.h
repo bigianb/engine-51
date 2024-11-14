@@ -80,6 +80,7 @@ public:
     };
 
     void read(InevFile&);
+    void readXboxDemo(InevFile&);
 
     void describe(std::ostringstream& ss);
 

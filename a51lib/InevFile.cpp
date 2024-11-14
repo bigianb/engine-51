@@ -18,6 +18,18 @@ bool InevFile::init(uint8_t* fileData, int len)
     return true;
 }
 
+int InevFile::findOffsetForPtr(int ptr)
+{
+    for( int i=0; i<resolve.numPointers; i++ )
+    {
+        const Ref& ref = resolve.table[i];
+        if (ref.offset == ptr){
+            return ref.pointingAT;
+        }
+    }
+    return -1;
+}
+
 int InevFile::readAndResolvePtr()
 {
     for( int i=0; i<resolve.numPointers; i++ )
@@ -25,10 +37,15 @@ int InevFile::readAndResolvePtr()
         const Ref& ref = resolve.table[i];
         if (ref.offset == cursor){
             cursor += 4;
-            if (ref.flags != 3){
+            if (ref.flags == 3){
+                return ref.pointingAT;
+            } else if (ref.flags == 1){
+                // points to dynamic data, resolves a pointer in the static space
+                return ref.pointingAT + header->numStaticBytes;
+            } else {
+                // 0 is a dynamic reference in a dynamic area.
                 std::cerr << "ERROR: offset in dynamic data not yet supported. Flags = " << ref.flags << std::endl;
             }
-            return ref.pointingAT;
         }
     }
     std::cerr << "ERROR: No pointer resolution for offset " << cursor << std::endl;
@@ -49,6 +66,13 @@ void InevFile::describe(std::ostringstream& ss)
     ss << "Num static bytes: " << header->numStaticBytes << std::endl;
     ss << "Num tables: " << header->numTables << std::endl;
     ss << "Num dynamic bytes: " << header->numDynamicBytes << std::endl;
+
+    ss << "Pointer resolutions:" << std::endl;
+    for( int i=0; i<resolve.numPointers; i++ )
+    {
+        const Ref& ref = resolve.table[i];
+        ss << "    " << ref.offset << " -> " << ref.pointingAT << ", flags = " << ref.flags << std::endl;
+    }
 }
 
 void InevFile::read(Quaternion& obj)
@@ -142,6 +166,13 @@ void InevFile::read(float& obj)
     const uint8_t* p = pStaticData + cursor;
     obj = *(float*)p;
     cursor += 4;
+}
+
+int InevFile::readInt()
+{
+    int i;
+    read(i);
+    return i;
 }
 
 void InevFile::read(int& obj)

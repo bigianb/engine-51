@@ -175,15 +175,11 @@ bool Geom::readFile(uint8_t* fileData, int len)
     return true;
 }
 
+
 void Geom::read(InevFile& inevFile)
 {
     inevFile.read(bbox);
     inevFile.read(platform);
-    if (platform > 8){
-        // xbox demo has a float followed by the platform
-        inevFile.skip(2);
-        inevFile.read(platform);
-    }
     inevFile.read(unknown);
     inevFile.setPlatform(platform);
     
@@ -296,7 +292,10 @@ void Geom::describeTextures(std::ostringstream& ss)
     if (numTextures == 0){
         ss << "  No Textures" << std::endl;
     }
-
+    if (nullptr == textures){
+        // demo geoms are not fully parsed.
+        return;
+    }
     for (int i=0; i < numTextures; ++i){
         auto& texture = textures[i];
         ss << "  ID: " << i << std::endl;
