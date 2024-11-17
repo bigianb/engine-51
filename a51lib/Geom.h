@@ -270,6 +270,7 @@ private:
     void describeProperty(std::ostringstream& ss, const char* prefix, int propertyIndex);
     void describeProperies(std::ostringstream& ss);
     void describeTextures(std::ostringstream& ss);
+    void describeMeshes(std::ostringstream& ss);
     std::string lookupString(int offset);
 
 protected:

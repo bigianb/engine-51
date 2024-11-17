@@ -152,12 +152,54 @@ void VirtualTexture::read(InevFile& inevFile)
 Geom::Geom()
 {
     bones = nullptr;
+    boneMasks = nullptr;
+    properties = nullptr;
+    propertySections = nullptr;
+    rigidBodies = nullptr;
+    meshes = nullptr;
+    subMeshes = nullptr;
+    materials = nullptr;
+    textures = nullptr;
+    uvKeys = nullptr;
+    lodSizes = nullptr;
+    lodMasks = nullptr;
+    virtualMeshes = nullptr;
+    virtualTextures = nullptr;
+    stringData = nullptr;
 }
 
 Geom::~Geom()
 {
-    delete bones;
+    delete[] bones;
     bones = nullptr;
+    delete[] boneMasks;
+    boneMasks = nullptr;
+    delete[] properties;
+    properties = nullptr;
+    delete[] propertySections;
+    propertySections = nullptr;
+    delete[] rigidBodies;
+    rigidBodies = nullptr;
+    delete[] meshes;
+    meshes = nullptr;
+    delete[] subMeshes;
+    subMeshes = nullptr;
+    delete[] materials;
+    materials = nullptr;
+    delete[] textures;
+    textures = nullptr;
+    delete[] uvKeys;
+    uvKeys = nullptr;
+    delete[] lodSizes;
+    lodSizes = nullptr;
+    delete[] lodMasks;
+    lodMasks = nullptr;
+    delete[] virtualMeshes;
+    virtualMeshes = nullptr;
+    delete[] virtualTextures;
+    virtualTextures = nullptr;
+    delete[] stringData;
+    stringData = nullptr;
 }
 
 bool Geom::readFile(uint8_t* fileData, int len)
@@ -304,6 +346,11 @@ void Geom::describeTextures(std::ostringstream& ss)
     }
 }
 
+void Geom::describeMeshes(std::ostringstream& ss)
+{
+
+}
+
 void Geom::describe(std::ostringstream& ss)
 {
     ss << "Platform: " << describePlatform(platform) << std::endl;
@@ -329,6 +376,9 @@ void Geom::describe(std::ostringstream& ss)
     ss << "Number of virtual textures: " << numVirtualTextures << std::endl;
 
     ss << "String data size: " << stringDataSize << std::endl;
+
+    ss << std::endl << "Meshes" << std::endl << "------" << std::endl << std::endl;
+    describeMeshes(ss);
 
     ss << std::endl << "Properties" << std::endl << "----------" << std::endl << std::endl;
     describeProperies(ss);
