@@ -264,6 +264,8 @@ public:
 
     void describe(std::ostringstream& ss);
 
+    const BBox& getBoundingBox() const {return bbox;}
+
 private:
     void describeProperty(std::ostringstream& ss, const char* prefix, int propertyIndex);
     void describeProperies(std::ostringstream& ss);
