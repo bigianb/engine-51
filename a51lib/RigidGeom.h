@@ -85,10 +85,10 @@ public:
     void describe(std::ostringstream& ss);
 
     // Gets the number of vertices returned by getVerticesPUV.
-    int getNumVertices();
+    int getNumVertices(int meshNo);
     
     // Gets the de-indexed vertices (so can contain duplicates) in x,y,z,u,v format.
-    float* getVerticesPUV();
+    float* getVerticesPUV(int meshNo);
 
     CollisionData collision;
     int32_t       numDList;

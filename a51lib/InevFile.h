@@ -53,9 +53,25 @@ public:
 
     bool init(uint8_t* fileData, int len);
 
-    void align16() { cursor = (cursor + 0x0F) & ~0x0F; }
+    void align16()
+    {
+        cursor = (cursor + 0x0F) & ~0x0F;
+    }
 
-    void skip(int n) { cursor += n; }
+    void skip(int n)
+    {
+        cursor += n;
+    }
+
+    int getCursor()
+    {
+        return cursor;
+    }
+    
+    void setCursor(int c)
+    {
+        cursor = c;
+    }
 
     int readInt();
 

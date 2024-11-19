@@ -77,12 +77,12 @@ void ModelWidget::setGeom(RigidGeom& geom)
         // Window has never been exposed, so rhi is not set-up
         return;
     }
-    int numVertices = geom.getNumVertices();
+    int numVertices = geom.getNumVertices(0);
     const int vertexSize = 5 * 4;   // x y z u v as floats
     scene.vbuf.reset(m_rhi->newBuffer(QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer, numVertices * vertexSize));
     scene.vbuf->create();
 
-    float* vertexData = geom.getVerticesPUV();
+    float* vertexData = geom.getVerticesPUV(0);
     if (scene.resourceUpdates){
         scene.resourceUpdates->release();
     }

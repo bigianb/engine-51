@@ -1,4 +1,5 @@
 #include <cassert>
+#include <iostream>
 
 #include "RigidGeom.h"
 #include "InevFile.h"
@@ -7,18 +8,16 @@
 void RigidGeom::describe(std::ostringstream& ss)
 {
     Geom::describe(ss);
-    
 }
 
 void RigidGeom::read(InevFile& inevFile)
 {
-    if (inevFile.findOffsetForPtr(56) == 224){
+    if (inevFile.findOffsetForPtr(56) == 224) {
         readXboxDemo(inevFile);
         return;
-
     }
     Geom::read(inevFile);
-    if (version != 41){
+    if (version != 41) {
         // TODO: figure out other versions
         return;
     }
@@ -58,16 +57,49 @@ void RigidGeom::readXboxDemo(InevFile& inevFile)
     numFaces = inevFile.readInt();
     numVertices = inevFile.readInt();
     numMeshes = inevFile.readInt();
-    inevFile.skip(4);           // skip mesh reading for now. Just contains a BBox
+    meshes = new Mesh[numMeshes];
+    int meshesOffset = inevFile.readAndResolvePtr();
+    int saved = inevFile.getCursor();
+    inevFile.setCursor(meshesOffset);
+    for (int i=0; i<numMeshes; ++i){
+        auto& mesh = meshes[i];
+        inevFile.read(mesh.bbox);
+        mesh.nSubMeshes = 0;
+        mesh.iSubMesh = 0;
+        mesh.nBones = 0;
+        mesh.nFaces = 0;
+        mesh.nVertices = 0;
+    }
+    inevFile.setCursor(saved);
 
     int numNames = inevFile.readInt();
-    inevFile.skip(4);                   // pointer to a string
+    inevFile.skip(4); // pointer to a string
 
     numSubMeshes = inevFile.readInt();
-    inevFile.skip(4);                   // each submesh looks like 4 ints.
+    subMeshes = new Submesh[numSubMeshes];
+    int submeshesOffset = inevFile.readAndResolvePtr();
+    saved = inevFile.getCursor();
+    inevFile.setCursor(submeshesOffset);
+    // each submesh looks like 4 ints.
+    for (int i=0; i<numSubMeshes; ++i){
+        auto& submesh = subMeshes[i];
+        submesh.iDList = inevFile.readInt();
+        submesh.iMaterial = inevFile.readInt();
+        submesh.worldPixelSize = 0.0;
+        int extra1 = inevFile.readInt();
+        int extra2 = inevFile.readInt();
+        
+        std::cout << "submesh extra1: " << extra1 << " ( as float= " <<  *((float*)&extra1) << ") 0x" << std::hex << extra1 << std::dec << std::endl;
+        std::cout << "submesh extra2: " << extra2 << " ( as float= " <<  *((float*)&extra2) << ") 0x" << std::hex << extra2 << std::dec << std::endl;
+        std::cout << std::endl;
+    }
+    // Assume there is aways 1 mesh and it has all the subMeshes.
+    meshes[0].nSubMeshes = numSubMeshes;
 
+    inevFile.setCursor(saved);
+    
     numMaterials = inevFile.readInt();
-    inevFile.skip(4);                   // need to figure materials out
+    inevFile.skip(4); // need to figure materials out
 
     numTextures = inevFile.readInt();
     inevFile.skip(4);
@@ -75,7 +107,7 @@ void RigidGeom::readXboxDemo(InevFile& inevFile)
 
     /*
     Example from blue_col_offcol_4x8_001.RIGIDGEOM
-    
+
     Pointer resolutions:
         56 -> 224, flags = 3
         64 -> 256, flags = 3
@@ -94,308 +126,304 @@ void RigidGeom::readXboxDemo(InevFile& inevFile)
         1944 -> 0, flags = 1
         1964 -> 2784, flags = 3
         1972 -> 2880, flags = 3
-        1984 -> 576, flags = 1    
+        1984 -> 576, flags = 1
     */
-   /*
-        BBox        // 0 - 31
-        int unk     // 32
-        int plat    // 36
-        int ver     // 40
-        int         // 44   32      // num faces maybe
-        int         // 48   48      // num vertices
-        
-        int         // 52   // len (1)  // num meshes
-        ptr         // 56    -> 224
+    /*
+         BBox        // 0 - 31
+         int unk     // 32
+         int plat    // 36
+         int ver     // 40
+         int         // 44   32      // num faces maybe
+         int         // 48   48      // num vertices
 
-        int         // 60   len (1)
-        ptr         // 64   -> 256 points to a string
+         int         // 52   // len (1)  // num meshes
+         ptr         // 56    -> 224
 
-        int         // 68   len (2)     // num submeshes
-        ptr         // 72  -> 352 (points to file offset 0x174)
+         int         // 60   len (1)
+         ptr         // 64   -> 256 points to a string
 
-        // File off 0x60
-        int         // 76   len (2)     // num materials
-        ptr         // 80   -> 384
+         int         // 68   len (2)     // num submeshes
+         ptr         // 72  -> 352 (points to file offset 0x174)
 
-        int         numTextures // 84   len (3)
-        ptr         textures    // 88   -> 608
+         // File off 0x60
+         int         // 76   len (2)     // num materials
+         ptr         // 80   -> 384
 
-        int             // 92
-        ptr (unused)    // 96
+         int         numTextures // 84   len (3)
+         ptr         textures    // 88   -> 608
 
-        int         // 100  len (2)
-        ptr         // 104 -> 1376
-*/
+         int             // 92
+         ptr (unused)    // 96
+
+         int         // 100  len (2)
+         ptr         // 104 -> 1376
+ */
 
     // Looks like the rigidgeom part stays the same
     inevFile.skip(4);
     inevFile.read(collision);
-/*
-        float       // 108      // pad?
-CollisionData
-        // file off 0x80
-        // BBox
+    /*
+            float       // 108      // pad?
+    CollisionData
+            // file off 0x80
+            // BBox
 
-        float       // 112      -122.65
-        float       // 116      -0
-        float       // 120      -122.65
+            float       // 112      -122.65
+            float       // 116      -0
+            float       // 120      -122.65
 
-        float       // 124
-        float       // 128      122.65
-        float       // 132      400
-        float       // 136      122.65
+            float       // 124
+            float       // 128      122.65
+            float       // 132      400
+            float       // 136      122.65
 
-        // file off 0xA0
-        float       // 140
-        int         // 144      len (2)
-        ptr         // 148      -> 1408
+            // file off 0xA0
+            float       // 140
+            int         // 144      len (2)
+            ptr         // 148      -> 1408
 
-        int         // 152      len (32)
-        ptr         // 156      -> 1504
+            int         // 152      len (32)
+            ptr         // 156      -> 1504
 
-        short[4]    // 160 - 167    (1, 14, 6, 0x7FFF)
-        ptr         // 168      -> 1568
+            short[4]    // 160 - 167    (1, 14, 6, 0x7FFF)
+            ptr         // 168      -> 1568
 
-        // offset 0xC0
-        ptr         // 172      -> 1632     pLowCluster (0x14 of them)
-        ptr         // 176      -> 1856     pLowQuad
-        int         // 180      0
-        int         // 184      0
-end of collision data
-*/
+            // offset 0xC0
+            ptr         // 172      -> 1632     pLowCluster (0x14 of them)
+            ptr         // 176      -> 1856     pLowQuad
+            int         // 180      0
+            int         // 184      0
+    end of collision data
+    */
 
     inevFile.align16();
     inevFile.read(numDList);
     inevFile.readArray(system.pXbox, numDList);
-/*
-        int         // 188      0
-        int         // 192  len (2)         m_nDList
-        ptr         // 196      -> 1920     m_system
+    /*
+            int         // 188      0
+            int         // 192  len (2)         m_nDList
+            ptr         // 196      -> 1920     m_system
 
 
-        -------
-        mesh
-        // File offset 0xF4
-        float            // 224     -122.75
-        float            // 228     -0.1
-        float            // 232     -122.75
-        float                       0
+            -------
+            mesh
+            // File offset 0xF4
+            float            // 224     -122.75
+            float            // 228     -0.1
+            float            // 232     -122.75
+            float                       0
 
-        float           // 240      122.75
-        float           // 244      400.1
-        float           // 248      122.75
-        float           // 252      0
+            float           // 240      122.75
+            float           // 244      400.1
+            float           // 248      122.75
+            float           // 252      0
 
-        ---------
+            ---------
 
-        // File offset 0x114
-        char[]          // 256 "Blue_col_offcol_4x8_001"
+            // File offset 0x114
+            char[]          // 256 "Blue_col_offcol_4x8_001"
 
-        ----------
+            ----------
 
-        // File offset 0x174 (16 bytes each element)
-        int[4]             // 352  0,0,0,0
-        int[4]                     1, 1, 32, 0
-        ------------
+            // File offset 0x174 (16 bytes each element)
+            int[4]             // 352  0,0,0,0
+            int[4]                     1, 1, 32, 0
+            ------------
 
-        // File offset 0x194        // materials
-        int             // 384      3
+            // File offset 0x194        // materials
+            int             // 384      3
 
-        -----------
+            -----------
 
-        // File offset 0x274 (608) - texture
-        char[3][256]        "Blue_hosp_panel_flat_0000.xbmp"
-                            "Blue_wall_groove_diff_0000.xbmp"
-                            "DET_steel_0000.xbmp"
+            // File offset 0x274 (608) - texture
+            char[3][256]        "Blue_hosp_panel_flat_0000.xbmp"
+                                "Blue_wall_groove_diff_0000.xbmp"
+                                "DET_steel_0000.xbmp"
 
-        --------------
+            --------------
 
-        // File offset 0x574. 2 elements of 16 bytes each
-        int[4]             // 1376  0,0,0,0
-        int[4]                      0,0,0,0
+            // File offset 0x574. 2 elements of 16 bytes each
+            int[4]             // 1376  0,0,0,0
+            int[4]                      0,0,0,0
 
-        --------------
+            --------------
 
-        // File offset 0x594 (1408), 2 elements
-        float[4]    // 1408      -122.65, 0, -122.65, 0
-        float[4]                 122.65, 400, 122.65, 0
-        int         // 1440     0x10
-        int         // 1444     0
-        int         // 1448     0
-        int         // 1452     7
+            // File offset 0x594 (1408), 2 elements
+            float[4]    // 1408      -122.65, 0, -122.65, 0
+            float[4]                 122.65, 400, 122.65, 0
+            int         // 1440     0x10
+            int         // 1444     0
+            int         // 1448     0
+            int         // 1452     7
 
-        float[4]                -122.65, 0, -122.65, 0
-        float[4]                122.65, 400, 122.65, 0
-        int                     0x10
-        int                     0x00010000
-        int                     0x10
-        int                     0x4
+            float[4]                -122.65, 0, -122.65, 0
+            float[4]                122.65, 400, 122.65, 0
+            int                     0x10
+            int                     0x00010000
+            int                     0x10
+            int                     0x4
 
-        ----------------
+            ----------------
 
-        File offset 0x5f4 (1504) 32 elements.
-        short[32]
+            File offset 0x5f4 (1504) 32 elements.
+            short[32]
 
-        -----------------
+            -----------------
 
-        File offset 0x634 (1568)
+            File offset 0x634 (1568)
 
-        -----------------
+            -----------------
 
-        File Offset 0x674 (1632)
+            File Offset 0x674 (1632)
 
-        Vertices (vec3 but with vec4 size) (20 of them)
-        -----------------
+            Vertices (vec3 but with vec4 size) (20 of them)
+            -----------------
 
-        File Offset 0x754 (1856)
+            File Offset 0x754 (1856)
 
-        Arrray of bytes for vertex indices (maybe 35 or 36)
+            Arrray of bytes for vertex indices (maybe 35 or 36)
 
-        ----------------- dlist
+            ----------------- dlist
 
-        File Offset 0x794 (1920)
-        2 elements
-        int     // 1920     48      // nIndices (16 triangles)
-        short*  // 1924     -> 2016
-        int     // 1928     664     // push size
-        ptr     // 1932     -> 2112
-        int     // 1936     0
-                // 1940     24      // nVerts
-                // 1944 -> 0 (this)     24 els of 24 bytes
-                // 1948    0
-                // 1952    0
-                // 1956    0
-file off 7bc
-        int     // 1960     48
-                // 1964 (7c0)-> 2784 (0xAf4)
-        int     // 1968     664
-                // 1972     -> 2880 (0xb54)
-                // 1976    0
-                // 1980    24
-                // 1984     -> 576
-                // 1988    0
-                // 1992    0
-File 7e0        // 1996    24  
-               
-               0 padding
-        
-        ----------------------
-        File offset 0x7F4 (2016)
-        
-        short[]         // 48 elements long
-                        // 0, 1, 2, 2, 3, 0, 4, 5, 6, 0, 6, 7...
+            File Offset 0x794 (1920)
+            2 elements
+            int     // 1920     48      // nIndices (16 triangles)
+            short*  // 1924     -> 2016
+            int     // 1928     664     // push size
+            ptr     // 1932     -> 2112
+            int     // 1936     0
+                    // 1940     24      // nVerts
+                    // 1944 -> 0 (this)     24 els of 24 bytes
+                    // 1948    0
+                    // 1952    0
+                    // 1956    0
+    file off 7bc
+            int     // 1960     48
+                    // 1964 (7c0)-> 2784 (0xAf4)
+            int     // 1968     664
+                    // 1972     -> 2880 (0xb54)
+                    // 1976    0
+                    // 1980    24
+                    // 1984     -> 576
+                    // 1988    0
+                    // 1992    0
+    File 7e0        // 1996    24
 
-        ----------------------
-        File offset 0x854 (2112)
+                   0 padding
+
+            ----------------------
+            File offset 0x7F4 (2016)
+
+            short[]         // 48 elements long
+                            // 0, 1, 2, 2, 3, 0, 4, 5, 6, 0, 6, 7...
+
+            ----------------------
+            File offset 0x854 (2112)
 
 
 
-   */
+       */
 }
 
-int RigidGeom::getNumVertices()
+int RigidGeom::getNumVertices(int meshNo)
 {
-    int numVertices = 0;
-    switch (platform) {
-    case PLATFORM_XBOX:
-    {
-        for (int i = 0; i < numDList; ++i) {
-            numVertices += system.pXbox[i].numIndices;
-        }
-    } break;
+    const auto& mesh = meshes[meshNo];
+    int         numVertices = 0;
 
-    case PLATFORM_PS2:
-    {
-        for (int i = 0; i < numDList; ++i) {
-            numVertices += system.pPS2[i].numVerts;
-        }
-    } break;
+    for (int i = 0; i < mesh.nSubMeshes; ++i) {
+        const auto& submesh = subMeshes[i + mesh.iSubMesh];
+        const int   dlistIdx = submesh.iDList;
 
-    case PLATFORM_PC:
-    {
-        for (int i = 0; i < numDList; ++i) {
-            numVertices += system.pPC[i].numIndices;
-        }
-    } break;
+        switch (platform) {
+        case PLATFORM_XBOX:
+        {
+            numVertices += system.pXbox[dlistIdx].numIndices;
+        } break;
 
-    default:
-        break;
+        case PLATFORM_PS2:
+        {
+            numVertices += system.pPS2[dlistIdx].numVerts;
+        } break;
+
+        case PLATFORM_PC:
+        {
+            numVertices += system.pPC[dlistIdx].numIndices;
+        } break;
+
+        default:
+            break;
+        }
     }
     return numVertices;
 }
 
-float* RigidGeom::getVerticesPUV()
+float* RigidGeom::getVerticesPUV(int meshNo)
 {
-    int          num = getNumVertices();
+    int          num = getNumVertices(meshNo);
     float* const output = new float[num * 5];
     float*       pf = output;
-    switch (platform) {
-    case PLATFORM_XBOX:
-    {
-        for (int i = 0; i < numDList; ++i) {
-            auto& dlist = system.pXbox[i];
+    float*       puv = pf + num*3;
+
+    const auto& mesh = meshes[meshNo];
+    for (int i = 0; i < mesh.nSubMeshes; ++i) {
+        const auto& submesh = subMeshes[i + mesh.iSubMesh];
+        const int   dlistIdx = submesh.iDList;
+        switch (platform) {
+        case PLATFORM_XBOX:
+        {
+            auto& dlist = system.pXbox[dlistIdx];
             for (int j = 0; j < dlist.numIndices; ++j) {
                 auto& v = dlist.verts[dlist.indices[j]];
                 *pf++ = v.pos.x;
                 *pf++ = v.pos.y;
                 *pf++ = v.pos.z;
             }
-        }
-        for (int i = 0; i < numDList; ++i) {
-            auto& dlist = system.pXbox[i];
             for (int j = 0; j < dlist.numIndices; ++j) {
                 auto& v = dlist.verts[dlist.indices[j]];
-                *pf++ = v.uv.x;
-                *pf++ = v.uv.y;
+                *puv++ = v.uv.x;
+                *puv++ = v.uv.y;
             }
-        }
-    } break;
+        } break;
 
-    case PLATFORM_PS2:
-    {
-        // Are these strips?
-        for (int i = 0; i < numDList; ++i) {
-            auto& dlist = system.pPS2[i];
+        case PLATFORM_PS2:
+        {
+            // Are these strips?
+            auto& dlist = system.pPS2[dlistIdx];
             for (int j = 0; j < dlist.numVerts; ++j) {
                 Vector4& v = dlist.pPosition[j];
                 *pf++ = v.x;
                 *pf++ = v.y;
                 *pf++ = v.z;
             }
-        }
-        for (int i = 0; i < numDList; ++i) {
-            auto&    dlist = system.pPS2[i];
             int16_t* puv = dlist.pUV;
             for (int j = 0; j < dlist.numVerts; ++j) {
-                *pf++ = (float)*puv++;      // TODO: Fixed point 4.12
-                *pf++ = (float)*puv++;
+                *puv++ = (float)*puv++; // TODO: Fixed point 4.12
+                *puv++ = (float)*puv++;
             }
-        }
-    } break;
+        } break;
 
-    case PLATFORM_PC:
-    {
-        for (int i = 0; i < numDList; ++i) {
-            auto& dlist = system.pPC[i];
+        case PLATFORM_PC:
+        {
+            auto& dlist = system.pPC[dlistIdx];
             for (int j = 0; j < dlist.numIndices; ++j) {
                 auto& v = dlist.verts[dlist.indices[j]];
                 *pf++ = v.pos.x;
                 *pf++ = v.pos.y;
                 *pf++ = v.pos.z;
             }
-        }
-        for (int i = 0; i < numDList; ++i) {
-            auto& dlist = system.pPC[i];
             for (int j = 0; j < dlist.numIndices; ++j) {
                 auto& v = dlist.verts[dlist.indices[j]];
-                *pf++ = v.uv.x;
-                *pf++ = v.uv.y;
+                *puv++ = v.uv.x;
+                *puv++ = v.uv.y;
             }
-        }
-    } break;
+        } break;
 
-    default:
-        break;
+        default:
+            break;
+        }
+    }
+    if (pf - output != num * 3){
+        std::cerr << "ERROR: unexpected vertex count" << std::endl;
     }
     return output;
 }

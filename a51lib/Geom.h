@@ -265,6 +265,9 @@ public:
     void describe(std::ostringstream& ss);
 
     const BBox& getBoundingBox() const {return bbox;}
+    const BBox& getBoundingBox(int mesh) const {return meshes[mesh].bbox;}
+
+    int getNumMeshes() const { return numMeshes;}
 
 private:
     void describeProperty(std::ostringstream& ss, const char* prefix, int propertyIndex);
@@ -272,6 +275,7 @@ private:
     void describeTextures(std::ostringstream& ss);
     void describeMeshes(std::ostringstream& ss);
     void describeMaterials(std::ostringstream& ss);
+    void describeBBox(std::ostringstream&ss, const BBox& aBBox) const;
     std::string lookupString(int offset);
 
 protected:

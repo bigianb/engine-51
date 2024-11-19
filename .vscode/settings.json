@@ -66,6 +66,14 @@
                 "memory": "cpp",
                 "print": "cpp",
                 "queue": "cpp",
-                "stack": "cpp"
+                "stack": "cpp",
+                "any": "cpp",
+                "condition_variable": "cpp",
+                "csignal": "cpp",
+                "forward_list": "cpp",
+                "fstream": "cpp",
+                "span": "cpp",
+                "unordered_set": "cpp",
+                "valarray": "cpp"
         }
 }

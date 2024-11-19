@@ -146,59 +146,65 @@ void MainWindow::exportGLTF(RigidGeom& rigidGeom, QString fileName)
     // Create a model with a single mesh and save it as a gltf file
     tinygltf::Model      m;
     tinygltf::Scene      scene;
-    tinygltf::Mesh       mesh;
-    tinygltf::Primitive  primitive;
-    tinygltf::Node       node;
-    tinygltf::Buffer     buffer;
-    tinygltf::BufferView bufferView2;
-    tinygltf::Accessor   accessor2;
-    tinygltf::Asset      asset;
+    
+    int numMeshes = rigidGeom.getNumMeshes();
+    for (int meshNo=0; meshNo < numMeshes; ++meshNo){
 
-    int numVertices = rigidGeom.getNumVertices();
-    float* vertexData = rigidGeom.getVerticesPUV();
+        int numVertices = rigidGeom.getNumVertices(meshNo);
+        float* vertexData = rigidGeom.getVerticesPUV(meshNo);
 
-    // This is the raw data buffer.
-    // Must be a better way to do this
-    const unsigned char* pcvd = (unsigned char*)vertexData;
-    buffer.data = std::vector<unsigned char>(pcvd, pcvd + numVertices * 12);
+        // This is the raw data buffer.
+        // Must be a better way to do this
+        const unsigned char* pcvd = (unsigned char*)vertexData;
+        tinygltf::Buffer     buffer;
+        buffer.data = std::vector<unsigned char>(pcvd, pcvd + numVertices * 12);
+        delete[] vertexData;
+        m.buffers.push_back(buffer);
 
-    bufferView2.buffer = 0;
-    bufferView2.byteOffset = 0;
-    bufferView2.byteLength = numVertices * 12;
-    bufferView2.target = TINYGLTF_TARGET_ARRAY_BUFFER;
+        tinygltf::BufferView bufferView;
+        bufferView.buffer = meshNo;
+        bufferView.byteOffset = 0;
+        bufferView.byteLength = numVertices * 12;
+        bufferView.target = TINYGLTF_TARGET_ARRAY_BUFFER;
 
-    // Describe the layout of bufferView2, the vertices themself
-    accessor2.bufferView = 0;
-    accessor2.byteOffset = 0;
-    accessor2.componentType = TINYGLTF_COMPONENT_TYPE_FLOAT;
-    accessor2.count = numVertices;
-    accessor2.type = TINYGLTF_TYPE_VEC3;
-    const BBox& bbox = rigidGeom.getBoundingBox();
-    accessor2.maxValues = {bbox.max.x, bbox.max.y, bbox.max.z};
-    accessor2.minValues = {bbox.min.x, bbox.min.y, bbox.min.z};
+        // Describe the layout of bufferView2, the vertices themself
+        tinygltf::Accessor   accessor;
+        accessor.bufferView = meshNo;
+        accessor.byteOffset = 0;
+        accessor.componentType = TINYGLTF_COMPONENT_TYPE_FLOAT;
+        accessor.count = numVertices;
+        accessor.type = TINYGLTF_TYPE_VEC3;
+        const BBox& bbox = rigidGeom.getBoundingBox(meshNo);
+        accessor.maxValues = {bbox.max.x, bbox.max.y, bbox.max.z};
+        accessor.minValues = {bbox.min.x, bbox.min.y, bbox.min.z};
 
-    // Build the mesh primitive and add it to the mesh
-    primitive.attributes["POSITION"] = 0; // The index of the accessor for positions
-    primitive.material = 0;
-    primitive.mode = TINYGLTF_MODE_TRIANGLES;
-    mesh.primitives.push_back(primitive);
+        // Build the mesh primitive and add it to the mesh
+        tinygltf::Primitive  primitive;
+        primitive.attributes["POSITION"] = meshNo; // The index of the accessor for positions
+        primitive.material = 0;
+        primitive.mode = TINYGLTF_MODE_TRIANGLES;
+        tinygltf::Mesh mesh;
+        mesh.primitives.push_back(primitive);
+        m.meshes.push_back(mesh);
 
-    // Other tie ups
-    node.mesh = 0;
-    scene.nodes.push_back(0); // Default scene
+        // Other tie ups
+        tinygltf::Node node;
+        node.mesh = meshNo;
+        scene.nodes.push_back(meshNo); // Default scene
+        m.nodes.push_back(node);
+
+        // Now all that remains is to tie back all the loose objects into the
+        // our single model.
+        
+        m.bufferViews.push_back(bufferView);
+        m.accessors.push_back(accessor);
+    }
+    m.scenes.push_back(scene);
 
     // Define the asset. The version is required
+    tinygltf::Asset asset;
     asset.version = "2.0";
     asset.generator = "DFSViewer";
-
-    // Now all that remains is to tie back all the loose objects into the
-    // our single model.
-    m.scenes.push_back(scene);
-    m.meshes.push_back(mesh);
-    m.nodes.push_back(node);
-    m.buffers.push_back(buffer);
-    m.bufferViews.push_back(bufferView2);
-    m.accessors.push_back(accessor2);
     m.asset = asset;
 
     // Create a simple material
@@ -215,7 +221,7 @@ void MainWindow::exportGLTF(RigidGeom& rigidGeom, QString fileName)
                               true,   // pretty print
                               false); // write binary
 
-    delete[] vertexData;
+
 }
 
 void MainWindow::treeItemClicked(const QModelIndex& index)

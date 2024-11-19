@@ -4,7 +4,6 @@
 #include "Geom.h"
 #include "InevFile.h"
 
-
 void Bone::read(InevFile& inevFile)
 {
     inevFile.read(bindRotation);
@@ -144,13 +143,13 @@ void VirtualMesh::read(InevFile& inevFile)
 {
     inevFile.read(nameOffset);
     inevFile.read(nLODs);
-    inevFile.read(iLOD);   
+    inevFile.read(iLOD);
 }
 
 void VirtualTexture::read(InevFile& inevFile)
 {
     inevFile.read(nameOffset);
-    inevFile.read(materialMask);  
+    inevFile.read(materialMask);
 }
 
 Geom::Geom()
@@ -221,14 +220,13 @@ bool Geom::readFile(uint8_t* fileData, int len)
     return true;
 }
 
-
 void Geom::read(InevFile& inevFile)
 {
     inevFile.read(bbox);
     inevFile.read(platform);
     inevFile.read(unknown);
     inevFile.setPlatform(platform);
-    
+
     inevFile.read(version);
     inevFile.read(numFaces);
     inevFile.read(numVertices);
@@ -248,7 +246,7 @@ void Geom::read(InevFile& inevFile)
     inevFile.read(numVirtualTextures);
     inevFile.read(stringDataSize);
 
-    if (version != 41){
+    if (version != 41) {
         // other versions will crash.
         return;
     }
@@ -267,12 +265,11 @@ void Geom::read(InevFile& inevFile)
     inevFile.readNativeArray(lodMasks, numLODs);
     inevFile.readArray(virtualMeshes, numVirtualMeshes);
     uint32_t x;
-    inevFile.read(x);    // Read the unused virtualMaterials pointer.
+    inevFile.read(x); // Read the unused virtualMaterials pointer.
     //inevFile.readArray(virtualMaterials, numVirtualMaterials);
     inevFile.readArray(virtualTextures, numVirtualTextures);
     inevFile.readNativeArray(stringData, stringDataSize);
-    inevFile.read(x);   // Read the unused handle
-
+    inevFile.read(x); // Read the unused handle
 }
 
 const char* describePlatform(int plat)
@@ -290,6 +287,9 @@ const char* describePlatform(int plat)
 
 std::string Geom::lookupString(int offset)
 {
+    if (stringData == nullptr){
+        return "undefined";
+    }
     return std::string(stringData + offset);
 }
 
@@ -297,37 +297,36 @@ void Geom::describeProperty(std::ostringstream& ss, const char* prefix, int prop
 {
     auto& property = properties[propertyIndex];
     ss << prefix << lookupString(property.nameOffset) << ": ";
-    switch(property.type)
-    {
-        case Property::TYPE_FLOAT:
-            ss << property.value.floatVal;
-            break;
-        case Property::TYPE_ANGLE:
-            ss << property.value.angle;
-            break;
-        case Property::TYPE_INTEGER:
-            ss << property.value.intVal;
-            break;
-        case Property::TYPE_STRING:
-            ss << lookupString(property.value.stringOffset);
-            break;
-        default:
-            ss << "unknown type: " << property.type;
+    switch (property.type) {
+    case Property::TYPE_FLOAT:
+        ss << property.value.floatVal;
+        break;
+    case Property::TYPE_ANGLE:
+        ss << property.value.angle;
+        break;
+    case Property::TYPE_INTEGER:
+        ss << property.value.intVal;
+        break;
+    case Property::TYPE_STRING:
+        ss << lookupString(property.value.stringOffset);
+        break;
+    default:
+        ss << "unknown type: " << property.type;
     }
     ss << std::endl;
 }
 
 void Geom::describeProperies(std::ostringstream& ss)
 {
-    if (numPropertySections == 0){
+    if (numPropertySections == 0) {
         ss << "  No Properties" << std::endl;
     }
 
-    for (int ps=0; ps < numPropertySections; ++ps){
-        auto& propertySection = propertySections[ps];
+    for (int ps = 0; ps < numPropertySections; ++ps) {
+        auto&       propertySection = propertySections[ps];
         std::string name = lookupString(propertySection.nameOffset);
         ss << "  Section: " << name << std::endl;
-        for (int pi=propertySection.propertyIdx; pi < propertySection.propertyIdx + propertySection.numProperties; ++pi){
+        for (int pi = propertySection.propertyIdx; pi < propertySection.propertyIdx + propertySection.numProperties; ++pi) {
             describeProperty(ss, "    ", pi);
         }
     }
@@ -335,15 +334,15 @@ void Geom::describeProperies(std::ostringstream& ss)
 
 void Geom::describeMaterials(std::ostringstream& ss)
 {
-    if (numMaterials == 0){
+    if (numMaterials == 0) {
         ss << "  No Materials" << std::endl;
     }
-    if (nullptr == materials){
+    if (nullptr == materials) {
         // demo geoms are not fully parsed.
         return;
     }
     ss << numMaterials << " materials" << std::endl;
-    for (int i=0; i < numMaterials; ++i){
+    for (int i = 0; i < numMaterials; ++i) {
         const auto& mat = materials[i];
         ss << "  detailScale: " << mat.detailScale << std::endl;
         ss << "  fixedAlpha: " << mat.fixedAlpha << std::endl;
@@ -357,38 +356,48 @@ void Geom::describeMaterials(std::ostringstream& ss)
 
 void Geom::describeTextures(std::ostringstream& ss)
 {
-    if (numTextures == 0){
+    if (numTextures == 0) {
         ss << "  No Textures" << std::endl;
     }
-    if (nullptr == textures){
+    if (nullptr == textures) {
         // demo geoms are not fully parsed.
         return;
     }
-    for (int i=0; i < numTextures; ++i){
+    for (int i = 0; i < numTextures; ++i) {
         const auto& texture = textures[i];
         ss << "  ID: " << i << std::endl;
         ss << "  Description: " << lookupString(texture.descOffset) << std::endl;
-        ss << "  Filename: " << lookupString(texture.fileNameOffset) << std::endl << std::endl;
+        ss << "  Filename: " << lookupString(texture.fileNameOffset) << std::endl
+           << std::endl;
     }
+}
+
+void Geom::describeBBox(std::ostringstream& ss, const BBox& aBBox) const
+{
+    ss << "[" << aBBox.min.x << ", " << aBBox.min.y << ", " << aBBox.min.y << "], [";
+    ss << aBBox.max.x << ", " << aBBox.max.y << ", " << aBBox.max.y << "]";
 }
 
 void Geom::describeMeshes(std::ostringstream& ss)
 {
-    if (numMeshes == 0 || meshes == nullptr){
+    if (numMeshes == 0 || meshes == nullptr) {
         return;
     }
-    for (int i=0; i<numMeshes; ++i){
+    for (int i = 0; i < numMeshes; ++i) {
         const auto& mesh = meshes[i];
         ss << "  Mesh: " << i << std::endl;
         ss << "      Name: " << lookupString(mesh.nameOffset) << std::endl;
+        ss << "      BBox: ";
+        describeBBox(ss, mesh.bbox);
+        ss << std::endl;
         ss << "      Num Submeshes: " << mesh.nSubMeshes << std::endl;
         ss << "      Idx Submeshes: " << mesh.iSubMesh << std::endl;
         ss << "      Num Bones: " << mesh.nBones << std::endl;
         ss << "      Num Faces: " << mesh.nFaces << std::endl;
         ss << "      Num Vertices: " << mesh.nVertices << std::endl;
         ss << "      Submeshes: " << std::endl;
-        if (subMeshes != nullptr){
-            for (int j=mesh.iSubMesh; j < mesh.iSubMesh + mesh.nSubMeshes; ++j){
+        if (subMeshes != nullptr) {
+            for (int j = mesh.iSubMesh; j < mesh.iSubMesh + mesh.nSubMeshes; ++j) {
                 const auto& subMesh = subMeshes[j];
                 ss << "          Dlist Idx: " << subMesh.iDList << std::endl;
                 ss << "          Material Idx: " << subMesh.iMaterial << std::endl;
@@ -426,15 +435,27 @@ void Geom::describe(std::ostringstream& ss)
 
     ss << "String data size: " << stringDataSize << std::endl;
 
-    ss << std::endl << "Meshes" << std::endl << "------" << std::endl << std::endl;
+    ss << std::endl
+       << "Meshes" << std::endl
+       << "------" << std::endl
+       << std::endl;
     describeMeshes(ss);
 
-    ss << std::endl << "Properties" << std::endl << "----------" << std::endl << std::endl;
+    ss << std::endl
+       << "Properties" << std::endl
+       << "----------" << std::endl
+       << std::endl;
     describeProperies(ss);
 
-    ss << std::endl << "Textures" << std::endl << "--------" << std::endl << std::endl;
+    ss << std::endl
+       << "Textures" << std::endl
+       << "--------" << std::endl
+       << std::endl;
     describeTextures(ss);
 
-    ss << std::endl << "Materials" << std::endl << "--------" << std::endl << std::endl;
+    ss << std::endl
+       << "Materials" << std::endl
+       << "--------" << std::endl
+       << std::endl;
     describeMaterials(ss);
 }
