@@ -90,6 +90,9 @@ public:
     // Gets the de-indexed vertices (so can contain duplicates) in x,y,z,u,v format.
     float* getVerticesPUV(int meshNo);
 
+    // Only needed when we change something. Used when reading the xbox demo meshes.
+    void calcMeshBBoxes();
+
     CollisionData collision;
     int32_t       numDList;
     SystemPtr     system;

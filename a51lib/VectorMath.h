@@ -1,5 +1,7 @@
 #pragma once
 
+#include <limits>
+
 struct Colour
 {
     uint8_t b, g, r, a;
@@ -29,6 +31,16 @@ struct Vector4
 struct BBox
 {
     Vector3 min, max;
+
+    void reset(){
+        min.x = std::numeric_limits<float>::max();
+        min.y = std::numeric_limits<float>::max();
+        min.z = std::numeric_limits<float>::max();
+        
+        max.x = std::numeric_limits<float>::min();
+        max.y = std::numeric_limits<float>::min();
+        max.z = std::numeric_limits<float>::min();
+    }
 };
 
 struct Quaternion

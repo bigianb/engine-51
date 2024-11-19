@@ -61,7 +61,7 @@ void RigidGeom::readXboxDemo(InevFile& inevFile)
     int meshesOffset = inevFile.readAndResolvePtr();
     int saved = inevFile.getCursor();
     inevFile.setCursor(meshesOffset);
-    for (int i=0; i<numMeshes; ++i){
+    for (int i = 0; i < numMeshes; ++i) {
         auto& mesh = meshes[i];
         inevFile.read(mesh.bbox);
         mesh.nSubMeshes = 0;
@@ -81,29 +81,46 @@ void RigidGeom::readXboxDemo(InevFile& inevFile)
     saved = inevFile.getCursor();
     inevFile.setCursor(submeshesOffset);
     // each submesh looks like 4 ints.
-    for (int i=0; i<numSubMeshes; ++i){
+    for (int i = 0; i < numSubMeshes; ++i) {
         auto& submesh = subMeshes[i];
         submesh.iDList = inevFile.readInt();
         submesh.iMaterial = inevFile.readInt();
         submesh.worldPixelSize = 0.0;
         int extra1 = inevFile.readInt();
         int extra2 = inevFile.readInt();
-        
-        std::cout << "submesh extra1: " << extra1 << " ( as float= " <<  *((float*)&extra1) << ") 0x" << std::hex << extra1 << std::dec << std::endl;
-        std::cout << "submesh extra2: " << extra2 << " ( as float= " <<  *((float*)&extra2) << ") 0x" << std::hex << extra2 << std::dec << std::endl;
+
+        std::cout << "submesh extra1: " << extra1 << " ( as float= " << *((float*)&extra1) << ") 0x" << std::hex << extra1 << std::dec << std::endl;
+        std::cout << "submesh extra2: " << extra2 << " ( as float= " << *((float*)&extra2) << ") 0x" << std::hex << extra2 << std::dec << std::endl;
         std::cout << std::endl;
     }
     // Assume there is aways 1 mesh and it has all the subMeshes.
     meshes[0].nSubMeshes = numSubMeshes;
+    numMeshes = 1;
 
     inevFile.setCursor(saved);
-    
+
     numMaterials = inevFile.readInt();
     inevFile.skip(4); // need to figure materials out
 
     numTextures = inevFile.readInt();
     inevFile.skip(4);
-    inevFile.skip(16);
+    inevFile.skip(8);
+    int numUnknown = inevFile.readInt();
+    int unknownOfffset = inevFile.readAndResolvePtr();
+    std::cout << "Found " << numUnknown << " unknown elements: " << std::endl;
+    saved = inevFile.getCursor();
+    inevFile.setCursor(submeshesOffset);
+    // each unknown looks like 4 ints.
+    // Maybe materials.
+    for (int i = 0; i < numUnknown; ++i) {
+        int i1 = inevFile.readInt();
+        int i2 = inevFile.readInt();
+        int i3 = inevFile.readInt();
+        int i4 = inevFile.readInt();
+        std::cout << i1 << ", " << i2 << ", " << i2 << ", " << i4 << std::endl;
+    }
+    std::cout << std::endl;
+    inevFile.setCursor(saved);
 
     /*
     Example from blue_col_offcol_4x8_001.RIGIDGEOM
@@ -199,6 +216,7 @@ void RigidGeom::readXboxDemo(InevFile& inevFile)
     inevFile.align16();
     inevFile.read(numDList);
     inevFile.readArray(system.pXbox, numDList);
+    calcMeshBBoxes();
     /*
             int         // 188      0
             int         // 192  len (2)         m_nDList
@@ -225,7 +243,7 @@ void RigidGeom::readXboxDemo(InevFile& inevFile)
 
             ----------
 
-            // File offset 0x174 (16 bytes each element)
+            // File offset 0x174 (16 bytes each element) - submeshes
             int[4]             // 352  0,0,0,0
             int[4]                     1, 1, 32, 0
             ------------
@@ -357,12 +375,109 @@ int RigidGeom::getNumVertices(int meshNo)
     return numVertices;
 }
 
+void RigidGeom::calcMeshBBoxes()
+{
+    for (int m = 0; m < numMeshes; ++m) {
+        auto& mesh = meshes[m];
+        mesh.bbox.reset();
+        for (int i = 0; i < mesh.nSubMeshes; ++i) {
+            const auto& submesh = subMeshes[i + mesh.iSubMesh];
+            const int   dlistIdx = submesh.iDList;
+            switch (platform) {
+            case PLATFORM_XBOX:
+            {
+                auto& dlist = system.pXbox[dlistIdx];
+                for (int j = 0; j < dlist.numIndices; ++j) {
+                    auto& v = dlist.verts[dlist.indices[j]];
+                    if (v.pos.x > mesh.bbox.max.x) {
+                        mesh.bbox.max.x = v.pos.x;
+                    }
+                    if (v.pos.y > mesh.bbox.max.y) {
+                        mesh.bbox.max.y = v.pos.y;
+                    }
+                    if (v.pos.z > mesh.bbox.max.z) {
+                        mesh.bbox.max.z = v.pos.z;
+                    }
+                    if (v.pos.x < mesh.bbox.min.x) {
+                        mesh.bbox.min.x = v.pos.x;
+                    }
+                    if (v.pos.y < mesh.bbox.min.y) {
+                        mesh.bbox.min.y = v.pos.y;
+                    }
+                    if (v.pos.z < mesh.bbox.min.z) {
+                        mesh.bbox.min.z = v.pos.z;
+                    }
+                }
+
+            } break;
+
+            case PLATFORM_PS2:
+            {
+                // Are these strips?
+                auto& dlist = system.pPS2[dlistIdx];
+                for (int j = 0; j < dlist.numVerts; ++j) {
+                    Vector4& v = dlist.pPosition[j];
+                    if (v.x > mesh.bbox.max.x) {
+                        mesh.bbox.max.x = v.x;
+                    }
+                    if (v.y > mesh.bbox.max.y) {
+                        mesh.bbox.max.y = v.y;
+                    }
+                    if (v.z > mesh.bbox.max.z) {
+                        mesh.bbox.max.z = v.z;
+                    }
+                    if (v.x < mesh.bbox.min.x) {
+                        mesh.bbox.min.x = v.x;
+                    }
+                    if (v.y < mesh.bbox.min.y) {
+                        mesh.bbox.min.y = v.y;
+                    }
+                    if (v.z < mesh.bbox.min.z) {
+                        mesh.bbox.min.z = v.z;
+                    }
+                }
+            } break;
+
+            case PLATFORM_PC:
+            {
+                auto& dlist = system.pPC[dlistIdx];
+                for (int j = 0; j < dlist.numIndices; ++j) {
+                    auto& v = dlist.verts[dlist.indices[j]];
+                    if (v.pos.x > mesh.bbox.max.x) {
+                        mesh.bbox.max.x = v.pos.x;
+                    }
+                    if (v.pos.y > mesh.bbox.max.y) {
+                        mesh.bbox.max.y = v.pos.y;
+                    }
+                    if (v.pos.z > mesh.bbox.max.z) {
+                        mesh.bbox.max.z = v.pos.z;
+                    }
+                    if (v.pos.x < mesh.bbox.min.x) {
+                        mesh.bbox.min.x = v.pos.x;
+                    }
+                    if (v.pos.y < mesh.bbox.min.y) {
+                        mesh.bbox.min.y = v.pos.y;
+                    }
+                    if (v.pos.z < mesh.bbox.min.z) {
+                        mesh.bbox.min.z = v.pos.z;
+                    }
+                }
+
+            } break;
+
+            default:
+                break;
+            }
+        }
+    }
+}
+
 float* RigidGeom::getVerticesPUV(int meshNo)
 {
     int          num = getNumVertices(meshNo);
     float* const output = new float[num * 5];
     float*       pf = output;
-    float*       puv = pf + num*3;
+    float*       puv = pf + num * 3;
 
     const auto& mesh = meshes[meshNo];
     for (int i = 0; i < mesh.nSubMeshes; ++i) {
@@ -422,7 +537,7 @@ float* RigidGeom::getVerticesPUV(int meshNo)
             break;
         }
     }
-    if (pf - output != num * 3){
+    if (pf - output != num * 3) {
         std::cerr << "ERROR: unexpected vertex count" << std::endl;
     }
     return output;
