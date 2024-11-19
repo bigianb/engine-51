@@ -271,6 +271,7 @@ private:
     void describeProperies(std::ostringstream& ss);
     void describeTextures(std::ostringstream& ss);
     void describeMeshes(std::ostringstream& ss);
+    void describeMaterials(std::ostringstream& ss);
     std::string lookupString(int offset);
 
 protected:

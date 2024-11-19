@@ -93,6 +93,7 @@ void Mesh::read(InevFile& inevFile)
     inevFile.read(nBones);
     inevFile.read(nFaces);
     inevFile.read(nVertices);
+    inevFile.skip(4);
 }
 
 void Submesh::read(InevFile& inevFile)
@@ -100,6 +101,7 @@ void Submesh::read(InevFile& inevFile)
     inevFile.read(iDList);
     inevFile.read(iMaterial);
     inevFile.read(worldPixelSize);
+    inevFile.skip(4);
 }
 
 void Material::UVanim::read(InevFile& inevFile)
@@ -114,6 +116,7 @@ void Material::UVanim::read(InevFile& inevFile)
 void Material::read(InevFile& inevFile)
 {
     inevFile.read(uvAnim);
+    inevFile.skip(2);
     inevFile.read(detailScale);
     inevFile.read(fixedAlpha);
     inevFile.read(flags);
@@ -122,6 +125,7 @@ void Material::read(InevFile& inevFile)
     inevFile.read(iTexture);
     inevFile.read(nVirtualMats);
     inevFile.read(iVirtualMat);
+    inevFile.skip(1);
 }
 
 void Texture::read(InevFile& inevFile)
@@ -329,6 +333,28 @@ void Geom::describeProperies(std::ostringstream& ss)
     }
 }
 
+void Geom::describeMaterials(std::ostringstream& ss)
+{
+    if (numMaterials == 0){
+        ss << "  No Materials" << std::endl;
+    }
+    if (nullptr == materials){
+        // demo geoms are not fully parsed.
+        return;
+    }
+    ss << numMaterials << " materials" << std::endl;
+    for (int i=0; i < numMaterials; ++i){
+        const auto& mat = materials[i];
+        ss << "  detailScale: " << mat.detailScale << std::endl;
+        ss << "  fixedAlpha: " << mat.fixedAlpha << std::endl;
+        ss << "  iTexture: " << (int)mat.iTexture << std::endl;
+        ss << "  nTextures: " << (int)mat.nTextures << std::endl;
+        ss << "  iVirtualMat: " << (int)mat.iVirtualMat << std::endl;
+        ss << "  nVirtualMats: " << (int)mat.nVirtualMats << std::endl;
+        ss << std::endl;
+    }
+}
+
 void Geom::describeTextures(std::ostringstream& ss)
 {
     if (numTextures == 0){
@@ -339,7 +365,7 @@ void Geom::describeTextures(std::ostringstream& ss)
         return;
     }
     for (int i=0; i < numTextures; ++i){
-        auto& texture = textures[i];
+        const auto& texture = textures[i];
         ss << "  ID: " << i << std::endl;
         ss << "  Description: " << lookupString(texture.descOffset) << std::endl;
         ss << "  Filename: " << lookupString(texture.fileNameOffset) << std::endl << std::endl;
@@ -348,7 +374,30 @@ void Geom::describeTextures(std::ostringstream& ss)
 
 void Geom::describeMeshes(std::ostringstream& ss)
 {
-
+    if (numMeshes == 0 || meshes == nullptr){
+        return;
+    }
+    for (int i=0; i<numMeshes; ++i){
+        const auto& mesh = meshes[i];
+        ss << "  Mesh: " << i << std::endl;
+        ss << "      Name: " << lookupString(mesh.nameOffset) << std::endl;
+        ss << "      Num Submeshes: " << mesh.nSubMeshes << std::endl;
+        ss << "      Idx Submeshes: " << mesh.iSubMesh << std::endl;
+        ss << "      Num Bones: " << mesh.nBones << std::endl;
+        ss << "      Num Faces: " << mesh.nFaces << std::endl;
+        ss << "      Num Vertices: " << mesh.nVertices << std::endl;
+        ss << "      Submeshes: " << std::endl;
+        if (subMeshes != nullptr){
+            for (int j=mesh.iSubMesh; j < mesh.iSubMesh + mesh.nSubMeshes; ++j){
+                const auto& subMesh = subMeshes[j];
+                ss << "          Dlist Idx: " << subMesh.iDList << std::endl;
+                ss << "          Material Idx: " << subMesh.iMaterial << std::endl;
+                ss << "          Pixel Size: " << subMesh.worldPixelSize << std::endl;
+                ss << std::endl;
+            }
+        }
+        ss << std::endl;
+    }
 }
 
 void Geom::describe(std::ostringstream& ss)
@@ -385,4 +434,7 @@ void Geom::describe(std::ostringstream& ss)
 
     ss << std::endl << "Textures" << std::endl << "--------" << std::endl << std::endl;
     describeTextures(ss);
+
+    ss << std::endl << "Materials" << std::endl << "--------" << std::endl << std::endl;
+    describeMaterials(ss);
 }
