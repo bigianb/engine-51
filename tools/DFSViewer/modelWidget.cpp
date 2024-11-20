@@ -11,6 +11,7 @@ static const QSize CUBE_TEX_SIZE(512, 512);
 ModelWidget::ModelWidget(QWidget *parent)
     : QRhiWidget(parent)
 {
+    numVertices = 36;
 }
 
 ModelWidget::~ModelWidget()
@@ -77,7 +78,7 @@ void ModelWidget::setGeom(RigidGeom& geom)
         // Window has never been exposed, so rhi is not set-up
         return;
     }
-    int numVertices = geom.getNumVertices(0);
+    numVertices = geom.getNumVertices(0);
     const int vertexSize = 5 * 4;   // x y z u v as floats
     scene.vbuf.reset(m_rhi->newBuffer(QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer, numVertices * vertexSize));
     scene.vbuf->create();
@@ -127,8 +128,7 @@ void ModelWidget::initScene()
         { QRhiShaderStage::Fragment, getShader(QLatin1String(":/shaders/texture.frag.qsb")) }
     });
     QRhiVertexInputLayout inputLayout;
-    // The cube is provided as non-interleaved sets of positions, UVs, normals.
-    // Normals are not interesting here, only need the positions and UVs.
+    // The cube is provided as non-interleaved sets of positions, UVs
     inputLayout.setBindings({
         { 3 * sizeof(float) },
         { 2 * sizeof(float) }
@@ -168,10 +168,10 @@ void ModelWidget::render(QRhiCommandBuffer *cb)
     cb->setShaderResources();
     const QRhiCommandBuffer::VertexInput vbufBindings[] = {
         { scene.vbuf.get(), 0 },
-        { scene.vbuf.get(), quint32(36 * 3 * sizeof(float)) }
+        { scene.vbuf.get(), quint32(numVertices * 3 * sizeof(float)) }
     };
     cb->setVertexInput(0, 2, vbufBindings);
-    cb->draw(36);
+    cb->draw(numVertices);
 
     cb->endPass();
 }

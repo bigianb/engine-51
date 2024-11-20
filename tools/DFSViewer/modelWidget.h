@@ -42,6 +42,7 @@ signals:
     void rhiChanged(const QString &apiName);
 
 private:
+    int numVertices;
     QRhi *m_rhi = nullptr;
     int m_sampleCount = 1;
     QSize m_pixelSize;

@@ -148,6 +148,16 @@ void MainWindow::exportGLTF(RigidGeom& rigidGeom, QString fileName)
     tinygltf::Scene      scene;
     
     int numMeshes = rigidGeom.getNumMeshes();
+    int accessorIdx = 0;
+    int viewIdx = 0;
+    int materialIdx = 0;
+    int textureIdx = 0;
+    int imageIdx = 0;
+
+    tinygltf::Image image;
+    image.uri = "image.png";        // TODO: Write correct filenames.
+    m.images.push_back(image);
+
     for (int meshNo=0; meshNo < numMeshes; ++meshNo){
 
         int numVertices = rigidGeom.getNumVertices(meshNo);
@@ -157,31 +167,73 @@ void MainWindow::exportGLTF(RigidGeom& rigidGeom, QString fileName)
         // Must be a better way to do this
         const unsigned char* pcvd = (unsigned char*)vertexData;
         tinygltf::Buffer     buffer;
-        buffer.data = std::vector<unsigned char>(pcvd, pcvd + numVertices * 12);
+        buffer.data = std::vector<unsigned char>(pcvd, pcvd + numVertices * 20);
         delete[] vertexData;
         m.buffers.push_back(buffer);
 
-        tinygltf::BufferView bufferView;
-        bufferView.buffer = meshNo;
-        bufferView.byteOffset = 0;
-        bufferView.byteLength = numVertices * 12;
-        bufferView.target = TINYGLTF_TARGET_ARRAY_BUFFER;
+        tinygltf::BufferView posBufferView;
+        posBufferView.buffer = meshNo;
+        posBufferView.byteOffset = 0;
+        posBufferView.byteLength = numVertices * 12;
+        posBufferView.target = TINYGLTF_TARGET_ARRAY_BUFFER;
 
-        // Describe the layout of bufferView2, the vertices themself
-        tinygltf::Accessor   accessor;
-        accessor.bufferView = meshNo;
-        accessor.byteOffset = 0;
-        accessor.componentType = TINYGLTF_COMPONENT_TYPE_FLOAT;
-        accessor.count = numVertices;
-        accessor.type = TINYGLTF_TYPE_VEC3;
+        tinygltf::BufferView uvBufferView;
+        uvBufferView.buffer = meshNo;
+        uvBufferView.byteOffset = numVertices * 12;
+        uvBufferView.byteLength = numVertices * 8;
+        uvBufferView.target = TINYGLTF_TARGET_ARRAY_BUFFER;
+
+        m.bufferViews.push_back(posBufferView);
+        int posBufferViewIdx = viewIdx++;
+
+        m.bufferViews.push_back(uvBufferView);
+        int uvBufferViewIdx = viewIdx++;
+
+        // Describe the layout of posBufferView, the vertices themself
+        tinygltf::Accessor   posAccessor;
+        posAccessor.bufferView = posBufferViewIdx;
+        posAccessor.byteOffset = 0;
+        posAccessor.componentType = TINYGLTF_COMPONENT_TYPE_FLOAT;
+        posAccessor.count = numVertices;
+        posAccessor.type = TINYGLTF_TYPE_VEC3;
         const BBox& bbox = rigidGeom.getBoundingBox(meshNo);
-        accessor.maxValues = {bbox.max.x, bbox.max.y, bbox.max.z};
-        accessor.minValues = {bbox.min.x, bbox.min.y, bbox.min.z};
+        posAccessor.maxValues = {bbox.max.x, bbox.max.y, bbox.max.z};
+        posAccessor.minValues = {bbox.min.x, bbox.min.y, bbox.min.z};
+
+        tinygltf::Accessor   uvAccessor;
+        uvAccessor.bufferView = uvBufferViewIdx;
+        uvAccessor.byteOffset = 0;
+        uvAccessor.componentType = TINYGLTF_COMPONENT_TYPE_FLOAT;
+        uvAccessor.count = numVertices;
+        uvAccessor.type = TINYGLTF_TYPE_VEC2;
+        uvAccessor.maxValues = {1.0, 1.0};          // TODO: Build correct min/max from data
+        uvAccessor.minValues = {-1.0, -1.0};
+
+        m.accessors.push_back(posAccessor);
+        int posAccessorId = accessorIdx++;
+
+        m.accessors.push_back(uvAccessor);
+        int uvAccessorId = accessorIdx++;
+
+        // Create a simple material
+        tinygltf::Material mat;
+        mat.pbrMetallicRoughness.baseColorFactor = {1.0f, 0.9f, 0.9f, 1.0f};
+        mat.pbrMetallicRoughness.baseColorTexture.index = textureIdx;
+
+        mat.doubleSided = true;
+        m.materials.push_back(mat);
+        int theMaterialIdx = materialIdx++;
+
+        tinygltf::Texture texture;
+        texture.source = imageIdx;          // TODO: find correct image idx
+        m.textures.push_back(texture);
+        textureIdx++;
 
         // Build the mesh primitive and add it to the mesh
         tinygltf::Primitive  primitive;
-        primitive.attributes["POSITION"] = meshNo; // The index of the accessor for positions
-        primitive.material = 0;
+        primitive.attributes["POSITION"] = posAccessorId;
+        primitive.attributes["TEXCOORD_0"] = uvAccessorId;
+        primitive.material = theMaterialIdx;
         primitive.mode = TINYGLTF_MODE_TRIANGLES;
         tinygltf::Mesh mesh;
         mesh.primitives.push_back(primitive);
@@ -192,12 +244,6 @@ void MainWindow::exportGLTF(RigidGeom& rigidGeom, QString fileName)
         node.mesh = meshNo;
         scene.nodes.push_back(meshNo); // Default scene
         m.nodes.push_back(node);
-
-        // Now all that remains is to tie back all the loose objects into the
-        // our single model.
-        
-        m.bufferViews.push_back(bufferView);
-        m.accessors.push_back(accessor);
     }
     m.scenes.push_back(scene);
 
@@ -206,12 +252,6 @@ void MainWindow::exportGLTF(RigidGeom& rigidGeom, QString fileName)
     asset.version = "2.0";
     asset.generator = "DFSViewer";
     m.asset = asset;
-
-    // Create a simple material
-    tinygltf::Material mat;
-    mat.pbrMetallicRoughness.baseColorFactor = {1.0f, 0.9f, 0.9f, 1.0f};
-    mat.doubleSided = true;
-    m.materials.push_back(mat);
 
     // Save it to a file
     tinygltf::TinyGLTF gltf;
