@@ -152,98 +152,105 @@ void MainWindow::exportGLTF(RigidGeom& rigidGeom, QString fileName)
     int viewIdx = 0;
     int materialIdx = 0;
     int textureIdx = 0;
-    int imageIdx = 0;
 
-    tinygltf::Image image;
-    image.uri = "image.png";        // TODO: Write correct filenames.
-    m.images.push_back(image);
+    for (int texNo=0; texNo < rigidGeom.getNumTextures(); ++texNo){
+        tinygltf::Image image;
+        // TODO: Uppercase and change the extension to png.
+        image.uri = rigidGeom.getTextureFilename(texNo);
+        m.images.push_back(image);
+    }
 
+    int nodeMeshIdx = 0;
     for (int meshNo=0; meshNo < numMeshes; ++meshNo){
+        Mesh& mesh = rigidGeom.meshes[meshNo];
+        for (int submeshIdx = mesh.iSubMesh; submeshIdx < mesh.iSubMesh + mesh.nSubMeshes; ++submeshIdx) {
 
-        int numVertices = rigidGeom.getNumVertices(meshNo);
-        float* vertexData = rigidGeom.getVerticesPUV(meshNo);
+            int numVertices = rigidGeom.getNumSubmeshVertices(submeshIdx);
+            float* vertexData = rigidGeom.getSubmeshVerticesPUV(submeshIdx);
 
-        // This is the raw data buffer.
-        // Must be a better way to do this
-        const unsigned char* pcvd = (unsigned char*)vertexData;
-        tinygltf::Buffer     buffer;
-        buffer.data = std::vector<unsigned char>(pcvd, pcvd + numVertices * 20);
-        delete[] vertexData;
-        m.buffers.push_back(buffer);
+            // This is the raw data buffer.
+            // Must be a better way to do this
+            const unsigned char* pcvd = (unsigned char*)vertexData;
+            tinygltf::Buffer     buffer;
+            buffer.data = std::vector<unsigned char>(pcvd, pcvd + numVertices * 20);
+            delete[] vertexData;
+            m.buffers.push_back(buffer);
 
-        tinygltf::BufferView posBufferView;
-        posBufferView.buffer = meshNo;
-        posBufferView.byteOffset = 0;
-        posBufferView.byteLength = numVertices * 12;
-        posBufferView.target = TINYGLTF_TARGET_ARRAY_BUFFER;
+            tinygltf::BufferView posBufferView;
+            posBufferView.buffer = nodeMeshIdx;
+            posBufferView.byteOffset = 0;
+            posBufferView.byteLength = numVertices * 12;
+            posBufferView.target = TINYGLTF_TARGET_ARRAY_BUFFER;
 
-        tinygltf::BufferView uvBufferView;
-        uvBufferView.buffer = meshNo;
-        uvBufferView.byteOffset = numVertices * 12;
-        uvBufferView.byteLength = numVertices * 8;
-        uvBufferView.target = TINYGLTF_TARGET_ARRAY_BUFFER;
+            tinygltf::BufferView uvBufferView;
+            uvBufferView.buffer = nodeMeshIdx;
+            uvBufferView.byteOffset = numVertices * 12;
+            uvBufferView.byteLength = numVertices * 8;
+            uvBufferView.target = TINYGLTF_TARGET_ARRAY_BUFFER;
 
-        m.bufferViews.push_back(posBufferView);
-        int posBufferViewIdx = viewIdx++;
+            m.bufferViews.push_back(posBufferView);
+            int posBufferViewIdx = viewIdx++;
 
-        m.bufferViews.push_back(uvBufferView);
-        int uvBufferViewIdx = viewIdx++;
+            m.bufferViews.push_back(uvBufferView);
+            int uvBufferViewIdx = viewIdx++;
 
-        // Describe the layout of posBufferView, the vertices themself
-        tinygltf::Accessor   posAccessor;
-        posAccessor.bufferView = posBufferViewIdx;
-        posAccessor.byteOffset = 0;
-        posAccessor.componentType = TINYGLTF_COMPONENT_TYPE_FLOAT;
-        posAccessor.count = numVertices;
-        posAccessor.type = TINYGLTF_TYPE_VEC3;
-        const BBox& bbox = rigidGeom.getBoundingBox(meshNo);
-        posAccessor.maxValues = {bbox.max.x, bbox.max.y, bbox.max.z};
-        posAccessor.minValues = {bbox.min.x, bbox.min.y, bbox.min.z};
+            // Describe the layout of posBufferView, the vertices themself
+            tinygltf::Accessor   posAccessor;
+            posAccessor.bufferView = posBufferViewIdx;
+            posAccessor.byteOffset = 0;
+            posAccessor.componentType = TINYGLTF_COMPONENT_TYPE_FLOAT;
+            posAccessor.count = numVertices;
+            posAccessor.type = TINYGLTF_TYPE_VEC3;
+            const BBox& bbox = rigidGeom.getBoundingBox(meshNo);
+            posAccessor.maxValues = {bbox.max.x, bbox.max.y, bbox.max.z};
+            posAccessor.minValues = {bbox.min.x, bbox.min.y, bbox.min.z};
 
-        tinygltf::Accessor   uvAccessor;
-        uvAccessor.bufferView = uvBufferViewIdx;
-        uvAccessor.byteOffset = 0;
-        uvAccessor.componentType = TINYGLTF_COMPONENT_TYPE_FLOAT;
-        uvAccessor.count = numVertices;
-        uvAccessor.type = TINYGLTF_TYPE_VEC2;
-        uvAccessor.maxValues = {1.0, 1.0};          // TODO: Build correct min/max from data
-        uvAccessor.minValues = {-1.0, -1.0};
+            tinygltf::Accessor   uvAccessor;
+            uvAccessor.bufferView = uvBufferViewIdx;
+            uvAccessor.byteOffset = 0;
+            uvAccessor.componentType = TINYGLTF_COMPONENT_TYPE_FLOAT;
+            uvAccessor.count = numVertices;
+            uvAccessor.type = TINYGLTF_TYPE_VEC2;
+            uvAccessor.maxValues = {1.0, 1.0};          // TODO: Build correct min/max from data
+            uvAccessor.minValues = {-1.0, -1.0};
 
-        m.accessors.push_back(posAccessor);
-        int posAccessorId = accessorIdx++;
+            m.accessors.push_back(posAccessor);
+            int posAccessorId = accessorIdx++;
 
-        m.accessors.push_back(uvAccessor);
-        int uvAccessorId = accessorIdx++;
+            m.accessors.push_back(uvAccessor);
+            int uvAccessorId = accessorIdx++;
 
-        // Create a simple material
-        tinygltf::Material mat;
-        mat.pbrMetallicRoughness.baseColorFactor = {1.0f, 0.9f, 0.9f, 1.0f};
-        mat.pbrMetallicRoughness.baseColorTexture.index = textureIdx;
+            // Create a simple material
+            tinygltf::Material mat;
+            mat.pbrMetallicRoughness.baseColorFactor = {1.0f, 0.9f, 0.9f, 1.0f};
+            mat.pbrMetallicRoughness.baseColorTexture.index = textureIdx;
 
-        mat.doubleSided = true;
-        m.materials.push_back(mat);
-        int theMaterialIdx = materialIdx++;
+            mat.doubleSided = true;
+            m.materials.push_back(mat);
+            int theMaterialIdx = materialIdx++;
 
-        tinygltf::Texture texture;
-        texture.source = imageIdx;          // TODO: find correct image idx
-        m.textures.push_back(texture);
-        textureIdx++;
+            tinygltf::Texture texture;
+            int meshMatIdx = rigidGeom.subMeshes[submeshIdx].iMaterial;
+            texture.source = rigidGeom.materials[meshMatIdx].iTexture;
+            m.textures.push_back(texture);
+            textureIdx++;
 
-        // Build the mesh primitive and add it to the mesh
-        tinygltf::Primitive  primitive;
-        primitive.attributes["POSITION"] = posAccessorId;
-        primitive.attributes["TEXCOORD_0"] = uvAccessorId;
-        primitive.material = theMaterialIdx;
-        primitive.mode = TINYGLTF_MODE_TRIANGLES;
-        tinygltf::Mesh mesh;
-        mesh.primitives.push_back(primitive);
-        m.meshes.push_back(mesh);
+            // Build the mesh primitive and add it to the mesh
+            tinygltf::Primitive  primitive;
+            primitive.attributes["POSITION"] = posAccessorId;
+            primitive.attributes["TEXCOORD_0"] = uvAccessorId;
+            primitive.material = theMaterialIdx;
+            primitive.mode = TINYGLTF_MODE_TRIANGLES;
+            tinygltf::Mesh mesh;
+            mesh.primitives.push_back(primitive);
+            m.meshes.push_back(mesh);
 
-        // Other tie ups
-        tinygltf::Node node;
-        node.mesh = meshNo;
-        scene.nodes.push_back(meshNo); // Default scene
-        m.nodes.push_back(node);
+            // Other tie ups
+            tinygltf::Node node;
+            node.mesh = nodeMeshIdx;
+            scene.nodes.push_back(nodeMeshIdx++); // Default scene
+            m.nodes.push_back(node);
+        }
     }
     m.scenes.push_back(scene);
 

@@ -354,6 +354,14 @@ void Geom::describeMaterials(std::ostringstream& ss)
     }
 }
 
+std::string Geom::getTextureFilename(int tNum)
+{
+    if (textures == nullptr){
+        return "unknown";
+    }
+    return lookupString(textures[tNum].fileNameOffset);
+}
+
 void Geom::describeTextures(std::ostringstream& ss)
 {
     if (numTextures == 0) {

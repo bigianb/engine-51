@@ -343,34 +343,41 @@ void RigidGeom::readXboxDemo(InevFile& inevFile)
        */
 }
 
+int RigidGeom::getNumSubmeshVertices(int submeshNo)
+{
+    const auto& submesh = subMeshes[submeshNo];
+    const int   dlistIdx = submesh.iDList;
+
+    switch (platform) {
+    case PLATFORM_XBOX:
+    {
+        return system.pXbox[dlistIdx].numIndices;
+    } break;
+
+    case PLATFORM_PS2:
+    {
+        return system.pPS2[dlistIdx].numVerts;
+    } break;
+
+    case PLATFORM_PC:
+    {
+        return system.pPC[dlistIdx].numIndices;
+    } break;
+
+    default:
+        break;
+    }
+
+    return 0;
+}
+
 int RigidGeom::getNumVertices(int meshNo)
 {
     const auto& mesh = meshes[meshNo];
     int         numVertices = 0;
 
     for (int i = 0; i < mesh.nSubMeshes; ++i) {
-        const auto& submesh = subMeshes[i + mesh.iSubMesh];
-        const int   dlistIdx = submesh.iDList;
-
-        switch (platform) {
-        case PLATFORM_XBOX:
-        {
-            numVertices += system.pXbox[dlistIdx].numIndices;
-        } break;
-
-        case PLATFORM_PS2:
-        {
-            numVertices += system.pPS2[dlistIdx].numVerts;
-        } break;
-
-        case PLATFORM_PC:
-        {
-            numVertices += system.pPC[dlistIdx].numIndices;
-        } break;
-
-        default:
-            break;
-        }
+        numVertices += getNumSubmeshVertices(i + mesh.iSubMesh);
     }
     return numVertices;
 }
@@ -472,6 +479,76 @@ void RigidGeom::calcMeshBBoxes()
     }
 }
 
+float* RigidGeom::getPUVHelper(const Submesh& submesh, float* pf, float* puv)
+{
+    const int dlistIdx = submesh.iDList;
+    switch (platform) {
+    case PLATFORM_XBOX:
+    {
+        auto& dlist = system.pXbox[dlistIdx];
+        for (int j = 0; j < dlist.numIndices; ++j) {
+            auto& v = dlist.verts[dlist.indices[j]];
+            *pf++ = v.pos.x;
+            *pf++ = v.pos.y;
+            *pf++ = v.pos.z;
+        }
+        for (int j = 0; j < dlist.numIndices; ++j) {
+            auto& v = dlist.verts[dlist.indices[j]];
+            *puv++ = v.uv.x;
+            *puv++ = v.uv.y;
+        }
+    } break;
+
+    case PLATFORM_PS2:
+    {
+        // Are these strips?
+        auto& dlist = system.pPS2[dlistIdx];
+        for (int j = 0; j < dlist.numVerts; ++j) {
+            Vector4& v = dlist.pPosition[j];
+            *pf++ = v.x;
+            *pf++ = v.y;
+            *pf++ = v.z;
+        }
+        int16_t* puv = dlist.pUV;
+        for (int j = 0; j < dlist.numVerts; ++j) {
+            *puv++ = (float)*puv++; // TODO: Fixed point 4.12
+            *puv++ = (float)*puv++;
+        }
+    } break;
+
+    case PLATFORM_PC:
+    {
+        auto& dlist = system.pPC[dlistIdx];
+        for (int j = 0; j < dlist.numIndices; ++j) {
+            auto& v = dlist.verts[dlist.indices[j]];
+            *pf++ = v.pos.x;
+            *pf++ = v.pos.y;
+            *pf++ = v.pos.z;
+        }
+        for (int j = 0; j < dlist.numIndices; ++j) {
+            auto& v = dlist.verts[dlist.indices[j]];
+            *puv++ = v.uv.x;
+            *puv++ = v.uv.y;
+        }
+    } break;
+
+    default:
+        break;
+    }
+    return pf;
+}
+
+float* RigidGeom::getSubmeshVerticesPUV(int submeshIdx)
+{
+    const auto&  submesh = subMeshes[submeshIdx];
+    int          num = getNumSubmeshVertices(submeshIdx);
+    float* const output = new float[num * 5];
+    float*       pf = output;
+    float*       puv = pf + num * 3;
+    getPUVHelper(submesh, pf, puv);
+    return output;
+}
+
 float* RigidGeom::getVerticesPUV(int meshNo)
 {
     int          num = getNumVertices(meshNo);
@@ -482,60 +559,9 @@ float* RigidGeom::getVerticesPUV(int meshNo)
     const auto& mesh = meshes[meshNo];
     for (int i = 0; i < mesh.nSubMeshes; ++i) {
         const auto& submesh = subMeshes[i + mesh.iSubMesh];
-        const int   dlistIdx = submesh.iDList;
-        switch (platform) {
-        case PLATFORM_XBOX:
-        {
-            auto& dlist = system.pXbox[dlistIdx];
-            for (int j = 0; j < dlist.numIndices; ++j) {
-                auto& v = dlist.verts[dlist.indices[j]];
-                *pf++ = v.pos.x;
-                *pf++ = v.pos.y;
-                *pf++ = v.pos.z;
-            }
-            for (int j = 0; j < dlist.numIndices; ++j) {
-                auto& v = dlist.verts[dlist.indices[j]];
-                *puv++ = v.uv.x;
-                *puv++ = v.uv.y;
-            }
-        } break;
-
-        case PLATFORM_PS2:
-        {
-            // Are these strips?
-            auto& dlist = system.pPS2[dlistIdx];
-            for (int j = 0; j < dlist.numVerts; ++j) {
-                Vector4& v = dlist.pPosition[j];
-                *pf++ = v.x;
-                *pf++ = v.y;
-                *pf++ = v.z;
-            }
-            int16_t* puv = dlist.pUV;
-            for (int j = 0; j < dlist.numVerts; ++j) {
-                *puv++ = (float)*puv++; // TODO: Fixed point 4.12
-                *puv++ = (float)*puv++;
-            }
-        } break;
-
-        case PLATFORM_PC:
-        {
-            auto& dlist = system.pPC[dlistIdx];
-            for (int j = 0; j < dlist.numIndices; ++j) {
-                auto& v = dlist.verts[dlist.indices[j]];
-                *pf++ = v.pos.x;
-                *pf++ = v.pos.y;
-                *pf++ = v.pos.z;
-            }
-            for (int j = 0; j < dlist.numIndices; ++j) {
-                auto& v = dlist.verts[dlist.indices[j]];
-                *puv++ = v.uv.x;
-                *puv++ = v.uv.y;
-            }
-        } break;
-
-        default:
-            break;
-        }
+        float* pf1 = getPUVHelper(submesh, pf, puv);
+        puv += ((pf1 - pf) / 3 ) * 2;
+        pf = pf1;
     }
     if (pf - output != num * 3) {
         std::cerr << "ERROR: unexpected vertex count" << std::endl;

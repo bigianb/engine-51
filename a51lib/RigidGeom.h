@@ -90,6 +90,14 @@ public:
     // Gets the de-indexed vertices (so can contain duplicates) in x,y,z,u,v format.
     float* getVerticesPUV(int meshNo);
 
+    // Gets the number of vertices returned by getSubmeshVerticesPUV.
+    int getNumSubmeshVertices(int submeshNo);
+    
+    // Gets the de-indexed vertices (so can contain duplicates) in x,y,z,u,v format.
+    float* getSubmeshVerticesPUV(int submeshNo);
+
+    float* getPUVHelper(const Submesh& submesh, float* pf, float* puv);
+
     // Only needed when we change something. Used when reading the xbox demo meshes.
     void calcMeshBBoxes();
 

@@ -268,6 +268,8 @@ public:
     const BBox& getBoundingBox(int mesh) const {return meshes[mesh].bbox;}
 
     int getNumMeshes() const { return numMeshes;}
+    int getNumTextures() const { return numTextures; }
+    std::string getTextureFilename(int tNum);
 
 private:
     void describeProperty(std::ostringstream& ss, const char* prefix, int propertyIndex);
@@ -278,7 +280,7 @@ private:
     void describeBBox(std::ostringstream&ss, const BBox& aBBox) const;
     std::string lookupString(int offset);
 
-protected:
+public:
     BBox     bbox;
     int16_t  platform;
     uint16_t unknown;
