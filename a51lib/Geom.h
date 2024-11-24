@@ -225,6 +225,8 @@ struct Texture
     int16_t descOffset;
     int16_t fileNameOffset;
 
+    std::string fileName;
+
     void read(InevFile&);
 };
 

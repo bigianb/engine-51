@@ -100,10 +100,30 @@ void RigidGeom::readXboxDemo(InevFile& inevFile)
     inevFile.setCursor(saved);
 
     numMaterials = inevFile.readInt();
-    inevFile.skip(4); // need to figure materials out
+    int materialsOffset = inevFile.readAndResolvePtr();
+    saved = inevFile.getCursor();
+    inevFile.setCursor(materialsOffset);
+
+    // 100 bytes per material
+    // For now, just point to textures
+    materials = new Material[numMaterials];
+    for (int i = 0; i < numMaterials; ++i) {
+        materials[i].iTexture = i;
+    }
+    inevFile.setCursor(saved);
 
     numTextures = inevFile.readInt();
-    inevFile.skip(4);
+    int texturesOffset = inevFile.readAndResolvePtr();
+    saved = inevFile.getCursor();
+    inevFile.setCursor(texturesOffset);
+    textures = new Texture[numTextures];
+    for (int t = 0; t < numTextures; ++t) {
+        textures[t].fileName = inevFile.getStrData();
+        texturesOffset += 256;
+        inevFile.setCursor(texturesOffset);
+    }
+    inevFile.setCursor(saved);
+
     inevFile.skip(8);
     int numUnknown = inevFile.readInt();
     int unknownOfffset = inevFile.readAndResolvePtr();
@@ -248,8 +268,28 @@ void RigidGeom::readXboxDemo(InevFile& inevFile)
             int[4]                     1, 1, 32, 0
             ------------
 
-            // File offset 0x194        // materials
-            int             // 384      3
+            // File offset 0x194        // materials (74 bytes each)
+
+            3, 1,            // 0x194
+            0, 1, 0, 0,
+            2.0, 0, 1.0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            1, 0, 0,
+
+            3, 2,                // 1f8
+            1, 1, 0, 1          // 200
+            2.0, 0, 1.0, 0      // 210
+            0, 0, 0, 0          // 220
+            0, 0, 0, 0          // 230
+            0, 0, 0, 0          // 240
+            1, 1, 0,
+
+            0
+            0, 0, 0, 0
+            0
+
 
             -----------
 
@@ -559,8 +599,8 @@ float* RigidGeom::getVerticesPUV(int meshNo)
     const auto& mesh = meshes[meshNo];
     for (int i = 0; i < mesh.nSubMeshes; ++i) {
         const auto& submesh = subMeshes[i + mesh.iSubMesh];
-        float* pf1 = getPUVHelper(submesh, pf, puv);
-        puv += ((pf1 - pf) / 3 ) * 2;
+        float*      pf1 = getPUVHelper(submesh, pf, puv);
+        puv += ((pf1 - pf) / 3) * 2;
         pf = pf1;
     }
     if (pf - output != num * 3) {

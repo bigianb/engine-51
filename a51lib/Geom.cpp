@@ -359,7 +359,10 @@ std::string Geom::getTextureFilename(int tNum)
     if (textures == nullptr){
         return "unknown";
     }
-    return lookupString(textures[tNum].fileNameOffset);
+    if (textures[tNum].fileName.empty()){
+        textures[tNum].fileName = lookupString(textures[tNum].fileNameOffset);
+    }
+    return textures[tNum].fileName;
 }
 
 void Geom::describeTextures(std::ostringstream& ss)
@@ -375,7 +378,7 @@ void Geom::describeTextures(std::ostringstream& ss)
         const auto& texture = textures[i];
         ss << "  ID: " << i << std::endl;
         ss << "  Description: " << lookupString(texture.descOffset) << std::endl;
-        ss << "  Filename: " << lookupString(texture.fileNameOffset) << std::endl
+        ss << "  Filename: " << getTextureFilename(i) << std::endl
            << std::endl;
     }
 }

@@ -115,7 +115,7 @@ void MainWindow::exportTriggered()
     auto extension = dfsFile->getFileExtension(entryNo);
     auto origFilename = dfsFile->getBaseFilename(entryNo);
     if (extension == ".XBMP") {
-       
+
         QString fileName = QFileDialog::getSaveFileName(this, tr("Export Png"),
                                                         origFilename.c_str(),
                                                         tr("PNG Files (*.png)"));
@@ -128,9 +128,9 @@ void MainWindow::exportTriggered()
         auto image = QImage(bitmap.data.pixelData, bitmap.width, bitmap.height, bitmap.physicalWidth * 4, QImage::Format_ARGB32);
         image.save(fileName, "PNG");
     } else if (extension == ".RIGIDGEOM") {
-        QString   fileName = QFileDialog::getSaveFileName(this, tr("Export GLTF"),
-                                                          origFilename.c_str(),
-                                                          tr("GLTF Files (*.gltf)"));
+        QString fileName = QFileDialog::getSaveFileName(this, tr("Export GLTF"),
+                                                        origFilename.c_str(),
+                                                        tr("GLTF Files (*.gltf)"));
 
         RigidGeom rigidGeom;
         uint8_t*  fileData = dfsFile->getFileData(entryNo);
@@ -144,28 +144,33 @@ void MainWindow::exportTriggered()
 void MainWindow::exportGLTF(RigidGeom& rigidGeom, QString fileName)
 {
     // Create a model with a single mesh and save it as a gltf file
-    tinygltf::Model      m;
-    tinygltf::Scene      scene;
-    
+    tinygltf::Model m;
+    tinygltf::Scene scene;
+
     int numMeshes = rigidGeom.getNumMeshes();
     int accessorIdx = 0;
     int viewIdx = 0;
     int materialIdx = 0;
     int textureIdx = 0;
 
-    for (int texNo=0; texNo < rigidGeom.getNumTextures(); ++texNo){
+    for (int texNo = 0; texNo < rigidGeom.getNumTextures(); ++texNo) {
         tinygltf::Image image;
         // TODO: Uppercase and change the extension to png.
-        image.uri = rigidGeom.getTextureFilename(texNo);
+        std::string tfn = rigidGeom.getTextureFilename(texNo);
+        tfn.replace(tfn.end() - 4, tfn.end(), "png");
+        for (auto& c : tfn) {
+            c = toupper(c);
+        }
+        image.uri = tfn;
         m.images.push_back(image);
     }
 
     int nodeMeshIdx = 0;
-    for (int meshNo=0; meshNo < numMeshes; ++meshNo){
+    for (int meshNo = 0; meshNo < numMeshes; ++meshNo) {
         Mesh& mesh = rigidGeom.meshes[meshNo];
         for (int submeshIdx = mesh.iSubMesh; submeshIdx < mesh.iSubMesh + mesh.nSubMeshes; ++submeshIdx) {
 
-            int numVertices = rigidGeom.getNumSubmeshVertices(submeshIdx);
+            int    numVertices = rigidGeom.getNumSubmeshVertices(submeshIdx);
             float* vertexData = rigidGeom.getSubmeshVerticesPUV(submeshIdx);
 
             // This is the raw data buffer.
@@ -195,7 +200,7 @@ void MainWindow::exportGLTF(RigidGeom& rigidGeom, QString fileName)
             int uvBufferViewIdx = viewIdx++;
 
             // Describe the layout of posBufferView, the vertices themself
-            tinygltf::Accessor   posAccessor;
+            tinygltf::Accessor posAccessor;
             posAccessor.bufferView = posBufferViewIdx;
             posAccessor.byteOffset = 0;
             posAccessor.componentType = TINYGLTF_COMPONENT_TYPE_FLOAT;
@@ -205,13 +210,13 @@ void MainWindow::exportGLTF(RigidGeom& rigidGeom, QString fileName)
             posAccessor.maxValues = {bbox.max.x, bbox.max.y, bbox.max.z};
             posAccessor.minValues = {bbox.min.x, bbox.min.y, bbox.min.z};
 
-            tinygltf::Accessor   uvAccessor;
+            tinygltf::Accessor uvAccessor;
             uvAccessor.bufferView = uvBufferViewIdx;
             uvAccessor.byteOffset = 0;
             uvAccessor.componentType = TINYGLTF_COMPONENT_TYPE_FLOAT;
             uvAccessor.count = numVertices;
             uvAccessor.type = TINYGLTF_TYPE_VEC2;
-            uvAccessor.maxValues = {1.0, 1.0};          // TODO: Build correct min/max from data
+            uvAccessor.maxValues = {1.0, 1.0}; // TODO: Build correct min/max from data
             uvAccessor.minValues = {-1.0, -1.0};
 
             m.accessors.push_back(posAccessor);
@@ -230,13 +235,13 @@ void MainWindow::exportGLTF(RigidGeom& rigidGeom, QString fileName)
             int theMaterialIdx = materialIdx++;
 
             tinygltf::Texture texture;
-            int meshMatIdx = rigidGeom.subMeshes[submeshIdx].iMaterial;
+            int               meshMatIdx = rigidGeom.subMeshes[submeshIdx].iMaterial;
             texture.source = rigidGeom.materials[meshMatIdx].iTexture;
             m.textures.push_back(texture);
             textureIdx++;
 
             // Build the mesh primitive and add it to the mesh
-            tinygltf::Primitive  primitive;
+            tinygltf::Primitive primitive;
             primitive.attributes["POSITION"] = posAccessorId;
             primitive.attributes["TEXCOORD_0"] = uvAccessorId;
             primitive.material = theMaterialIdx;
@@ -267,8 +272,6 @@ void MainWindow::exportGLTF(RigidGeom& rigidGeom, QString fileName)
                               true,   // embedBuffers
                               true,   // pretty print
                               false); // write binary
-
-
 }
 
 void MainWindow::treeItemClicked(const QModelIndex& index)

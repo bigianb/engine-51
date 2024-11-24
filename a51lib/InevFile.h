@@ -67,7 +67,7 @@ public:
     {
         return cursor;
     }
-    
+
     void setCursor(int c)
     {
         cursor = c;
@@ -145,6 +145,11 @@ public:
 
         ptr = new char[size];
         memcpy(ptr, pStaticData + dataOffset, size);
+    }
+
+    const char* getStrData()
+    {
+        return (const char*)(pStaticData + cursor);
     }
 
 private:
