@@ -101,6 +101,8 @@ MainWindow::MainWindow(QWidget* parent)
     bool ok = connect(ui->treeView, &QAbstractItemView::clicked, this, &MainWindow::treeItemClicked);
     ok = connect(ui->actionToolbarExportFile, &QAction::triggered, this, &MainWindow::exportTriggered);
 
+    ok = connect(ui->searchText, &QLineEdit::textChanged, this, &MainWindow::searchRegularExpressionChanged);
+
     dfsFile = new DFSFile();
     dfsTreeModel = new DfsTreeModel(dfsFile);
     proxyModel = new QSortFilterProxyModel(nullptr);
@@ -119,7 +121,9 @@ MainWindow::~MainWindow()
 void MainWindow::exportTriggered()
 {
     auto currentIndex = ui->treeView->selectionModel()->currentIndex();
-    int  entryNo = currentIndex.row();
+    const QModelIndex sourceIdx = proxyModel->mapToSource(currentIndex);
+    int entryNo = sourceIdx.internalId();
+
     auto extension = dfsFile->getFileExtension(entryNo);
     auto origFilename = dfsFile->getBaseFilename(entryNo);
     if (extension == ".XBMP") {
@@ -333,6 +337,38 @@ void MainWindow::setBitmap(Bitmap& bitmap, QLabel* label)
     labelImage = QImage((const uint8_t*)bitmap.getPixelData(0), bitmap.width, bitmap.height, bitmap.physicalWidth * 4, QImage::Format_ARGB32);
     label->setPixmap(QPixmap::fromImage(labelImage));
     label->resize(label->pixmap().size());
+}
+
+static inline QColor textColor(const QPalette &palette)
+{
+    return palette.color(QPalette::Active, QPalette::Text);
+}
+
+static void setTextColor(QWidget *w, const QColor &c)
+{
+    auto palette = w->palette();
+    if (textColor(palette) != c) {
+        palette.setColor(QPalette::Active, QPalette::Text, c);
+        w->setPalette(palette);
+    }
+}
+
+void MainWindow::searchRegularExpressionChanged()
+{
+    QString pattern = ui->searchText->text();
+
+    QRegularExpression::PatternOptions options = QRegularExpression::NoPatternOption | QRegularExpression::CaseInsensitiveOption;
+    QRegularExpression regularExpression(pattern, options);
+
+    if (regularExpression.isValid()) {
+        ui->searchText->setToolTip(QString());
+        proxyModel->setFilterRegularExpression(regularExpression);
+        setTextColor(ui->searchText, textColor(style()->standardPalette()));
+    } else {
+        ui->searchText->setToolTip(regularExpression.errorString());
+        proxyModel->setFilterRegularExpression(QRegularExpression());
+        setTextColor(ui->searchText, Qt::red);
+    }
 }
 
 static QString getFilenameFromMimeData(const QMimeData* mimeData)

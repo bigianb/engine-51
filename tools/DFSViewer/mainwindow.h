@@ -59,6 +59,7 @@ public:
 public slots:
     void treeItemClicked(const QModelIndex &index);
     void exportTriggered();
+    void searchRegularExpressionChanged();
 
 protected:
     void dragEnterEvent(QDragEnterEvent* event) override;

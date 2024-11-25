@@ -6,16 +6,16 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>809</width>
-    <height>600</height>
+    <width>868</width>
+    <height>650</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>DFS Viewer</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
      <widget class="QSplitter" name="splitter">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -26,7 +26,29 @@
       <property name="orientation">
        <enum>Qt::Orientation::Horizontal</enum>
       </property>
-      <widget class="QTreeView" name="treeView"/>
+      <widget class="QWidget" name="treeContainer" native="true">
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
+         <widget class="QGroupBox" name="groupBox">
+          <layout class="QGridLayout" name="gridLayout_2">
+           <item row="1" column="0">
+            <widget class="QLineEdit" name="searchText"/>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="searchLabel">
+             <property name="text">
+              <string>Search (regex)</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTreeView" name="treeView"/>
+        </item>
+       </layout>
+      </widget>
       <widget class="QTabWidget" name="contentTabWidget">
        <property name="currentIndex">
         <number>2</number>
@@ -106,8 +128,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>809</width>
-     <height>24</height>
+     <width>868</width>
+     <height>37</height>
     </rect>
    </property>
   </widget>
