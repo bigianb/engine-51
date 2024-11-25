@@ -106,9 +106,30 @@ void RigidGeom::readXboxDemo(InevFile& inevFile)
 
     // 100 bytes per material
     // For now, just point to textures
+    std::cout << "Found " << numMaterials << " materials: " << std::endl;
     materials = new Material[numMaterials];
     for (int i = 0; i < numMaterials; ++i) {
-        materials[i].iTexture = i;
+        for (int x=0; x<25; ++x){
+            // flags, nTextures, iTexture...
+            int v;
+            inevFile.read(v);
+            if (x == 1){
+                materials[i].nTextures = v;
+            } else if (x == 2){
+                materials[i].iTexture = v;
+            }
+            
+            if (x >= 6 && x <= 10){
+                std::cout << *(float *)&v;
+            } else {
+                std::cout << v;
+            }
+            if (x != 24){
+                std::cout << ", ";
+            } else {
+                std::cout << std::endl;
+            }
+        }
     }
     inevFile.setCursor(saved);
 
