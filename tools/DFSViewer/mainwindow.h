@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QLabel>
 #include <QtCore/qabstractitemmodel.h>
+#include <QSortFilterProxyModel>
 
 #include "../../a51lib/Bitmap.h"
 
@@ -71,6 +72,7 @@ private:
     QImage labelImage;
 
     DfsTreeModel* dfsTreeModel;
+    QSortFilterProxyModel* proxyModel;
     DFSFile* dfsFile;
     Ui::MainWindow* ui;
 };

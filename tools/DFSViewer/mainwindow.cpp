@@ -17,6 +17,7 @@
 #include <QtCore/QDir>
 #include <QFileDialog>
 
+
 DfsTreeModel::DfsTreeModel(DFSFile* dfsFile, QObject* parent)
     : QAbstractItemModel(parent)
 {
@@ -29,7 +30,7 @@ DfsTreeModel::~DfsTreeModel()
 
 QModelIndex DfsTreeModel::index(int row, int column, const QModelIndex& parent) const
 {
-    return createIndex(row, column);
+    return createIndex(row, column, row);
 }
 
 QModelIndex DfsTreeModel::parent(const QModelIndex& index) const
@@ -48,7 +49,7 @@ int DfsTreeModel::rowCount(const QModelIndex& parent) const
 
 int DfsTreeModel::columnCount(const QModelIndex& parent) const
 {
-    return 2;
+    return 3;
 }
 
 QVariant DfsTreeModel::data(const QModelIndex& index, int role) const
@@ -56,11 +57,13 @@ QVariant DfsTreeModel::data(const QModelIndex& index, int role) const
     if (!index.isValid() || role != Qt::DisplayRole) {
         return {};
     }
+    const int dfsItemNo = index.internalId();
     if (index.column() == 0) {
-        return dfsFile->getFilename(index.row()).c_str();
+        return dfsFile->getBaseFilename(dfsItemNo).c_str();
+    } else if (index.column() == 1) {
+        return dfsFile->getFileExtension(dfsItemNo).c_str();
     }
-
-    return dfsFile->getFileSize(index.row());
+    return dfsFile->getFileSize(dfsItemNo);
 }
 
 QVariant DfsTreeModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -71,6 +74,8 @@ QVariant DfsTreeModel::headerData(int section, Qt::Orientation orientation, int 
 
     if (section == 0) {
         return QVariant("Filename");
+    } else if (section == 1){
+        return "Ext";
     } else {
         return "size";
     }
@@ -98,7 +103,10 @@ MainWindow::MainWindow(QWidget* parent)
 
     dfsFile = new DFSFile();
     dfsTreeModel = new DfsTreeModel(dfsFile);
-    ui->treeView->setModel(dfsTreeModel);
+    proxyModel = new QSortFilterProxyModel(nullptr);
+
+    proxyModel->setSourceModel(dfsTreeModel);
+    ui->treeView->setModel(proxyModel);
 }
 
 MainWindow::~MainWindow()
@@ -276,7 +284,8 @@ void MainWindow::exportGLTF(RigidGeom& rigidGeom, QString fileName)
 
 void MainWindow::treeItemClicked(const QModelIndex& index)
 {
-    int entryNo = index.row();
+    const QModelIndex sourceIdx = proxyModel->mapToSource(index);
+    int entryNo = sourceIdx.internalId();
     //qDebug() << "Clicked row:" << entryNo;
     auto extension = dfsFile->getFileExtension(entryNo);
 
@@ -285,7 +294,7 @@ void MainWindow::treeItemClicked(const QModelIndex& index)
 
     bool exportable = false;
 
-    if (extension == ".TXT" || extension == ".VSH" || extension == ".INFO") {
+    if (extension == ".TXT" || extension == ".PSH" || extension == ".VSH" || extension == ".INFO") {
 
         int                i = 0;
         std::ostringstream ss;
@@ -351,9 +360,11 @@ void MainWindow::dropEvent(QDropEvent* event)
 {
     QString filename = getFilenameFromMimeData(event->mimeData());
     if (filename.toLower().endsWith("dfs")) {
+        ui->treeView->setSortingEnabled(false);
         dfsTreeModel->doBeginResetModel();
         dfsFile->read(filename.toStdString());
         dfsTreeModel->doEndResetModel();
+        ui->treeView->setSortingEnabled(true);
         event->acceptProposedAction();
     }
 }
