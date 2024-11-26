@@ -274,13 +274,13 @@ public:
     std::string getTextureFilename(int tNum);
 
 private:
-    void describeProperty(std::ostringstream& ss, const char* prefix, int propertyIndex);
-    void describeProperies(std::ostringstream& ss);
+    void describeProperty(std::ostringstream& ss, const char* prefix, int propertyIndex) const;
+    void describeProperies(std::ostringstream& ss) const;
     void describeTextures(std::ostringstream& ss);
-    void describeMeshes(std::ostringstream& ss);
-    void describeMaterials(std::ostringstream& ss);
-    void describeBBox(std::ostringstream&ss, const BBox& aBBox) const;
-    std::string lookupString(int offset);
+    void describeMeshes(std::ostringstream& ss) const;
+    void describeMaterials(std::ostringstream& ss) const;
+    void describeBones(std::ostringstream& ss) const;
+    std::string lookupString(int offset) const;
 
 public:
     BBox     bbox;

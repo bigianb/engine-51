@@ -67,7 +67,6 @@ protected:
 
 private:
     void setBitmap(Bitmap& bitmap, QLabel* label);
-    void exportGLTF(RigidGeom& rigidGeom, QString fileName);
 
     Bitmap labelBitmap;
     QImage labelImage;

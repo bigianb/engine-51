@@ -14,6 +14,7 @@ void Bone::read(InevFile& inevFile)
     inevFile.read(s);
     hitLocation = HitLocation(s);
     inevFile.read(rigidBodyIdx);
+    inevFile.skip(12);
 }
 
 void BoneMask::read(InevFile& inevFile)
@@ -280,15 +281,15 @@ const char* describePlatform(int plat)
     return "unknown";
 }
 
-std::string Geom::lookupString(int offset)
+std::string Geom::lookupString(int offset) const
 {
-    if (stringData == nullptr){
+    if (stringData == nullptr) {
         return "undefined";
     }
     return std::string(stringData + offset);
 }
 
-void Geom::describeProperty(std::ostringstream& ss, const char* prefix, int propertyIndex)
+void Geom::describeProperty(std::ostringstream& ss, const char* prefix, int propertyIndex) const
 {
     auto& property = properties[propertyIndex];
     ss << prefix << lookupString(property.nameOffset) << ": ";
@@ -311,7 +312,7 @@ void Geom::describeProperty(std::ostringstream& ss, const char* prefix, int prop
     ss << std::endl;
 }
 
-void Geom::describeProperies(std::ostringstream& ss)
+void Geom::describeProperies(std::ostringstream& ss) const
 {
     if (numPropertySections == 0) {
         ss << "  No Properties" << std::endl;
@@ -327,7 +328,7 @@ void Geom::describeProperies(std::ostringstream& ss)
     }
 }
 
-void Geom::describeMaterials(std::ostringstream& ss)
+void Geom::describeMaterials(std::ostringstream& ss) const
 {
     if (numMaterials == 0) {
         ss << "  No Materials" << std::endl;
@@ -351,13 +352,48 @@ void Geom::describeMaterials(std::ostringstream& ss)
 
 std::string Geom::getTextureFilename(int tNum)
 {
-    if (textures == nullptr){
+    if (textures == nullptr) {
         return "unknown";
     }
-    if (textures[tNum].fileName.empty()){
+    if (textures[tNum].fileName.empty()) {
         textures[tNum].fileName = lookupString(textures[tNum].fileNameOffset);
     }
     return textures[tNum].fileName;
+}
+
+std::ostream& operator<<(std::ostream& os, const Vector3& obj)
+{
+    os << "[ " << obj.x << ", " << obj.y << ", " << obj.z << " ]";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const Quaternion& obj)
+{
+    os << "[ " << obj.x << ", " << obj.y << ", " << obj.z << ", " << obj.w << " ]";
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const BBox& aBBox)
+{
+    os << aBBox.min << aBBox.max;
+    return os;
+}
+
+void Geom::describeBones(std::ostringstream& ss) const
+{
+    if (numBones == 0) {
+        ss << "  No Bones" << std::endl;
+    }
+
+    for (int i = 0; i < numBones; ++i) {
+        const auto& bone = bones[i];
+        ss << "  Rigid Body Index: " << bone.rigidBodyIdx << std::endl;
+        ss << "  Hit Location:     " << bone.hitLocation << std::endl;
+        ss << "  Position          " << bone.bindPosition << std::endl;
+        ss << "  Rotation          " << bone.bindRotation << std::endl;
+        ss << "  Bounding Box:     " << bone.bbox << std::endl;
+        ss << std::endl;
+    }
 }
 
 void Geom::describeTextures(std::ostringstream& ss)
@@ -378,13 +414,7 @@ void Geom::describeTextures(std::ostringstream& ss)
     }
 }
 
-void Geom::describeBBox(std::ostringstream& ss, const BBox& aBBox) const
-{
-    ss << "[" << aBBox.min.x << ", " << aBBox.min.y << ", " << aBBox.min.y << "], [";
-    ss << aBBox.max.x << ", " << aBBox.max.y << ", " << aBBox.max.y << "]";
-}
-
-void Geom::describeMeshes(std::ostringstream& ss)
+void Geom::describeMeshes(std::ostringstream& ss) const
 {
     if (numMeshes == 0 || meshes == nullptr) {
         return;
@@ -393,8 +423,7 @@ void Geom::describeMeshes(std::ostringstream& ss)
         const auto& mesh = meshes[i];
         ss << "  Mesh: " << i << std::endl;
         ss << "      Name: " << lookupString(mesh.nameOffset) << std::endl;
-        ss << "      BBox: ";
-        describeBBox(ss, mesh.bbox);
+        ss << "      BBox: " << mesh.bbox;
         ss << std::endl;
         ss << "      Num Submeshes: " << mesh.nSubMeshes << std::endl;
         ss << "      Idx Submeshes: " << mesh.iSubMesh << std::endl;
@@ -464,4 +493,10 @@ void Geom::describe(std::ostringstream& ss)
        << "--------" << std::endl
        << std::endl;
     describeMaterials(ss);
+
+    ss << std::endl
+       << "Bones" << std::endl
+       << "-----" << std::endl
+       << std::endl;
+    describeBones(ss);
 }

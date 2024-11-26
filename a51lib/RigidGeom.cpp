@@ -50,6 +50,9 @@ void RigidGeom::readXboxDemo(InevFile& inevFile)
     platform = inevFile.readInt();
     inevFile.setPlatform(platform);
 
+    numBoneMasks = 0;
+    numBones = 0;
+
     version = inevFile.readInt();
     numFaces = inevFile.readInt();
     numVertices = inevFile.readInt();
@@ -414,7 +417,8 @@ int RigidGeom::getNumSubmeshVertices(int submeshNo)
 
     case PLATFORM_PS2:
     {
-        // Num tri-strips 
+        // Num tri-strips
+        // Need to look at ADC flags really.
         return (system.pPS2[dlistIdx].numVerts - 2) * 3;
     } break;
 
