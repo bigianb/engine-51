@@ -152,10 +152,8 @@ void MainWindow::exportTriggered()
     }
 }
 
-// TODO: this just exports a triangle for now.
 void MainWindow::exportGLTF(RigidGeom& rigidGeom, QString fileName)
 {
-    // Create a model with a single mesh and save it as a gltf file
     tinygltf::Model m;
     tinygltf::Scene scene;
 
@@ -167,7 +165,6 @@ void MainWindow::exportGLTF(RigidGeom& rigidGeom, QString fileName)
 
     for (int texNo = 0; texNo < rigidGeom.getNumTextures(); ++texNo) {
         tinygltf::Image image;
-        // TODO: Uppercase and change the extension to png.
         std::string tfn = rigidGeom.getTextureFilename(texNo);
         tfn.replace(tfn.end() - 4, tfn.end(), "png");
         for (auto& c : tfn) {
@@ -178,12 +175,14 @@ void MainWindow::exportGLTF(RigidGeom& rigidGeom, QString fileName)
     }
 
     int nodeMeshIdx = 0;
+    int buffersIdx = 0;
     for (int meshNo = 0; meshNo < numMeshes; ++meshNo) {
         Mesh& mesh = rigidGeom.meshes[meshNo];
         for (int submeshIdx = mesh.iSubMesh; submeshIdx < mesh.iSubMesh + mesh.nSubMeshes; ++submeshIdx) {
 
             int    numVertices = rigidGeom.getNumSubmeshVertices(submeshIdx);
             float* vertexData = rigidGeom.getSubmeshVerticesPUV(submeshIdx);
+            float* normals = rigidGeom.getSubmeshVertexNormals(submeshIdx);
 
             // This is the raw data buffer.
             // Must be a better way to do this
@@ -192,15 +191,23 @@ void MainWindow::exportGLTF(RigidGeom& rigidGeom, QString fileName)
             buffer.data = std::vector<unsigned char>(pcvd, pcvd + numVertices * 20);
             delete[] vertexData;
             m.buffers.push_back(buffer);
+            int vBufIdx = buffersIdx++;
+
+            const unsigned char* pcnd = (unsigned char*)normals;
+            tinygltf::Buffer     normalsBuffer;
+            normalsBuffer.data = std::vector<unsigned char>(pcnd, pcnd + numVertices * 12);
+            delete[] normals;
+            m.buffers.push_back(normalsBuffer);
+            int nBufIndx = buffersIdx++;
 
             tinygltf::BufferView posBufferView;
-            posBufferView.buffer = nodeMeshIdx;
+            posBufferView.buffer = vBufIdx;
             posBufferView.byteOffset = 0;
             posBufferView.byteLength = numVertices * 12;
             posBufferView.target = TINYGLTF_TARGET_ARRAY_BUFFER;
 
             tinygltf::BufferView uvBufferView;
-            uvBufferView.buffer = nodeMeshIdx;
+            uvBufferView.buffer = vBufIdx;
             uvBufferView.byteOffset = numVertices * 12;
             uvBufferView.byteLength = numVertices * 8;
             uvBufferView.target = TINYGLTF_TARGET_ARRAY_BUFFER;
@@ -210,6 +217,15 @@ void MainWindow::exportGLTF(RigidGeom& rigidGeom, QString fileName)
 
             m.bufferViews.push_back(uvBufferView);
             int uvBufferViewIdx = viewIdx++;
+
+            tinygltf::BufferView normalsBufferView;
+            normalsBufferView.buffer = nBufIndx;
+            normalsBufferView.byteOffset = 0;
+            normalsBufferView.byteLength = numVertices * 12;
+            normalsBufferView.target = TINYGLTF_TARGET_ARRAY_BUFFER;
+
+            m.bufferViews.push_back(normalsBufferView);
+            int normalsBufferViewIdx = viewIdx++;
 
             // Describe the layout of posBufferView, the vertices themself
             tinygltf::Accessor posAccessor;
@@ -231,11 +247,23 @@ void MainWindow::exportGLTF(RigidGeom& rigidGeom, QString fileName)
             uvAccessor.maxValues = {1.0, 1.0}; // TODO: Build correct min/max from data
             uvAccessor.minValues = {-1.0, -1.0};
 
+            tinygltf::Accessor normalsAccessor;
+            normalsAccessor.bufferView = normalsBufferViewIdx;
+            normalsAccessor.byteOffset = 0;
+            normalsAccessor.componentType = TINYGLTF_COMPONENT_TYPE_FLOAT;
+            normalsAccessor.count = numVertices;
+            normalsAccessor.type = TINYGLTF_TYPE_VEC3;
+            normalsAccessor.maxValues = {1.0, 1.0, 1.0}; // TODO: Build correct min/max from data
+            normalsAccessor.minValues = {-1.0, -1.0, -1.0};
+
             m.accessors.push_back(posAccessor);
             int posAccessorId = accessorIdx++;
 
             m.accessors.push_back(uvAccessor);
             int uvAccessorId = accessorIdx++;
+
+            m.accessors.push_back(normalsAccessor);
+            int normalsAccessorId = accessorIdx++;
 
             // Create a simple material
             tinygltf::Material mat;
@@ -256,6 +284,7 @@ void MainWindow::exportGLTF(RigidGeom& rigidGeom, QString fileName)
             tinygltf::Primitive primitive;
             primitive.attributes["POSITION"] = posAccessorId;
             primitive.attributes["TEXCOORD_0"] = uvAccessorId;
+            primitive.attributes["NORMAL"] = normalsAccessorId;
             primitive.material = theMaterialIdx;
             primitive.mode = TINYGLTF_MODE_TRIANGLES;
             tinygltf::Mesh mesh;

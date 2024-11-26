@@ -109,22 +109,22 @@ void RigidGeom::readXboxDemo(InevFile& inevFile)
     std::cout << "Found " << numMaterials << " materials: " << std::endl;
     materials = new Material[numMaterials];
     for (int i = 0; i < numMaterials; ++i) {
-        for (int x=0; x<25; ++x){
+        for (int x = 0; x < 25; ++x) {
             // flags, nTextures, iTexture...
             int v;
             inevFile.read(v);
-            if (x == 1){
+            if (x == 1) {
                 materials[i].nTextures = v;
-            } else if (x == 2){
+            } else if (x == 2) {
                 materials[i].iTexture = v;
             }
-            
-            if (x >= 6 && x <= 10){
-                std::cout << *(float *)&v;
+
+            if (x >= 6 && x <= 10) {
+                std::cout << *(float*)&v;
             } else {
                 std::cout << v;
             }
-            if (x != 24){
+            if (x != 24) {
                 std::cout << ", ";
             } else {
                 std::cout << std::endl;
@@ -607,6 +607,67 @@ float* RigidGeom::getSubmeshVerticesPUV(int submeshIdx)
     float*       pf = output;
     float*       puv = pf + num * 3;
     getPUVHelper(submesh, pf, puv);
+    return output;
+}
+
+float* RigidGeom::getSubmeshVertexNormals(int submeshIdx)
+{
+    const auto&  submesh = subMeshes[submeshIdx];
+    int          num = getNumSubmeshVertices(submeshIdx);
+    float* const output = new float[num * 3];
+    float*       pf = output;
+    const int    dlistIdx = submesh.iDList;
+    switch (platform) {
+    case PLATFORM_XBOX:
+    {
+        auto& dlist = system.pXbox[dlistIdx];
+        for (int j = 0; j < dlist.numIndices; ++j) {
+            auto& v = dlist.verts[dlist.indices[j]];
+            uint32_t iz = (v.packedNormal >> 22) & 0x3ff;
+            if (iz > 0x1FF){
+                iz |= 0xFFFFFC00;
+            }
+            uint32_t iy = (v.packedNormal >> 11) & 0x7ff;
+            if (iy > 0x3FF){
+                iy |= 0xFFFFF800;
+            }
+            uint32_t ix = (v.packedNormal) & 0x7ff;
+            if (ix > 0x3FF){
+                ix |= 0xFFFFF800;
+            }
+
+            float x = (int32_t)ix / 1023.0;
+            float y = (int32_t)iy / 1023.0;
+            float z = (int32_t)iz / 511.0;
+
+            *pf++ = x;
+            *pf++ = y;
+            *pf++ = z;
+        }
+    } break;
+
+    case PLATFORM_PS2:
+    {
+        auto& dlist = system.pPS2[dlistIdx];
+        for (int j = 0; j < dlist.numVerts; ++j) {
+            int8_t* n = dlist.pNormal + j * 3;
+            *pf++ = (float)n[0] / 127.0;
+            *pf++ = (float)n[1] / 127.0;
+            *pf++ = (float)n[2] / 127.0;
+        }
+    } break;
+
+    case PLATFORM_PC:
+    {
+        auto& dlist = system.pPC[dlistIdx];
+        for (int j = 0; j < dlist.numIndices; ++j) {
+            auto& v = dlist.verts[dlist.indices[j]];
+            *pf++ = v.normal.x;
+            *pf++ = v.normal.y;
+            *pf++ = v.normal.z;
+        }
+    } break;
+    }
     return output;
 }
 

@@ -96,6 +96,8 @@ public:
     // Gets the de-indexed vertices (so can contain duplicates) in x,y,z,u,v format.
     float* getSubmeshVerticesPUV(int submeshNo);
 
+    float* getSubmeshVertexNormals(int submeshIdx);
+
     float* getPUVHelper(const Submesh& submesh, float* pf, float* puv);
 
     // Only needed when we change something. Used when reading the xbox demo meshes.
