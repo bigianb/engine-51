@@ -17,10 +17,7 @@ void RigidGeom::read(InevFile& inevFile)
         return;
     }
     Geom::read(inevFile);
-    if (version != 41) {
-        // TODO: figure out other versions
-        return;
-    }
+
     inevFile.read(collision);
     inevFile.align16();
     inevFile.read(numDList);
@@ -417,7 +414,8 @@ int RigidGeom::getNumSubmeshVertices(int submeshNo)
 
     case PLATFORM_PS2:
     {
-        return system.pPS2[dlistIdx].numVerts;
+        // Num tri-strips 
+        return (system.pPS2[dlistIdx].numVerts - 2) * 3;
     } break;
 
     case PLATFORM_PC:
@@ -562,18 +560,36 @@ float* RigidGeom::getPUVHelper(const Submesh& submesh, float* pf, float* puv)
 
     case PLATFORM_PS2:
     {
-        // Are these strips?
+        // Tri strips so 0,1,2 1,2,3 2,3,4 etc
         auto& dlist = system.pPS2[dlistIdx];
-        for (int j = 0; j < dlist.numVerts; ++j) {
-            Vector4& v = dlist.pPosition[j];
-            *pf++ = v.x;
-            *pf++ = v.y;
-            *pf++ = v.z;
+        for (int j = 2; j < dlist.numVerts; ++j) {
+            Vector4& v2 = dlist.pPosition[j];
+            uint32_t iw = *(uint32_t *)(&v2.w);
+            bool isCCW = (iw & 0x20) == 0x20;
+            bool isADC = (iw & 0x8000) == 0x8000;
+            if (!isADC){
+                Vector4& v1 = dlist.pPosition[j-1];
+                Vector4& v0 = dlist.pPosition[j-2];
+                if (!isCCW){
+                    v0 = dlist.pPosition[j];
+                    v2 = dlist.pPosition[j-2];
+                }
+                *pf++ = v0.x;
+                *pf++ = v0.y;
+                *pf++ = v0.z;
+                *pf++ = v1.x;
+                *pf++ = v1.y;
+                *pf++ = v1.z;
+                *pf++ = v2.x;
+                *pf++ = v2.y;
+                *pf++ = v2.z;
+            }
         }
         int16_t* puv = dlist.pUV;
         for (int j = 0; j < dlist.numVerts; ++j) {
-            *puv++ = (float)*puv++; // TODO: Fixed point 4.12
-            *puv++ = (float)*puv++;
+            int16_t* v = dlist.pUV + j*2;
+            *puv++ = ((float)v[0]) / 4096.0; // Fixed point 4.12
+            *puv++ = ((float)v[1]) / 4096.0;
         }
     } break;
 
@@ -622,17 +638,17 @@ float* RigidGeom::getSubmeshVertexNormals(int submeshIdx)
     {
         auto& dlist = system.pXbox[dlistIdx];
         for (int j = 0; j < dlist.numIndices; ++j) {
-            auto& v = dlist.verts[dlist.indices[j]];
+            auto&    v = dlist.verts[dlist.indices[j]];
             uint32_t iz = (v.packedNormal >> 22) & 0x3ff;
-            if (iz > 0x1FF){
+            if (iz > 0x1FF) {
                 iz |= 0xFFFFFC00;
             }
             uint32_t iy = (v.packedNormal >> 11) & 0x7ff;
-            if (iy > 0x3FF){
+            if (iy > 0x3FF) {
                 iy |= 0xFFFFF800;
             }
             uint32_t ix = (v.packedNormal) & 0x7ff;
-            if (ix > 0x3FF){
+            if (ix > 0x3FF) {
                 ix |= 0xFFFFF800;
             }
 
@@ -649,11 +665,11 @@ float* RigidGeom::getSubmeshVertexNormals(int submeshIdx)
     case PLATFORM_PS2:
     {
         auto& dlist = system.pPS2[dlistIdx];
-        for (int j = 0; j < dlist.numVerts; ++j) {
-            int8_t* n = dlist.pNormal + j * 3;
+        for (int j = 2; j < dlist.numVerts; ++j) {
+            int8_t* n = dlist.pNormal + j*3;
             *pf++ = (float)n[0] / 127.0;
             *pf++ = (float)n[1] / 127.0;
-            *pf++ = (float)n[2] / 127.0;
+            *pf++ = (float)n[2] / 127.0;  
         }
     } break;
 

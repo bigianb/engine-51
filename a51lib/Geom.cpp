@@ -246,11 +246,6 @@ void Geom::read(InevFile& inevFile)
     inevFile.read(numVirtualTextures);
     inevFile.read(stringDataSize);
 
-    if (version != 41) {
-        // other versions will crash.
-        return;
-    }
-
     inevFile.readArray(bones, numBones);
     inevFile.readArray(boneMasks, numBoneMasks);
     inevFile.readArray(properties, numProperties);
