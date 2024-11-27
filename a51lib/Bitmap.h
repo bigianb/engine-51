@@ -12,7 +12,7 @@ public:
     Bitmap();
     ~Bitmap();
 
-    bool readFile(uint8_t* fileData, int len);
+    bool readFile(uint8_t* fileData, int len, bool oldVersion);
 
     void describe(std::ostringstream& ss);
 

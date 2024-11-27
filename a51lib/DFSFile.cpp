@@ -107,6 +107,14 @@ void DFSFile::freeSubfileData()
     subFileData.clear();
 }
 
+int DFSFile::getVersion() const
+{
+    if (header != nullptr && header->isValid()) {
+        return header->version;
+    }
+    return 0;
+}
+
 int DFSFile::numFiles() const
 {
     if (header != nullptr && header->isValid()) {

@@ -15,7 +15,7 @@ Bitmap::~Bitmap()
     delete[] clutData;
 }
 
-bool Bitmap::readFile(uint8_t* fileData, int len)
+bool Bitmap::readFile(uint8_t* fileData, int len, bool oldVersion = false)
 {
     delete[] data.pixelData;
     data.pixelData = nullptr;
@@ -31,6 +31,15 @@ bool Bitmap::readFile(uint8_t* fileData, int len)
     flags = ((uint32_t*)p)[5];
     nMips = p[6];
     format = p[7];
+
+    // old demo version
+    if (oldVersion) {
+        if (format == FMT_DXT3) {
+            format = FMT_A8;
+        } else if (format == FMT_A8) {
+            format = FMT_DXT3;
+        }
+    }
 
     data.pixelData = new uint8_t[dataSize];
     memcpy(data.pixelData, fileData + 4 * 8, dataSize);
@@ -497,7 +506,7 @@ void convertDX5Alpha(uint16_t* source, Colour* dest, int scanWidth)
         alpha[6] = 0;
         alpha[7] = 255;
     }
-    int shift = 0;
+    int      shift = 0;
     uint64_t bits = source[3];
     bits <<= 16;
     bits |= source[2];
@@ -561,7 +570,7 @@ void convertDX1Block(uint16_t* source, Colour* dest, int scanWidth, bool force4C
         colour[3].clear();
     }
     uint64_t bits = source[2] | (source[3] << 16);
-    int shift = 0;
+    int      shift = 0;
     for (int y = 0; y < 4; y++) {
         for (int x = 0; x < 4; x++) {
             dest[x] = colour[(bits >> shift) & 3];
@@ -620,10 +629,21 @@ Colour* Bitmap::decodeToColor(const uint8_t* source, Format sourceFormat, int co
     Colour* pw = output;
     if (sourceFormat == FMT_DXT1) {
         decodeDXT1ToColour(source, output);
-    }else if (sourceFormat == FMT_DXT2 || sourceFormat == FMT_DXT3) {
+    } else if (sourceFormat == FMT_DXT2 || sourceFormat == FMT_DXT3) {
         decodeDXT2ToColour(source, output);
     } else if (sourceFormat == FMT_DXT4 || sourceFormat == FMT_DXT5) {
         decodeDXT5ToColour(source, output);
+    } else if (sourceFormat == FMT_A8) {
+        while (count > 0) {
+            uint8_t v = *source++;
+            pw->r = v;
+            pw->g = v;
+            pw->b = v;
+            pw->a = 0xFF;
+
+            pw++;
+            count--;
+        }
     } else if (sourceFormatInfo.BPC == 32) {
         uint32_t* source32 = (uint32_t*)source;
 
@@ -658,7 +678,7 @@ Colour* Bitmap::decodeToColor(const uint8_t* source, Format sourceFormat, int co
                 count--;
             }
         }
-    } else if (sourceFormatInfo.BPC == 24) {
+    } else if (sourceFormatInfo.BPC == 16) {
         // 16 BPP
         while (count > 0) {
             uint16_t* source16 = (uint16_t*)source;

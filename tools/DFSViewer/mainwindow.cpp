@@ -132,7 +132,8 @@ void MainWindow::exportTriggered()
         uint8_t* fileData = dfsFile->getFileData(entryNo);
         int      fileLen = dfsFile->getFileSize(entryNo);
         Bitmap   bitmap;
-        bitmap.readFile(fileData, fileLen);
+        const bool oldVersion = dfsFile->getVersion() == 1;
+        bitmap.readFile(fileData, fileLen, oldVersion);
         bitmap.convertFormat(Bitmap::FMT_32_ARGB_8888);
         auto image = QImage(bitmap.data.pixelData, bitmap.width, bitmap.height, bitmap.physicalWidth * 4, QImage::Format_ARGB32);
         image.save(fileName, "PNG");
@@ -180,7 +181,8 @@ void MainWindow::treeItemClicked(const QModelIndex& index)
         exportable = true;
     } else if (extension == ".XBMP") {
         ui->imageLabel->clear();
-        labelBitmap.readFile(fileData, fileLen);
+        const bool oldVersion = dfsFile->getVersion() == 1;
+        labelBitmap.readFile(fileData, fileLen, oldVersion);
         std::ostringstream ss;
         labelBitmap.describe(ss);
         ui->plainTextEdit->setPlainText(ss.str().c_str());

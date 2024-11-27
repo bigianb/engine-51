@@ -18,7 +18,7 @@ public:
     std::string getFileExtension(int entryNo) const;
     int getFileSize(int entryNo) const;
     uint8_t* getFileData(int entryNo) const;
-
+    int getVersion() const;
 
 private:
     void readDataFiles();
