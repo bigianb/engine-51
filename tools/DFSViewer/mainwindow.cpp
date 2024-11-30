@@ -4,6 +4,7 @@
 #include "../../a51lib/Bitmap.h"
 #include "../../a51lib/DFSFile.h"
 #include "../../a51lib/RigidGeom.h"
+#include "../../a51lib/animation/animData.h"
 
 #include "gltfExporter.h"
 #include <iostream>
@@ -171,6 +172,10 @@ void MainWindow::treeItemClicked(const QModelIndex& index)
             ss.put(fileData[i++]);
         }
         ui->plainTextEdit->setPlainText(ss.str().c_str());
+    } else if (extension == ".ANIM") {
+        AnimData animData;
+        animData.readFile(fileData, fileLen);
+
     } else if (extension == ".RIGIDGEOM") {
         RigidGeom rigidGeom;
         rigidGeom.readFile(fileData, fileLen);

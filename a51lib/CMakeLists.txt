@@ -7,6 +7,11 @@ set(GLTF_SOURCES
 	gltf/tiny_gltf.h
 )
 
+set(ANIM_SOURCES
+        animation/animData.cpp
+        animation/animData.h
+        )
+
 target_sources(a51lib PRIVATE
         Bitmap.cpp
         Bitmap.h
@@ -24,6 +29,7 @@ target_sources(a51lib PRIVATE
         RigidGeom.h
         VectorMath.h
 	${GLTF_SOURCES}
+        ${ANIM_SOURCES}
 )
 
 target_compile_features(a51lib PUBLIC cxx_std_20)
