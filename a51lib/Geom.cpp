@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <iostream>
+#include "streamingOperators.h"
 
 #include "Geom.h"
 #include "InevFile.h"
@@ -359,24 +360,6 @@ std::string Geom::getTextureFilename(int tNum)
         textures[tNum].fileName = lookupString(textures[tNum].fileNameOffset);
     }
     return textures[tNum].fileName;
-}
-
-std::ostream& operator<<(std::ostream& os, const Vector3& obj)
-{
-    os << "[ " << obj.x << ", " << obj.y << ", " << obj.z << " ]";
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const Quaternion& obj)
-{
-    os << "[ " << obj.x << ", " << obj.y << ", " << obj.z << ", " << obj.w << " ]";
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const BBox& aBBox)
-{
-    os << aBBox.min << aBBox.max;
-    return os;
 }
 
 void Geom::describeBones(std::ostringstream& ss) const

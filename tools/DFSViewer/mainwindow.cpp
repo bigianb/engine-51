@@ -175,7 +175,9 @@ void MainWindow::treeItemClicked(const QModelIndex& index)
     } else if (extension == ".ANIM") {
         AnimData animData;
         animData.readFile(fileData, fileLen);
-
+        std::ostringstream ss;
+        animData.describe(ss);
+        ui->plainTextEdit->setPlainText(ss.str().c_str());
     } else if (extension == ".RIGIDGEOM") {
         RigidGeom rigidGeom;
         rigidGeom.readFile(fileData, fileLen);

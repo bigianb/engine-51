@@ -27,6 +27,8 @@ target_sources(a51lib PRIVATE
         ResourceManager.h
         RigidGeom.cpp
         RigidGeom.h
+        streamingOperators.cpp
+        streamingOperators.h
         VectorMath.h
 	${GLTF_SOURCES}
         ${ANIM_SOURCES}

@@ -47,3 +47,21 @@ struct Quaternion
 {
     float x, y, z, w;
 };
+
+class Matrix4
+{
+public:
+    union
+    {
+        float cells[4][4];
+    
+        struct
+        {
+            Vector4 vCol0;
+            Vector4 vCol1;
+            Vector4 vCol2;
+            Vector4 vCol3;
+        };
+    };
+};
+
