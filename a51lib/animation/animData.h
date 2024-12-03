@@ -5,6 +5,8 @@
 
 #include "../VectorMath.h"
 
+class DataReader;
+
 struct AnimBone
 {
     Matrix4     bindMatrixInv;
@@ -14,7 +16,7 @@ struct AnimBone
     int16_t     iBone;
     int16_t     iParent;
     int16_t     nChildren;
-    char        name[32+2];
+    std::string name;
 };
 
 class AnimData
@@ -23,6 +25,10 @@ public:
     bool readFile(uint8_t* fileData, int len);
     void describe(std::ostream& ss);
 
+private:
+    void readBone(DataReader& reader, AnimBone& bone);
+
+public:
     BBox bbox;
     std::string filename;
     int version;
@@ -35,6 +41,8 @@ public:
     int numProps;
     int numEvents;
     int numKeyBlocks;
+
+    std::vector<AnimBone> bones;
 
 };
 

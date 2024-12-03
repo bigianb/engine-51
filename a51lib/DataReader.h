@@ -22,6 +22,16 @@ public:
         return 0.0;
     }
 
+    int16_t readInt16()
+    {
+        if (cursor + 2 < len) {
+            int16_t i = *(int16_t*)(fileData + cursor);
+            cursor += 2;
+            return i;
+        }
+        return 0;
+    }
+
     int32_t readInt32()
     {
         if (cursor + 4 < len) {
@@ -29,7 +39,7 @@ public:
             cursor += 4;
             return i;
         }
-        return 0.0;
+        return 0;
     }
 
     void read(Vector3& o){
