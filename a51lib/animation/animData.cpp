@@ -64,7 +64,7 @@ bool AnimData::readFile(uint8_t* fileData, int len)
 
     reader.skip(16);    // uncompressed and compressed data pointers
     reader.skip(8);     // 16 byte alignment.
-    // AnimBone data follows (TODO)
+
     bones.resize(numBones);
     for (int i=0; i < numBones; ++i){
         readBone(reader, bones.at(i));

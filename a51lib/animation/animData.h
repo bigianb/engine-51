@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <string>
 #include <iostream>
+#include <vector>
 
 #include "../VectorMath.h"
 
