@@ -32,6 +32,16 @@ public:
         return 0;
     }
 
+    uint16_t readUInt16()
+    {
+        if (cursor + 2 < len) {
+            uint16_t i = *(uint16_t*)(fileData + cursor);
+            cursor += 2;
+            return i;
+        }
+        return 0;
+    }
+
     int32_t readInt32()
     {
         if (cursor + 4 < len) {
