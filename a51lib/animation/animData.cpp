@@ -126,6 +126,7 @@ bool AnimData::readFile(uint8_t* fileData, int len)
     for (int i = 0; i < numAnims; ++i) {
         readAnim(reader, anims.at(i));
     }
+
     return okay;
 }
 

@@ -59,6 +59,7 @@ public:
 public slots:
     void treeItemClicked(const QModelIndex &index);
     void exportTriggered();
+    void extractFileTriggered();
     void searchRegularExpressionChanged();
 
 protected:

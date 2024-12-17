@@ -69,6 +69,7 @@ public:
     AnimKeys animKeys;
 };
 
+// AKA anim_group
 class AnimData
 {
 public:

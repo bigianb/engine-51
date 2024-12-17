@@ -98,6 +98,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     bool ok = connect(ui->treeView, &QAbstractItemView::clicked, this, &MainWindow::treeItemClicked);
     ok = connect(ui->actionToolbarExportFile, &QAction::triggered, this, &MainWindow::exportTriggered);
+    ok = connect(ui->actionToolbarExtractFile, &QAction::triggered, this, &MainWindow::extractFileTriggered);
 
     ok = connect(ui->searchText, &QLineEdit::textChanged, this, &MainWindow::searchRegularExpressionChanged);
 
@@ -114,6 +115,24 @@ MainWindow::~MainWindow()
     delete ui;
     delete dfsTreeModel;
     delete dfsFile;
+}
+
+void MainWindow::extractFileTriggered()
+{
+    auto currentIndex = ui->treeView->selectionModel()->currentIndex();
+    const QModelIndex sourceIdx = proxyModel->mapToSource(currentIndex);
+    int entryNo = sourceIdx.internalId();
+
+    uint8_t* fileData = dfsFile->getFileData(entryNo);
+    int      fileLen = dfsFile->getFileSize(entryNo);
+
+    auto extension = dfsFile->getFileExtension(entryNo);
+    auto origFilename = dfsFile->getBaseFilename(entryNo);
+
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Export File"),
+                                                        origFilename.c_str());
+
+    // TODO: save it..
 }
 
 void MainWindow::exportTriggered()
@@ -201,6 +220,7 @@ void MainWindow::treeItemClicked(const QModelIndex& index)
     }
 
     ui->actionToolbarExportFile->setEnabled(exportable);
+    ui->actionToolbarExtractFile->setEnabled(true);
 }
 
 void MainWindow::setBitmap(Bitmap& bitmap, QLabel* label)
