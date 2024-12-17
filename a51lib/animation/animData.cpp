@@ -127,6 +127,8 @@ bool AnimData::readFile(uint8_t* fileData, int len)
         readAnim(reader, anims.at(i));
     }
 
+    // file offset 0x690 AH_AMMOCRATE.anim
+
     return okay;
 }
 

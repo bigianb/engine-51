@@ -132,7 +132,12 @@ void MainWindow::extractFileTriggered()
     QString fileName = QFileDialog::getSaveFileName(this, tr("Export File"),
                                                         origFilename.c_str());
 
-    // TODO: save it..
+    QFile file(fileName);
+    if (file.open(QIODevice::WriteOnly)){
+        file.write((const char*)fileData, fileLen);
+        file.close();
+    }
+
 }
 
 void MainWindow::exportTriggered()
