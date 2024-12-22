@@ -52,6 +52,16 @@ public:
         return 0;
     }
 
+    uint32_t readUInt32()
+    {
+        if (cursor + 4 < len) {
+            uint32_t i = *(uint32_t*)(fileData + cursor);
+            cursor += 4;
+            return i;
+        }
+        return 0;
+    }
+
     void read(Vector3& o){
         o.x = readFloat();
         o.y = readFloat();

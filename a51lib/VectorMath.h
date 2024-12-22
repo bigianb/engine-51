@@ -1,11 +1,7 @@
 #pragma once
 
 #include <limits>
-
-struct Colour
-{
-    uint8_t b, g, r, a;
-};
+#include "Colour.h"
 
 struct Vector2
 {

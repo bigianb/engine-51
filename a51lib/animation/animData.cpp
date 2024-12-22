@@ -1,5 +1,6 @@
 #include "animData.h"
 #include "../DataReader.h"
+#include "../dataUtil/Bitstream.h"
 #include "../streamingOperators.h"
 
 void read(DataReader& reader, Matrix4& matrix)
@@ -34,6 +35,21 @@ void AnimData::readBone(DataReader& reader, AnimBone& bone)
     bone.nChildren = reader.readInt16();
     bone.name = std::string(reader.readString());
     reader.skip(42);
+}
+
+void AnimData::readKeyBlock(DataReader& reader, AnimKeyBlock& keyBlock)
+{
+    keyBlock.next = nullptr;
+    keyBlock.prev = nullptr;
+    keyBlock.stream = nullptr;
+    reader.skip(12);
+    keyBlock.checksum = reader.readUInt32();
+    keyBlock.factoredCompressedData = nullptr;
+    reader.skip(4);
+    keyBlock.compressedDataOffset = reader.readInt32();
+    uint32_t temp = reader.readUInt32();
+    keyBlock.nFrames = temp & 0xFF;
+    keyBlock.decompressedDataSize = (temp >> 8);
 }
 
 void AnimData::readAnim(DataReader& reader, AnimInfo& info)
@@ -101,23 +117,30 @@ bool AnimData::readFile(uint8_t* fileData, int len)
     totalNFrames = reader.readInt32();
     totalNKeys = reader.readInt32();
     numBones = reader.readInt32();
-    reader.skip(4);
+    uint32_t bonesOffset = reader.readInt32();
 
     numAnims = reader.readInt32();
-    reader.skip(4);
+    uint32_t animsOffset = reader.readInt32();
 
     numProps = reader.readInt32();
-    reader.skip(4);
-
+    uint32_t propsOffset = reader.readInt32();
+    
     numEvents = reader.readInt32();
     reader.skip(8);
 
     numKeyBlocks = reader.readInt32();
+    uint32_t keyBlocksOffset = reader.readInt32();
+
+    u_int32_t uncompressedDataSize = reader.readInt32();
+    reader.skip(4);
+    u_int32_t compressedDataSize = reader.readInt32();
     reader.skip(4);
 
-    reader.skip(16); // uncompressed and compressed data pointers
     reader.skip(8);  // 16 byte alignment.
 
+    uint32_t uncompressedDataStartOffset = reader.cursor;
+    uint32_t compressedDataStartOffset = uncompressedDataStartOffset + uncompressedDataSize;
+    // This is the uncompressed data.
     bones.resize(numBones);
     for (int i = 0; i < numBones; ++i) {
         readBone(reader, bones.at(i));
@@ -127,8 +150,20 @@ bool AnimData::readFile(uint8_t* fileData, int len)
         readAnim(reader, anims.at(i));
     }
 
-    // file offset 0x690 AH_AMMOCRATE.anim
+    // TODO: read props
 
+    // TODO: read keyblocks
+    keyBlocks.resize(numKeyBlocks);
+    reader.cursor = uncompressedDataStartOffset + keyBlocksOffset;
+    for (int i=0; i<numKeyBlocks; ++i){
+        readKeyBlock(reader, keyBlocks.at(i));
+    }
+    // file offset 0x690 AH_AMMOCRATE.anim
+    // 0 events, 0 props, 10 key blocks
+    
+    // This is the compressed data.
+
+    // Event data follows
     return okay;
 }
 

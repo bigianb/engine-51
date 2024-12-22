@@ -69,6 +69,32 @@ public:
     AnimKeys animKeys;
 };
 
+struct AnimKeyStream
+{
+    //  2 bits for the scale format = 4 formats
+    //  2 bits for the rot   format = 4 formats
+    //  2 bits for the trans format = 4 formats
+    //  8 bits for bone flag bits   = 8 custom flags per bone per anim
+    // 18 bits for the offset to the scale data = 0-262143 range
+    //-----
+    // 32
+
+    uint32_t Offset;
+};
+
+class AnimKeyBlock
+{
+public:
+    AnimKeyBlock*  next;
+    AnimKeyBlock*  prev;
+    AnimKeyStream* stream; // Points to decompressed data if available
+    uint32_t       checksum;
+    uint8_t*       factoredCompressedData;
+    int            compressedDataOffset; // Offset into compressed data for this key set
+    int            nFrames;
+    int            decompressedDataSize;
+};
+
 // AKA anim_group
 class AnimData
 {
@@ -79,6 +105,7 @@ public:
 private:
     void readBone(DataReader& reader, AnimBone& bone);
     void readAnim(DataReader& reader, AnimInfo& info);
+    void readKeyBlock(DataReader& reader, AnimKeyBlock& keyBlock);
 
 public:
     BBox        bbox;
@@ -96,4 +123,5 @@ public:
 
     std::vector<AnimBone> bones;
     std::vector<AnimInfo> anims;
+    std::vector<AnimKeyBlock> keyBlocks;
 };
