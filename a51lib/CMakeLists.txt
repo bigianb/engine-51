@@ -12,6 +12,11 @@ set(ANIM_SOURCES
         animation/animData.h
         )
 
+set(DATAUTIL_SOURCES
+        dataUtil/Bitstream.cpp
+        dataUtil/Bitstream.h
+        )
+
 target_sources(a51lib PRIVATE
         Bitmap.cpp
         Bitmap.h
@@ -32,6 +37,7 @@ target_sources(a51lib PRIVATE
         VectorMath.h
 	${GLTF_SOURCES}
         ${ANIM_SOURCES}
+        ${DATAUTIL_SOURCES}
 )
 
 target_compile_features(a51lib PUBLIC cxx_std_20)

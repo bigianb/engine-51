@@ -9,8 +9,8 @@ public:
     Bitstream();
     ~Bitstream();
 
-    void init(int32_t DataSize);
-    void init(const uint8_t* pData, int32_t DataSize);
+    void init(int DataSize);
+    void init(uint8_t* pData, int DataSize);
     void kill();
     void setOwnsData(bool OwnsData);
     void grow();
@@ -120,7 +120,7 @@ public:
     void readMarker() const;
 
     // Overwrite control
-    bool overwrite() const;
+    bool setOverwrite() const;
     void clearOverwrite();
 
     // Section support
@@ -128,16 +128,16 @@ public:
     bool closeSection();
 
 private:
-    uint8_t* m_Data;
-    int32_t  m_DataSize;
-    int32_t  m_DataSizeInBits;
-    int32_t  m_HighestBitWritten;
-    bool     m_bOwnsData;
-    int32_t  m_MaxGrowSize;
+    uint8_t* data;
+    int32_t  dataSize;
+    int32_t  dataSizeInBits;
+    int32_t  highestBitWritten;
+    bool     ownsData;
+    int32_t  maxGrowSize;
 
-    mutable int32_t m_Cursor;
-    int32_t         m_SectionCursor;
-    bool            m_bOverwrite;
+    mutable int32_t cursor;
+    int32_t         sectionCursor;
+    bool            overwrite;
 
     void     writeRawBits(const void* pData, int32_t NBits);
     void     readRawBits(void* pData, int32_t NBits) const;
@@ -172,40 +172,40 @@ inline void Bitstream::writeMarker()
 #endif
 }
 
-inline void Bitstream::readU32(uint32_t& Value, int32_t NBits) const
+inline void Bitstream::readU32(uint32_t& value, int32_t nBits) const
 {
-    Value = readRaw32(NBits);
+    value = readRaw32(nBits);
 }
 
-inline void Bitstream::readU16(uint16_t& Value, int32_t NBits) const
+inline void Bitstream::readU16(uint16_t& value, int32_t nBits) const
 {
-    Value = readRaw32(NBits);
+    value = readRaw32(nBits);
 }
 
-inline void Bitstream::readS16(int16_t& Value, int32_t NBits) const
+inline void Bitstream::readS16(int16_t& value, int32_t nBits) const
 {
-    Value = readRaw32(NBits);
+    value = readRaw32(nBits);
 
-    if (NBits == 16) {
+    if (nBits == 16) {
         return;
     }
 
     // extend sign bit
-    if (Value & (1 << (NBits - 1))) {
-        Value |= (0xFFFF & (~((1 << NBits) - 1)));
+    if (value & (1 << (nBits - 1))) {
+        value |= (0xFFFF & (~((1 << nBits) - 1)));
     }
 }
 
-inline void Bitstream::readS32(int32_t& Value, int32_t NBits) const
+inline void Bitstream::readS32(int32_t& value, int32_t nBits) const
 {
-    Value = readRaw32(NBits);
+    value = readRaw32(nBits);
 
-    if (NBits == 32) {
+    if (nBits == 32) {
         return;
     }
 
     // extend sign bit
-    if (Value & (1 << (NBits - 1))) {
-        Value |= (0xFFFFFFFF & (~((1 << NBits) - 1)));
+    if (value & (1 << (nBits - 1))) {
+        value |= (0xFFFFFFFF & (~((1 << nBits) - 1)));
     }
 }
