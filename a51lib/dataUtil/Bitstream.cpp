@@ -22,7 +22,7 @@ inline int GetHighestBit(uint32_t n)
 
 Bitstream::Bitstream(void)
 {
-    data = NULL;
+    data = nullptr;
     dataSize = 0;
     dataSizeInBits = dataSize << 3;
     highestBitWritten = -1;
