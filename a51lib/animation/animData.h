@@ -1,4 +1,5 @@
 #pragma once
+#include <stdlib.h>
 #include <cstdint>
 #include <string>
 #include <iostream>
@@ -85,6 +86,20 @@ struct AnimKeyStream
 class AnimKeyBlock
 {
 public:
+    AnimKeyBlock(){
+        next = nullptr;
+        prev = nullptr;
+        stream = nullptr;
+        factoredCompressedData = nullptr;
+    }
+
+    ~AnimKeyBlock(){
+        if (stream != nullptr){
+            free(stream);
+            stream = nullptr;
+        }
+    }
+
     AnimKeyBlock*  next;
     AnimKeyBlock*  prev;
     AnimKeyStream* stream; // Points to decompressed data if available
@@ -105,7 +120,7 @@ public:
 private:
     void readBone(DataReader& reader, AnimBone& bone);
     void readAnim(DataReader& reader, AnimInfo& info);
-    void readKeyBlock(DataReader& reader, AnimKeyBlock& keyBlock);
+    void readKeyBlock(DataReader& reader, AnimKeyBlock& keyBlock, int compressedDataStartOffset);
 
 public:
     BBox        bbox;

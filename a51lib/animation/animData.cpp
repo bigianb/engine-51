@@ -37,7 +37,9 @@ void AnimData::readBone(DataReader& reader, AnimBone& bone)
     reader.skip(42);
 }
 
-void AnimData::readKeyBlock(DataReader& reader, AnimKeyBlock& keyBlock)
+void AnimationDecompress(const uint8_t*, AnimKeyStream*, int);
+
+void AnimData::readKeyBlock(DataReader& reader, AnimKeyBlock& keyBlock, int compressedDataStartOffset)
 {
     keyBlock.next = nullptr;
     keyBlock.prev = nullptr;
@@ -50,6 +52,9 @@ void AnimData::readKeyBlock(DataReader& reader, AnimKeyBlock& keyBlock)
     uint32_t temp = reader.readUInt32();
     keyBlock.nFrames = temp & 0xFF;
     keyBlock.decompressedDataSize = (temp >> 8);
+
+    keyBlock.stream = (AnimKeyStream*)malloc(keyBlock.decompressedDataSize);
+    AnimationDecompress(reader.fileData + compressedDataStartOffset, keyBlock.stream, keyBlock.decompressedDataSize);
 }
 
 void AnimData::readAnim(DataReader& reader, AnimInfo& info)
@@ -131,9 +136,9 @@ bool AnimData::readFile(uint8_t* fileData, int len)
     numKeyBlocks = reader.readInt32();
     uint32_t keyBlocksOffset = reader.readInt32();
 
-    u_int32_t uncompressedDataSize = reader.readInt32();
+    uint32_t uncompressedDataSize = reader.readInt32();
     reader.skip(4);
-    u_int32_t compressedDataSize = reader.readInt32();
+    uint32_t compressedDataSize = reader.readInt32();
     reader.skip(4);
 
     reader.skip(8);  // 16 byte alignment.
@@ -156,7 +161,7 @@ bool AnimData::readFile(uint8_t* fileData, int len)
     keyBlocks.resize(numKeyBlocks);
     reader.cursor = uncompressedDataStartOffset + keyBlocksOffset;
     for (int i=0; i<numKeyBlocks; ++i){
-        readKeyBlock(reader, keyBlocks.at(i));
+        readKeyBlock(reader, keyBlocks.at(i), compressedDataStartOffset);
     }
     // file offset 0x690 AH_AMMOCRATE.anim
     // 0 events, 0 props, 10 key blocks

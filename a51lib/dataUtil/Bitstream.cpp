@@ -1,4 +1,5 @@
 #include "Bitstream.h"
+#include <cassert>
 
 #define TO_U32(x) (*((int32_t*)(&(x))))
 #define TO_F32(x) (*((float*)(&(x))))
@@ -76,4 +77,32 @@ void Bitstream::init(uint8_t* pData, int DataSize)
     dataSizeInBits = dataSize << 3;
     highestBitWritten = -1;
     cursor = 0;
+}
+
+uint32_t Bitstream::readRaw32(int nBits) const
+{
+    if (nBits == 0) {
+        return 0;
+    }
+
+    int      leftOffset = (cursor & 0x7);
+    int      rightOffset = (40 - leftOffset - nBits);
+    uint8_t* src = data + (cursor >> 3);
+    uint8_t* end = data + ((cursor + nBits - 1) >> 3) + 1;
+
+    cursor += nBits;
+
+    uint64_t readMask = (0xFFFFFFFFFFUL >> leftOffset) &
+                        (0xFFFFFFFFFFUL << rightOffset);
+
+    uint64_t dataMask = 0;
+
+    // Read data
+    int shift = 32;
+    while (src != end) {
+        dataMask |= ((uint64_t)(*src++)) << shift;
+        shift -= 8;
+    }
+
+    return (uint32_t)((dataMask & readMask) >> rightOffset);
 }

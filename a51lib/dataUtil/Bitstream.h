@@ -142,8 +142,13 @@ private:
     void     writeRawBits(const void* pData, int32_t NBits);
     void     readRawBits(void* pData, int32_t NBits) const;
     void     writeRaw32(uint32_t Value, int32_t NBits);
-    uint32_t readRaw32(int32_t NBits) const;
+    uint32_t readRaw32(int nBits) const;
 };
+
+inline void Bitstream::setOwnsData(bool ownsDataIn)
+{
+    ownsData = ownsDataIn;
+}
 
 inline void Bitstream::writeS32(int32_t Value, int32_t NBits)
 {

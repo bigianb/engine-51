@@ -10,6 +10,7 @@ set(GLTF_SOURCES
 set(ANIM_SOURCES
         animation/animData.cpp
         animation/animData.h
+        animation/animDecompress.cpp
         )
 
 set(DATAUTIL_SOURCES
