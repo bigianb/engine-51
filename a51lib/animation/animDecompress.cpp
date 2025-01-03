@@ -377,7 +377,7 @@ void AnimationDecompress(const AnimData& animData, const uint8_t* compressedData
 
         // Compute offset for this stream
         stream[i].Offset = (pData - (uint8_t*)stream);
-
+        //std::cout << "offset: " << stream[i].Offset << std::endl;
         //
         // Call the decompressors for S,R,T
         // These functions advance the pData pointer
@@ -386,6 +386,9 @@ void AnimationDecompress(const AnimData& animData, const uint8_t* compressedData
         s_RotationDecompFnptr[pRDIndex[i]](BS, animData, i, nFrames, pData);
         s_TranslationDecompFnptr[pTDIndex[i]](BS, animData, i, nFrames, pData);
     }
+
+    //std::cout << "DecompressedSize: " << DecompressedSize << std::endl;
+    //std::cout << "Current pData pos: " << (pData - (uint8_t*)stream) << std::endl << std::endl;
 
     //
     // Verify we decompressed into the size we expected

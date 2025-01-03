@@ -54,7 +54,7 @@ void AnimData::readKeyBlock(DataReader& reader, AnimKeyBlock& keyBlock, int comp
     keyBlock.decompressedDataSize = (temp >> 8);
 
     keyBlock.stream = (AnimKeyStream*)malloc(keyBlock.decompressedDataSize);
-    AnimationDecompress(*this, reader.fileData + compressedDataStartOffset, keyBlock.stream, keyBlock.decompressedDataSize);
+    AnimationDecompress(*this, reader.fileData + compressedDataStartOffset + keyBlock.compressedDataOffset, keyBlock.stream, keyBlock.decompressedDataSize);
 }
 
 void AnimData::readAnim(DataReader& reader, AnimInfo& info)
@@ -157,7 +157,6 @@ bool AnimData::readFile(uint8_t* fileData, int len)
 
     // TODO: read props
 
-    // TODO: read keyblocks
     keyBlocks.resize(numKeyBlocks);
     reader.cursor = uncompressedDataStartOffset + keyBlocksOffset;
     for (int i=0; i<numKeyBlocks; ++i){
