@@ -79,6 +79,15 @@ void Bitstream::init(uint8_t* pData, int DataSize)
     cursor = 0;
 }
 
+void Bitstream::readRangedU32(uint32_t& value, int32_t min, int32_t max) const
+{
+
+    int range = max - min;
+    int nBits = GetHighestBit(range);
+    readU32(value, nBits);
+    value += min;
+}
+
 uint32_t Bitstream::readRaw32(int nBits) const
 {
     if (nBits == 0) {

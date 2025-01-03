@@ -26,9 +26,19 @@ public:
     bool     isFull() const;
     void     clear();
 
-    int32_t getCursor() const;
-    void    setCursor(int32_t BitIndex);
-    int32_t getCursorRemaining() const;
+    int32_t getCursor() const
+    {
+        return cursor;
+    }
+    void setCursor(int32_t newCursor)
+    {
+        cursor = newCursor;
+        overwrite = (cursor >= dataSizeInBits);
+    }
+    int32_t getCursorRemaining() const
+    {
+        return dataSizeInBits - cursor;
+    }
 
     // Jumps cursor to aligned position.
     // Remember we are talking about bits...not bytes so

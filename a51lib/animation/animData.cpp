@@ -37,7 +37,7 @@ void AnimData::readBone(DataReader& reader, AnimBone& bone)
     reader.skip(42);
 }
 
-void AnimationDecompress(const uint8_t*, AnimKeyStream*, int);
+void AnimationDecompress(const AnimData&, const uint8_t*, AnimKeyStream*, int);
 
 void AnimData::readKeyBlock(DataReader& reader, AnimKeyBlock& keyBlock, int compressedDataStartOffset)
 {
@@ -54,7 +54,7 @@ void AnimData::readKeyBlock(DataReader& reader, AnimKeyBlock& keyBlock, int comp
     keyBlock.decompressedDataSize = (temp >> 8);
 
     keyBlock.stream = (AnimKeyStream*)malloc(keyBlock.decompressedDataSize);
-    AnimationDecompress(reader.fileData + compressedDataStartOffset, keyBlock.stream, keyBlock.decompressedDataSize);
+    AnimationDecompress(*this, reader.fileData + compressedDataStartOffset, keyBlock.stream, keyBlock.decompressedDataSize);
 }
 
 void AnimData::readAnim(DataReader& reader, AnimInfo& info)
