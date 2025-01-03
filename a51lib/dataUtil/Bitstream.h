@@ -92,8 +92,8 @@ public:
     void readUnitVector(Vector3& N, int32_t TotalBits) const;
 
     // Quaternion
-    void writeQuaternion(const Quaternion& Q);
-    void readQuaternion(Quaternion& Q) const;
+    void writeQuaternion(const Quaternion& );
+    void readQuaternion(Quaternion& ) const;
     /*
         // Radian3
         void writeRadian3(const radian3& Radian);

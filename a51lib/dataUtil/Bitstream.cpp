@@ -115,3 +115,65 @@ uint32_t Bitstream::readRaw32(int nBits) const
 
     return (uint32_t)((dataMask & readMask) >> rightOffset);
 }
+
+bool Bitstream::readFlag() const
+{
+    if (cursor >= dataSizeInBits) {
+        return (false);
+    }
+    const bool flag = (*(data + (cursor >> 3)) & (1 << (7 - (cursor & 0x7)))) != 0;
+    cursor++;
+    return flag;
+}
+
+void Bitstream::readF32(float& value) const
+{
+    uint32_t uv = readRaw32(32);
+    value = TO_F32(uv);
+}
+
+void Bitstream::readVariableLenS32(int32_t& value) const
+{
+    const bool neg = readFlag();
+
+    uint32_t nBitsOption;
+    readU32(nBitsOption, 4);
+    uint32_t uv;
+    readU32(uv, s_VarLenBitOptions[nBitsOption]);
+
+    value = (int32_t)uv;
+
+    if (neg) {
+        value = -value;
+    }
+}
+
+void Bitstream::readRangedF32(float& value, int nBits, float min, float max) const
+{
+    if (nBits == 32) {
+        readF32(value);
+        return;
+    }
+    assert(max > min);
+    float    range = max - min;
+    int      scalar = LOWER_BITS(nBits);
+    uint32_t N;
+    readU32(N, nBits);
+    value = (((float)N) / scalar) * range + min;
+    assert((value >= min) && (value <= max));
+}
+
+void Bitstream::readVector(Vector3& v) const
+{
+    readF32(v.x);
+    readF32(v.y);
+    readF32(v.z);
+}
+
+void Bitstream::readQuaternion(Quaternion& q) const
+{
+    readF32(q.x);
+    readF32(q.y);
+    readF32(q.z);
+    readF32(q.w);
+}
