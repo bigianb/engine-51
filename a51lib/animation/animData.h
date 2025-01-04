@@ -70,8 +70,12 @@ public:
     AnimKeys animKeys;
 };
 
-struct AnimKeyStream
+class AnimKeyStream
 {
+public:
+    void setOffset(uint32_t);
+    uint32_t getOffset() const;
+
     //  2 bits for the scale format = 4 formats
     //  2 bits for the rot   format = 4 formats
     //  2 bits for the trans format = 4 formats

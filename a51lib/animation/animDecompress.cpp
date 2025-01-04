@@ -25,6 +25,18 @@
 #define STREAM_FLG_MASK ((1 << STREAM_FLG_NBITS) - 1)
 #define STREAM_OFT_MASK ((1 << STREAM_OFT_NBITS) - 1)
 
+
+void AnimKeyStream::setOffset(uint32_t off)
+{
+    Offset &= ~(STREAM_OFT_MASK<<STREAM_OFT_SHIFT);
+    Offset |= (off<<STREAM_OFT_SHIFT);
+}
+
+uint32_t AnimKeyStream::getOffset() const
+{
+    return (Offset >> STREAM_OFT_SHIFT) & STREAM_OFT_MASK;
+}
+
 typedef void decomp_fn(Bitstream& BS, const AnimData& AG, int iStream, int nFrames, uint8_t*& pData);
 
 //=========================================================================
@@ -376,8 +388,8 @@ void AnimationDecompress(const AnimData& animData, const uint8_t* compressedData
         assert(pData <= ((uint8_t*)stream + DecompressedSize));
 
         // Compute offset for this stream
-        stream[i].Offset = (pData - (uint8_t*)stream);
-        //std::cout << "offset: " << stream[i].Offset << std::endl;
+        stream[i].setOffset(pData - (uint8_t*)stream);
+        //std::cout << "offset: " << stream[i].getOffset() << std::endl;
         //
         // Call the decompressors for S,R,T
         // These functions advance the pData pointer

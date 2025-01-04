@@ -129,7 +129,7 @@ bool AnimData::readFile(uint8_t* fileData, int len)
 
     numProps = reader.readInt32();
     uint32_t propsOffset = reader.readInt32();
-    
+
     numEvents = reader.readInt32();
     reader.skip(8);
 
@@ -141,7 +141,7 @@ bool AnimData::readFile(uint8_t* fileData, int len)
     uint32_t compressedDataSize = reader.readInt32();
     reader.skip(4);
 
-    reader.skip(8);  // 16 byte alignment.
+    reader.skip(8); // 16 byte alignment.
 
     uint32_t uncompressedDataStartOffset = reader.cursor;
     uint32_t compressedDataStartOffset = uncompressedDataStartOffset + uncompressedDataSize;
@@ -159,12 +159,12 @@ bool AnimData::readFile(uint8_t* fileData, int len)
 
     keyBlocks.resize(numKeyBlocks);
     reader.cursor = uncompressedDataStartOffset + keyBlocksOffset;
-    for (int i=0; i<numKeyBlocks; ++i){
+    for (int i = 0; i < numKeyBlocks; ++i) {
         readKeyBlock(reader, keyBlocks.at(i), compressedDataStartOffset);
     }
     // file offset 0x690 AH_AMMOCRATE.anim
     // 0 events, 0 props, 10 key blocks
-    
+
     // This is the compressed data.
 
     // Event data follows
@@ -202,6 +202,23 @@ void AnimData::describe(std::ostream& ss)
         ss << "  num anims:    " << info.nAnims << std::endl;
         ss << "  total weight: " << info.animsWeight << std::endl;
         ss << "  num events:   " << info.nEvents << std::endl;
+
+        ss << "  num frames:   " << info.nFrames << std::endl;
+        ss << "  bone min:   " << info.iAnimBoneMin << std::endl;
+        ss << "  bone max:   " << info.iAnimBoneMax << std::endl;
+
+        ss << "   start key block " << info.animKeys.iKeyBlock << std::endl;
+        ss << "   num key blocks " << info.animKeys.nKeyBlocks << std::endl;
+        ss << "   num bones " << info.animKeys.nBones << std::endl;
+        ss << "   num frames " << info.animKeys.nFrames << std::endl;
+
+        ss << std::endl;
+    }
+    ss << "Key blocks: " << std::endl;
+    for (int i = 0; i < numKeyBlocks; ++i) {
+        AnimKeyBlock& kb = keyBlocks.at(i);
+        ss << "    num Frames: " << kb.nFrames << std::endl;
+
         ss << std::endl;
     }
 }
