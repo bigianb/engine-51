@@ -25,7 +25,7 @@ void read(DataReader& reader, BBox& bbox)
     read(reader, bbox.max);
 }
 
-void AnimData::readBone(DataReader& reader, AnimBone& bone)
+void AnimGroup::readBone(DataReader& reader, AnimBone& bone)
 {
     read(reader, bone.bindMatrixInv);
     read(reader, bone.localTranslation);
@@ -37,9 +37,9 @@ void AnimData::readBone(DataReader& reader, AnimBone& bone)
     reader.skip(42);
 }
 
-void AnimationDecompress(const AnimData&, const uint8_t*, AnimKeyStream*, int);
+void AnimationDecompress(const AnimGroup&, const uint8_t*, AnimKeyStream*, int);
 
-void AnimData::readKeyBlock(DataReader& reader, AnimKeyBlock& keyBlock, int compressedDataStartOffset)
+void AnimGroup::readKeyBlock(DataReader& reader, AnimKeyBlock& keyBlock, int compressedDataStartOffset)
 {
     keyBlock.next = nullptr;
     keyBlock.prev = nullptr;
@@ -57,7 +57,7 @@ void AnimData::readKeyBlock(DataReader& reader, AnimKeyBlock& keyBlock, int comp
     AnimationDecompress(*this, reader.fileData + compressedDataStartOffset + keyBlock.compressedDataOffset, keyBlock.stream, keyBlock.decompressedDataSize);
 }
 
-void AnimData::readAnim(DataReader& reader, AnimInfo& info)
+void AnimGroup::readAnim(DataReader& reader, AnimInfo& info)
 {
     read(reader, info.totalTranslation);
     read(reader, info.bbox);
@@ -104,7 +104,7 @@ void AnimData::readAnim(DataReader& reader, AnimInfo& info)
     reader.skip(8);
 }
 
-bool AnimData::readFile(uint8_t* fileData, int len)
+bool AnimGroup::readFile(uint8_t* fileData, int len)
 {
     bool okay = true;
 
@@ -171,7 +171,7 @@ bool AnimData::readFile(uint8_t* fileData, int len)
     return okay;
 }
 
-void AnimData::describe(std::ostream& ss)
+void AnimGroup::describe(std::ostream& ss)
 {
     ss << "BBox:" << bbox << std::endl;
     ss << "Filename: " << filename << std::endl;

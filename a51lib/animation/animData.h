@@ -114,8 +114,7 @@ public:
     int            decompressedDataSize;
 };
 
-// AKA anim_group
-class AnimData
+class AnimGroup
 {
 public:
     bool readFile(uint8_t* fileData, int len);

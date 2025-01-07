@@ -37,11 +37,11 @@ uint32_t AnimKeyStream::getOffset() const
     return (Offset >> STREAM_OFT_SHIFT) & STREAM_OFT_MASK;
 }
 
-typedef void decomp_fn(Bitstream& BS, const AnimData& AG, int iStream, int nFrames, uint8_t*& pData);
+typedef void decomp_fn(Bitstream& BS, const AnimGroup& AG, int iStream, int nFrames, uint8_t*& pData);
 
 //=========================================================================
 
-void Decomp_Const(Bitstream&, const AnimData&, int, int, uint8_t*&)
+void Decomp_Const(Bitstream&, const AnimGroup&, int, int, uint8_t*&)
 {
     // nothing to do
 }
@@ -68,7 +68,7 @@ void DeltaDecompress(Bitstream& BS, float* pSample, int Stride, int nSamples, fl
     }
 }
 
-void DecompS_Delta(Bitstream& BS, const AnimData&, int, int nFrames, uint8_t*& pData)
+void DecompS_Delta(Bitstream& BS, const AnimGroup&, int, int nFrames, uint8_t*& pData)
 {
     DeltaDecompress(BS, &((Vector3p*)pData)->x, 3, nFrames, 128.0f);
     DeltaDecompress(BS, &((Vector3p*)pData)->y, 3, nFrames, 128.0f);
@@ -76,7 +76,7 @@ void DecompS_Delta(Bitstream& BS, const AnimData&, int, int nFrames, uint8_t*& p
     pData += sizeof(Vector3p) * nFrames;
 }
 
-void DecompT_Delta(Bitstream& BS, const AnimData&, int, int nFrames, uint8_t*& pData)
+void DecompT_Delta(Bitstream& BS, const AnimGroup&, int, int nFrames, uint8_t*& pData)
 {
     DeltaDecompress(BS, &((Vector3p*)pData)->x, 3, nFrames, 128.0f);
     DeltaDecompress(BS, &((Vector3p*)pData)->y, 3, nFrames, 128.0f);
@@ -115,7 +115,7 @@ void DeltaDecompressQ(Bitstream& BS, uint16_t* pSample, int stride, int nSamples
     }
 }
 
-void DecompQ_Delta(Bitstream& BS, const AnimData&, int, int nFrames, uint8_t*& pData)
+void DecompQ_Delta(Bitstream& BS, const AnimGroup&, int, int nFrames, uint8_t*& pData)
 {
     DeltaDecompressQ(BS, &((uint16_t*)pData)[0], 4, nFrames, 2048.0f);
     DeltaDecompressQ(BS, &((uint16_t*)pData)[1], 4, nFrames, 2048.0f);
@@ -125,7 +125,7 @@ void DecompQ_Delta(Bitstream& BS, const AnimData&, int, int nFrames, uint8_t*& p
     pData += 8 * nFrames;
 }
 
-void DecompQ_Delta2(Bitstream& BS, const AnimData&, int, int nFrames, uint8_t*& pData)
+void DecompQ_Delta2(Bitstream& BS, const AnimGroup&, int, int nFrames, uint8_t*& pData)
 {
     DeltaDecompressQ(BS, &((uint16_t*)pData)[0], 4, nFrames, (float)(1 << 14));
     DeltaDecompressQ(BS, &((uint16_t*)pData)[1], 4, nFrames, (float)(1 << 14));
@@ -134,7 +134,7 @@ void DecompQ_Delta2(Bitstream& BS, const AnimData&, int, int nFrames, uint8_t*& 
 
     pData += 8 * nFrames;
 }
-void DecompQ_Delta3(Bitstream& BS, const AnimData&, int, int nFrames, uint8_t*& pData)
+void DecompQ_Delta3(Bitstream& BS, const AnimGroup&, int, int nFrames, uint8_t*& pData)
 {
     DeltaDecompressQ(BS, &((uint16_t*)pData)[0], 4, nFrames, (float)(1 << 16));
     DeltaDecompressQ(BS, &((uint16_t*)pData)[1], 4, nFrames, (float)(1 << 16));
@@ -144,7 +144,7 @@ void DecompQ_Delta3(Bitstream& BS, const AnimData&, int, int nFrames, uint8_t*& 
     pData += 8 * nFrames;
 }
 
-void DecompS_Single(Bitstream& BS, const AnimData&, int, int, uint8_t*& pData)
+void DecompS_Single(Bitstream& BS, const AnimGroup&, int, int, uint8_t*& pData)
 {
     int32_t iX, iY, iZ;
     BS.readVariableLenS32(iX);
@@ -160,7 +160,7 @@ void DecompS_Single(Bitstream& BS, const AnimData&, int, int, uint8_t*& pData)
     pData += sizeof(Vector3p);
 }
 
-void DecompQ_Single(Bitstream& BS, const AnimData&, int, int, uint8_t*& pData)
+void DecompQ_Single(Bitstream& BS, const AnimGroup&, int, int, uint8_t*& pData)
 {
     int32_t iX, iY, iZ, iW;
     BS.readVariableLenS32(iX);
@@ -177,7 +177,7 @@ void DecompQ_Single(Bitstream& BS, const AnimData&, int, int, uint8_t*& pData)
     *((Quaternion*)pData) = q;
     pData += sizeof(Quaternion);
 }
-void DecompT_Single(Bitstream& BS, const AnimData&, int, int, uint8_t*& pData)
+void DecompT_Single(Bitstream& BS, const AnimGroup&, int, int, uint8_t*& pData)
 {
     int32_t iX, iY, iZ;
     BS.readVariableLenS32(iX);
@@ -193,7 +193,7 @@ void DecompT_Single(Bitstream& BS, const AnimData&, int, int, uint8_t*& pData)
     pData += sizeof(Vector3p);
 }
 
-void DecompV_32(Bitstream& BS, const AnimData&, int, int nFrames, uint8_t*& pData)
+void DecompV_32(Bitstream& BS, const AnimGroup&, int, int nFrames, uint8_t*& pData)
 {
     // Reads x, y, z, w but only writes x, y, z
     float* pf = (float*)pData;
@@ -208,7 +208,7 @@ void DecompV_32(Bitstream& BS, const AnimData&, int, int nFrames, uint8_t*& pDat
     }
 }
 
-void DecompQ_32(Bitstream& BS, const AnimData&, int, int nFrames, uint8_t*& pData)
+void DecompQ_32(Bitstream& BS, const AnimGroup&, int, int nFrames, uint8_t*& pData)
 {
     Quaternion* pq = (Quaternion*)pData;
 
@@ -220,7 +220,7 @@ void DecompQ_32(Bitstream& BS, const AnimData&, int, int nFrames, uint8_t*& pDat
     pData += nFrames * sizeof(Quaternion);
 }
 
-void DecompT_LocalTrans(Bitstream&, const AnimData& AG, int iStream, int, uint8_t*& pData)
+void DecompT_LocalTrans(Bitstream&, const AnimGroup& AG, int iStream, int, uint8_t*& pData)
 {
     assert(iStream < AG.bones.size());
     const Vector3& v = AG.bones.at(iStream).localTranslation;
@@ -337,7 +337,7 @@ void RLEDecompressOffsetInfo(Bitstream& BS, AnimKeyStream* stream, uint32_t Mask
     }
 }
 
-void AnimationDecompress(const AnimData& animData, const uint8_t* compressedData, AnimKeyStream* stream, int DecompressedSize)
+void AnimationDecompress(const AnimGroup& animData, const uint8_t* compressedData, AnimKeyStream* stream, int DecompressedSize)
 {
     Bitstream BS;
     BS.init((uint8_t*)compressedData, 1024 * 1024);

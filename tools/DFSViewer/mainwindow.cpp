@@ -197,7 +197,7 @@ void MainWindow::treeItemClicked(const QModelIndex& index)
         }
         ui->plainTextEdit->setPlainText(ss.str().c_str());
     } else if (extension == ".ANIM") {
-        AnimData animData;
+        AnimGroup animData;
         animData.readFile(fileData, fileLen);
         std::ostringstream ss;
         animData.describe(ss);
