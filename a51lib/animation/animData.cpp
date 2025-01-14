@@ -237,7 +237,28 @@ static const int s_ScaleFormatSize[] = {0, 0, 2, 12};
 static const int s_RotationFormatOverhead[] = {0, 16, 0, 0};
 static const int s_RotationFormatSize[] = {0, 0, 8, 16};
 
-void AnimKeyStream::grabKey(const uint8_t* data, int totalFrames, int frame, AnimKey& Key)
+void AnimGroup::getRawKey(int frame, int iStream, AnimKey& key) const
+{
+    assert( (iStream>=0) && (iStream<(numBones+numProps)) );
+
+    int iBlock      = frame >> MAX_KEYS_PER_BLOCK_SHIFT;
+    int iBlockFrame = frame & MAX_KEYS_PER_BLOCK_MASK;
+    if( (iBlock==keyBlocks.size()) && (iBlockFrame==0) )
+    {
+        iBlock--;
+        iBlockFrame = MAX_KEYS_PER_BLOCK;
+    }
+    assert( (iBlock>=0) && (iBlock<keyBlocks.size()) );
+
+    keyBlocks.at(iBlock).grabKey(iBlockFrame, iStream, key);
+}
+
+void AnimKeyBlock::grabKey(int frame, int streamIdx, AnimKey& key) const
+{
+    stream[streamIdx].grabKey((uint8_t*)stream, nFrames, frame, key);
+}
+
+void AnimKeyStream::grabKey(const uint8_t* data, int totalFrames, int frame, AnimKey& Key) const
 {
     const int rotationFormat = (Offset >> STREAM_ROT_SHIFT) & STREAM_ROT_MASK;
     const int scaleFormat = (Offset >> STREAM_SCL_SHIFT) & STREAM_SCL_MASK;

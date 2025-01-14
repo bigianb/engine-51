@@ -7,6 +7,10 @@
 
 #include "../VectorMath.h"
 
+#define MAX_KEYS_PER_BLOCK_SHIFT (5)
+#define MAX_KEYS_PER_BLOCK (1 << MAX_KEYS_PER_BLOCK_SHIFT)
+#define MAX_KEYS_PER_BLOCK_MASK ((1 << MAX_KEYS_PER_BLOCK_SHIFT) - 1)
+
 #define STREAM_SCL_NBITS (2)  // 4 scale formats
 #define STREAM_ROT_NBITS (2)  // 4 rot formats
 #define STREAM_TRS_NBITS (2)  // 4 trans formats
@@ -111,8 +115,8 @@ public:
 
     uint32_t Offset;
 
-private:
-    void grabKey(const uint8_t* data, int totalFrames, int frame, AnimKey& Key);
+public:
+    void grabKey(const uint8_t* data, int totalFrames, int frame, AnimKey& Key) const;
 };
 
 class AnimKeyBlock
@@ -132,6 +136,8 @@ public:
         }
     }
 
+    void grabKey(int frame, int streamIdx, AnimKey& Key) const;
+
     AnimKeyBlock*  next;
     AnimKeyBlock*  prev;
     AnimKeyStream* stream; // Points to decompressed data if available
@@ -147,6 +153,8 @@ class AnimGroup
 public:
     bool readFile(uint8_t* fileData, int len);
     void describe(std::ostream& ss);
+
+    void getRawKey(int frame, int iStream, AnimKey& key) const;
 
 private:
     void readBone(DataReader& reader, AnimBone& bone);

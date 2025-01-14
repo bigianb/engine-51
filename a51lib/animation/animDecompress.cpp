@@ -3,13 +3,6 @@
 
 #include <cassert>
 
-#define MAX_KEYS_PER_BLOCK_SHIFT (5)
-#define MAX_KEYS_PER_BLOCK (1 << MAX_KEYS_PER_BLOCK_SHIFT)
-#define MAX_KEYS_PER_BLOCK_MASK ((1 << MAX_KEYS_PER_BLOCK_SHIFT) - 1)
-
-
-
-
 void AnimKeyStream::setOffset(uint32_t off)
 {
     Offset &= ~(STREAM_OFT_MASK<<STREAM_OFT_SHIFT);
