@@ -1,3 +1,4 @@
+#include <cassert>
 #include "animData.h"
 #include "../DataReader.h"
 #include "../dataUtil/Bitstream.h"
@@ -220,5 +221,47 @@ void AnimGroup::describe(std::ostream& ss)
         ss << "    num Frames: " << kb.nFrames << std::endl;
 
         ss << std::endl;
+    }
+}
+
+enum AnimKeyFormat
+{
+    CONSTANT_VALUE = 0,
+    SINGLE_VALUE = 1,
+    PRECISION_16 = 2,
+    PRECISION_32 = 3,
+};
+
+static const int s_ScaleFormatOverhead[] = {0, 12, 24, 0};
+static const int s_ScaleFormatSize[] = {0, 0, 2, 12};
+static const int s_RotationFormatOverhead[] = {0, 16, 0, 0};
+static const int s_RotationFormatSize[] = {0, 0, 8, 16};
+
+void AnimKeyStream::grabKey(const uint8_t* data, int totalFrames, int frame, AnimKey& Key)
+{
+    const int rotationFormat = (Offset >> STREAM_ROT_SHIFT) & STREAM_ROT_MASK;
+    const int scaleFormat = (Offset >> STREAM_SCL_SHIFT) & STREAM_SCL_MASK;
+    const int s_SO = (Offset >> STREAM_OFT_SHIFT) & STREAM_OFT_MASK;
+    const int s_RO = s_SO + s_ScaleFormatOverhead[scaleFormat] + s_ScaleFormatSize[scaleFormat] * totalFrames;
+    const int s_TO = s_RO + s_RotationFormatOverhead[rotationFormat] + s_RotationFormatSize[rotationFormat] * totalFrames;
+
+    if (rotationFormat == PRECISION_16) {
+        uint16_t* pR = &((uint16_t*)(data + s_RO))[frame << 2];
+        float     TempX = ((float)pR[0] * (2.0f / 65535.0f)) - 1.0f;
+        float     TempY = ((float)pR[1] * (2.0f / 65535.0f)) - 1.0f;
+        float     TempZ = ((float)pR[2] * (2.0f / 65535.0f)) - 1.0f;
+        float     TempW = ((float)pR[3] * (2.0f / 65535.0f)) - 1.0f;
+        Key.rotation.x = TempX;
+        Key.rotation.y = TempY;
+        Key.rotation.z = TempZ;
+        Key.rotation.w = TempW;
+    } else if (rotationFormat == CONSTANT_VALUE) {
+        Key.rotation.identity();
+    } else if (rotationFormat == SINGLE_VALUE) {
+        Key.rotation = ((Quaternion*)(data + s_RO))[0];
+    } else if (rotationFormat == PRECISION_32) {
+        Key.rotation = ((Quaternion*)(data + s_RO))[frame];
+    } else {
+        assert(false);
     }
 }
