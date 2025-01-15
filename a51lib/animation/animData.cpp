@@ -172,6 +172,19 @@ bool AnimGroup::readFile(uint8_t* fileData, int len)
     return okay;
 }
 
+void AnimGroup::describeAnimKeys(std::ostream& ss, int animNo)
+{
+    auto& info = anims.at(animNo);
+    for (int frameNo = 0; frameNo < info.animKeys.nFrames; ++frameNo) {
+        for (int boneNo = 0; boneNo < info.animKeys.nBones; ++boneNo) {
+            AnimKey key;
+            getRawKey(animNo, frameNo, boneNo, key);
+            ss << frameNo << ", " << boneNo << ": rot = " << key.rotation << ", T = " << key.translation << std::endl;
+        }
+        ss << std::endl;
+    }
+}
+
 void AnimGroup::describe(std::ostream& ss)
 {
     ss << "BBox:" << bbox << std::endl;
@@ -194,17 +207,19 @@ void AnimGroup::describe(std::ostream& ss)
         ss << std::endl;
     }
     ss << std::endl
-       << "Infos: " << std::endl;
+       << "Animations: " << std::endl;
     for (int i = 0; i < numAnims; ++i) {
         auto& info = anims.at(i);
+        ss << "  name:         " << info.name << std::endl;
+        ss << "  num frames:   " << info.nFrames << std::endl;
+
         ss << "  translation:  " << info.totalTranslation << std::endl;
         ss << "  bounding box: " << info.bbox << std::endl;
-        ss << "  name:         " << info.name << std::endl;
+
         ss << "  num anims:    " << info.nAnims << std::endl;
         ss << "  total weight: " << info.animsWeight << std::endl;
         ss << "  num events:   " << info.nEvents << std::endl;
 
-        ss << "  num frames:   " << info.nFrames << std::endl;
         ss << "  bone min:   " << info.iAnimBoneMin << std::endl;
         ss << "  bone max:   " << info.iAnimBoneMax << std::endl;
 
@@ -212,6 +227,8 @@ void AnimGroup::describe(std::ostream& ss)
         ss << "   num key blocks " << info.animKeys.nKeyBlocks << std::endl;
         ss << "   num bones " << info.animKeys.nBones << std::endl;
         ss << "   num frames " << info.animKeys.nFrames << std::endl;
+
+        describeAnimKeys(ss, i);
 
         ss << std::endl;
     }
@@ -237,20 +254,21 @@ static const int s_ScaleFormatSize[] = {0, 0, 2, 12};
 static const int s_RotationFormatOverhead[] = {0, 16, 0, 0};
 static const int s_RotationFormatSize[] = {0, 0, 8, 16};
 
-void AnimGroup::getRawKey(int frame, int iStream, AnimKey& key) const
+void AnimGroup::getRawKey(int animNo, int frame, int boneIdx, AnimKey& key) const
 {
-    assert( (iStream>=0) && (iStream<(numBones+numProps)) );
+    assert((boneIdx >= 0) && (boneIdx < (numBones + numProps)));
 
-    int iBlock      = frame >> MAX_KEYS_PER_BLOCK_SHIFT;
+    auto& info = anims.at(animNo);
+
+    int iBlock = info.animKeys.iKeyBlock + (frame >> MAX_KEYS_PER_BLOCK_SHIFT);
     int iBlockFrame = frame & MAX_KEYS_PER_BLOCK_MASK;
-    if( (iBlock==keyBlocks.size()) && (iBlockFrame==0) )
-    {
+    if ((iBlock == keyBlocks.size()) && (iBlockFrame == 0)) {
         iBlock--;
         iBlockFrame = MAX_KEYS_PER_BLOCK;
     }
-    assert( (iBlock>=0) && (iBlock<keyBlocks.size()) );
+    assert((iBlock >= 0) && (iBlock < keyBlocks.size()));
 
-    keyBlocks.at(iBlock).grabKey(iBlockFrame, iStream, key);
+    keyBlocks.at(iBlock).grabKey(iBlockFrame, boneIdx, key);
 }
 
 void AnimKeyBlock::grabKey(int frame, int streamIdx, AnimKey& key) const
@@ -262,6 +280,8 @@ void AnimKeyStream::grabKey(const uint8_t* data, int totalFrames, int frame, Ani
 {
     const int rotationFormat = (Offset >> STREAM_ROT_SHIFT) & STREAM_ROT_MASK;
     const int scaleFormat = (Offset >> STREAM_SCL_SHIFT) & STREAM_SCL_MASK;
+    const int translationFormat = (Offset >> STREAM_TRS_SHIFT) & STREAM_TRS_MASK;
+
     const int s_SO = (Offset >> STREAM_OFT_SHIFT) & STREAM_OFT_MASK;
     const int s_RO = s_SO + s_ScaleFormatOverhead[scaleFormat] + s_ScaleFormatSize[scaleFormat] * totalFrames;
     const int s_TO = s_RO + s_RotationFormatOverhead[rotationFormat] + s_RotationFormatSize[rotationFormat] * totalFrames;
@@ -282,6 +302,16 @@ void AnimKeyStream::grabKey(const uint8_t* data, int totalFrames, int frame, Ani
         Key.rotation = ((Quaternion*)(data + s_RO))[0];
     } else if (rotationFormat == PRECISION_32) {
         Key.rotation = ((Quaternion*)(data + s_RO))[frame];
+    } else {
+        assert(false);
+    }
+
+    if (translationFormat == CONSTANT_VALUE) {
+        Key.translation.set(0.0f, 0.0f, 0.0f);
+    } else if (translationFormat == SINGLE_VALUE) {
+        Key.translation = ((Vector3p*)(data + s_TO))[0];
+    } else if (translationFormat == PRECISION_32) {
+        Key.translation = ((Vector3p*)(data + s_TO))[frame];
     } else {
         assert(false);
     }

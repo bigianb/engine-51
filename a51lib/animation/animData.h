@@ -148,18 +148,25 @@ public:
     int            decompressedDataSize;
 };
 
+/**
+ * An AnimGroup contains a number of animations for a single skeleton,
+ * each defined by an AnimInfo object.
+ * Each AnimInfo points to a list of AnimKeyBlock objects.
+*/
 class AnimGroup
 {
 public:
     bool readFile(uint8_t* fileData, int len);
     void describe(std::ostream& ss);
 
-    void getRawKey(int frame, int iStream, AnimKey& key) const;
+    void getRawKey(int animNo, int frame, int iStream, AnimKey& key) const;
 
 private:
     void readBone(DataReader& reader, AnimBone& bone);
     void readAnim(DataReader& reader, AnimInfo& info);
     void readKeyBlock(DataReader& reader, AnimKeyBlock& keyBlock, int compressedDataStartOffset);
+
+    void describeAnimKeys(std::ostream& ss, int animNo);
 
 public:
     BBox        bbox;

@@ -8,15 +8,31 @@ struct Vector2
     float x, y;
 };
 
-struct Vector3
-{
-    float x, y, z, w;
-};
-
 // Does not have a w component.
 struct Vector3p
 {
     float x, y, z;
+};
+
+struct Vector3
+{
+    float x, y, z, w;
+
+    void set(float xx, float yy, float zz)
+    {
+        x = xx;
+        y = yy;
+        z = zz;
+        w = 0.0f;
+    }
+
+    const Vector3& operator=(const Vector3p& v3p){
+        x = v3p.x;
+        y = v3p.y;
+        z = v3p.z;
+        w = 1.0;
+        return *this;
+    }
 };
 
 struct Vector4
