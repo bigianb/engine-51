@@ -5,6 +5,7 @@
 #include "../../a51lib/DFSFile.h"
 #include "../../a51lib/RigidGeom.h"
 #include "../../a51lib/animation/animData.h"
+#include "../../a51lib/Playsurface.h"
 
 #include "gltfExporter.h"
 #include <iostream>
@@ -220,6 +221,13 @@ void MainWindow::treeItemClicked(const QModelIndex& index)
         labelBitmap.convertFormat(Bitmap::FMT_32_ARGB_8888);
         setBitmap(labelBitmap, ui->imageLabel);
         exportable = true;
+    } else if (extension == ".PLAYSURFACE") {
+        Playsurface playSurface;
+        playSurface.readFile(fileData, fileLen);
+        std::ostringstream ss;
+        playSurface.describe(ss);
+        ui->plainTextEdit->setPlainText(ss.str().c_str());
+        exportable = false;
     } else {
         ui->plainTextEdit->setPlainText("Can't parse this format yet.");
     }
