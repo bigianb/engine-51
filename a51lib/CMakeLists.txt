@@ -31,6 +31,8 @@ target_sources(a51lib PRIVATE
         InevFile.h
         Playsurface.h
         Playsurface.cpp
+        PlaysurfaceDB.h
+        PlaysurfaceDB.cpp
         ResourceManager.cpp
         ResourceManager.h
         RigidGeom.cpp
