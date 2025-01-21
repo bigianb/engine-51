@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <cstdint>
 #include <sstream>
 #include "Geom.h"
@@ -30,7 +31,7 @@ public:
 
     void read(DataReader&);
     void describe(std::ostringstream& ss);
-    
+
     std::vector<Cell> cells;
     std::vector<HashEntry> surfaces;
 };
