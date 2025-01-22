@@ -59,6 +59,7 @@ public:
 public slots:
     void treeItemClicked(const QModelIndex &index);
     void exportTriggered();
+    void exportAllTriggered();
     void extractFileTriggered();
     void searchRegularExpressionChanged();
 
@@ -68,6 +69,7 @@ protected:
 
 private:
     void setBitmap(Bitmap& bitmap, QLabel* label);
+    void exportFile(int entryNo, QString exportDir);
 
     Bitmap labelBitmap;
     QImage labelImage;

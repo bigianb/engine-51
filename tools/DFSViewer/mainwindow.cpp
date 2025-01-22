@@ -99,6 +99,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     bool ok = connect(ui->treeView, &QAbstractItemView::clicked, this, &MainWindow::treeItemClicked);
     ok = connect(ui->actionToolbarExportFile, &QAction::triggered, this, &MainWindow::exportTriggered);
+    ok = connect(ui->actionToolbarExportAll, &QAction::triggered, this, &MainWindow::exportAllTriggered);
     ok = connect(ui->actionToolbarExtractFile, &QAction::triggered, this, &MainWindow::extractFileTriggered);
 
     ok = connect(ui->searchText, &QLineEdit::textChanged, this, &MainWindow::searchRegularExpressionChanged);
@@ -138,22 +139,36 @@ void MainWindow::extractFileTriggered()
         file.write((const char*)fileData, fileLen);
         file.close();
     }
-
 }
 
-void MainWindow::exportTriggered()
+void MainWindow::exportAllTriggered()
 {
-    auto currentIndex = ui->treeView->selectionModel()->currentIndex();
-    const QModelIndex sourceIdx = proxyModel->mapToSource(currentIndex);
-    int entryNo = sourceIdx.internalId();
+    QString exportDir = QFileDialog::getExistingDirectory(this, tr("Export Directory"),
+                                                "",
+                                                QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
+    qDebug() << "Exporting to:" << exportDir;
+    if (exportDir.isEmpty()){
+        return;
+    }
+    for (int entryNo=0; entryNo < dfsFile->numFiles(); ++entryNo){
+        exportFile(entryNo, exportDir);
+    }
+}
+
+void MainWindow::exportFile(int entryNo, QString exportDir)
+{
     auto extension = dfsFile->getFileExtension(entryNo);
     auto origFilename = dfsFile->getBaseFilename(entryNo);
     if (extension == ".XBMP") {
-
-        QString fileName = QFileDialog::getSaveFileName(this, tr("Export Png"),
+        QString fileName;
+        if (exportDir.isEmpty()){
+            fileName = QFileDialog::getSaveFileName(this, tr("Export Png"),
                                                         origFilename.c_str(),
                                                         tr("PNG Files (*.png)"));
+        } else {
+            fileName = QDir::toNativeSeparators(exportDir + "/" + origFilename.c_str() + ".png");
+        }
 
         uint8_t* fileData = dfsFile->getFileData(entryNo);
         int      fileLen = dfsFile->getFileSize(entryNo);
@@ -164,9 +179,14 @@ void MainWindow::exportTriggered()
         auto image = QImage(bitmap.data.pixelData, bitmap.width, bitmap.height, bitmap.physicalWidth * 4, QImage::Format_ARGB32);
         image.save(fileName, "PNG");
     } else if (extension == ".RIGIDGEOM") {
-        QString fileName = QFileDialog::getSaveFileName(this, tr("Export GLTF"),
+        QString fileName;
+        if (exportDir.isEmpty()){
+            fileName = QFileDialog::getSaveFileName(this, tr("Export GLTF"),
                                                         origFilename.c_str(),
                                                         tr("GLTF Files (*.gltf)"));
+        } else {
+            fileName = QDir::toNativeSeparators(exportDir + "/" + origFilename.c_str() + ".gltf");
+        }
 
         RigidGeom rigidGeom;
         uint8_t*  fileData = dfsFile->getFileData(entryNo);
@@ -174,6 +194,14 @@ void MainWindow::exportTriggered()
         rigidGeom.readFile(fileData, fileLen);
         exportGLTF(rigidGeom, fileName);
     }
+}
+
+void MainWindow::exportTriggered()
+{
+    auto currentIndex = ui->treeView->selectionModel()->currentIndex();
+    const QModelIndex sourceIdx = proxyModel->mapToSource(currentIndex);
+    int entryNo = sourceIdx.internalId();
+    exportFile(entryNo, "");
 }
 
 
@@ -308,5 +336,6 @@ void MainWindow::dropEvent(QDropEvent* event)
         dfsTreeModel->doEndResetModel();
         ui->treeView->setSortingEnabled(true);
         event->acceptProposedAction();
+        ui->actionToolbarExportAll->setEnabled(true);
     }
 }

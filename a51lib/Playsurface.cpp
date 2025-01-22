@@ -103,6 +103,7 @@ void Playsurface::describe(std::ostringstream& ss)
         ss << "    Num Surfaces: " << zi.numSurfaces << std::endl;
         ss << "    Num Colours: " << zi.numColors << std::endl;
         for (auto& surface : zi.surfaces){
+            ss << "        LTW: " << surface.L2W << std::endl;
             ss << "        World BBox: " << surface.WorldBBox << std::endl;
             ss << "        Geom Name: " << geoms.at(surface.GeomNameIndex) << std::endl;
             ss << "        Zone Info: " << (surface.ZoneInfo >> 8) << ", " << (surface.ZoneInfo & 0xFF) << std::endl;
@@ -120,6 +121,7 @@ void Playsurface::describe(std::ostringstream& ss)
         ss << "    Num Surfaces: " << zi.numSurfaces << std::endl;
         ss << "    Num Colours: " << zi.numColors << std::endl;
         for (auto& surface : zi.surfaces){
+            ss << "        LTW: " << surface.L2W << std::endl;
             ss << "        World BBox: " << surface.WorldBBox << std::endl;
             ss << "        Geom Name: " << geoms.at(surface.GeomNameIndex) << std::endl;
             ss << "        Zone Info: " << (surface.ZoneInfo >> 8) << ", " << (surface.ZoneInfo & 0xFF) << std::endl;

@@ -156,6 +156,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionToolbarExportFile"/>
+   <addaction name="actionToolbarExportAll"/>
    <addaction name="actionToolbarExtractFile"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -168,6 +169,17 @@
    </property>
    <property name="text">
     <string>Export</string>
+   </property>
+  </action>
+  <action name="actionToolbarExportAll">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::DocumentSave"/>
+   </property>
+   <property name="text">
+    <string>Export All</string>
    </property>
   </action>
   <action name="actionToolbarExtractFile">
