@@ -69,9 +69,23 @@ public:
         o.w = readFloat();
     }
 
+    void read(Vector4& o){
+        o.x = readFloat();
+        o.y = readFloat();
+        o.z = readFloat();
+        o.w = readFloat();
+    }
+
     void read(BBox& o){
         read(o.min);
         read(o.max);
+    }
+
+    void read(Matrix4& m4){
+        read(m4.vCol0);
+        read(m4.vCol1);
+        read(m4.vCol2);
+        read(m4.vCol3);
     }
 
     const char* readString()
