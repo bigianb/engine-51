@@ -20,5 +20,21 @@ public:
     int numGeoms;
 
     PlaysurfaceDB spatialDBase;
+    std::vector<std::string> geoms;     // names
+
+    struct ZoneInfo
+    {
+        int fileOffset;
+        int numSurfaces;
+        int numColors;
+    };
+    
+    std::vector<ZoneInfo> zones;
+    std::vector<ZoneInfo> portals;
+
+    // for debugging
+    int endPortalOffset;
+    int fileLen;
+
 };
 

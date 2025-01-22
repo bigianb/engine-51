@@ -32,6 +32,11 @@ public:
     void read(DataReader&);
     void describe(std::ostringstream& ss);
 
+    HashEntry hashTable[HASH_SIZE];
+
+    int cellSize;
+    int numSurfaces;
+
     std::vector<Cell> cells;
     std::vector<HashEntry> surfaces;
 };
