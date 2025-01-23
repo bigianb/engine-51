@@ -10,12 +10,15 @@
 #include "gltfExporter.h"
 #include <iostream>
 #include <sstream>
+#include <fstream>
 
 #include <QDragEnterEvent>
 #include <QMimeData>
 #include <QtCore/QDir>
 #include <QFileDialog>
 
+#include "../../a51lib/gltf/json.hpp"
+using nlohmann::json;
 
 DfsTreeModel::DfsTreeModel(DFSFile* dfsFile, QObject* parent)
     : QAbstractItemModel(parent)
@@ -73,7 +76,7 @@ QVariant DfsTreeModel::headerData(int section, Qt::Orientation orientation, int 
 
     if (section == 0) {
         return QVariant("Filename");
-    } else if (section == 1){
+    } else if (section == 1) {
         return "Ext";
     } else {
         return "size";
@@ -121,9 +124,9 @@ MainWindow::~MainWindow()
 
 void MainWindow::extractFileTriggered()
 {
-    auto currentIndex = ui->treeView->selectionModel()->currentIndex();
+    auto              currentIndex = ui->treeView->selectionModel()->currentIndex();
     const QModelIndex sourceIdx = proxyModel->mapToSource(currentIndex);
-    int entryNo = sourceIdx.internalId();
+    int               entryNo = sourceIdx.internalId();
 
     uint8_t* fileData = dfsFile->getFileData(entryNo);
     int      fileLen = dfsFile->getFileSize(entryNo);
@@ -132,10 +135,10 @@ void MainWindow::extractFileTriggered()
     auto origFilename = dfsFile->getBaseFilename(entryNo);
 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Export File"),
-                                                        origFilename.c_str());
+                                                    origFilename.c_str());
 
     QFile file(fileName);
-    if (file.open(QIODevice::WriteOnly)){
+    if (file.open(QIODevice::WriteOnly)) {
         file.write((const char*)fileData, fileLen);
         file.close();
     }
@@ -144,15 +147,46 @@ void MainWindow::extractFileTriggered()
 void MainWindow::exportAllTriggered()
 {
     QString exportDir = QFileDialog::getExistingDirectory(this, tr("Export Directory"),
-                                                "",
-                                                QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+                                                          "",
+                                                          QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
     qDebug() << "Exporting to:" << exportDir;
-    if (exportDir.isEmpty()){
+    if (exportDir.isEmpty()) {
         return;
     }
-    for (int entryNo=0; entryNo < dfsFile->numFiles(); ++entryNo){
+    for (int entryNo = 0; entryNo < dfsFile->numFiles(); ++entryNo) {
         exportFile(entryNo, exportDir);
+    }
+}
+
+void exportJSON(Playsurface playSurface, QString filename)
+{
+    json zones;
+    for (auto& zi : playSurface.zones) {
+        if (zi.numSurfaces > 0) {
+            json zone;
+            for (auto& surface : zi.surfaces) {
+                json surf;
+                surf["geomName"] = playSurface.geoms.at(surface.GeomNameIndex);
+
+                json localToWorld;
+                for (int r = 0; r < 4; ++r) {
+                    for (int c = 0; c < 4; ++c) {
+                        localToWorld.push_back(surface.L2W.cells[r][c]);
+                    }
+                }
+                surf["localToWorld"] = localToWorld;
+                zone["surfaces"].push_back(surf);
+            }
+            zones.push_back(zone);
+        }
+    }
+    json output;
+    output["zones"] = zones;
+    auto          outputString = output.dump(2);
+    std::ofstream outputFile(filename.toStdString());
+    if (outputFile.is_open()) {
+        outputFile << outputString << std::endl;
     }
 }
 
@@ -162,17 +196,17 @@ void MainWindow::exportFile(int entryNo, QString exportDir)
     auto origFilename = dfsFile->getBaseFilename(entryNo);
     if (extension == ".XBMP") {
         QString fileName;
-        if (exportDir.isEmpty()){
+        if (exportDir.isEmpty()) {
             fileName = QFileDialog::getSaveFileName(this, tr("Export Png"),
-                                                        origFilename.c_str(),
-                                                        tr("PNG Files (*.png)"));
+                                                    origFilename.c_str(),
+                                                    tr("PNG Files (*.png)"));
         } else {
             fileName = QDir::toNativeSeparators(exportDir + "/" + origFilename.c_str() + ".png");
         }
 
-        uint8_t* fileData = dfsFile->getFileData(entryNo);
-        int      fileLen = dfsFile->getFileSize(entryNo);
-        Bitmap   bitmap;
+        uint8_t*   fileData = dfsFile->getFileData(entryNo);
+        int        fileLen = dfsFile->getFileSize(entryNo);
+        Bitmap     bitmap;
         const bool oldVersion = dfsFile->getVersion() == 1;
         bitmap.readFile(fileData, fileLen, oldVersion);
         bitmap.convertFormat(Bitmap::FMT_32_ARGB_8888);
@@ -180,10 +214,10 @@ void MainWindow::exportFile(int entryNo, QString exportDir)
         image.save(fileName, "PNG");
     } else if (extension == ".RIGIDGEOM") {
         QString fileName;
-        if (exportDir.isEmpty()){
+        if (exportDir.isEmpty()) {
             fileName = QFileDialog::getSaveFileName(this, tr("Export GLTF"),
-                                                        origFilename.c_str(),
-                                                        tr("GLTF Files (*.gltf)"));
+                                                    origFilename.c_str(),
+                                                    tr("GLTF Files (*.gltf)"));
         } else {
             fileName = QDir::toNativeSeparators(exportDir + "/" + origFilename.c_str() + ".gltf");
         }
@@ -193,22 +227,35 @@ void MainWindow::exportFile(int entryNo, QString exportDir)
         int       fileLen = dfsFile->getFileSize(entryNo);
         rigidGeom.readFile(fileData, fileLen);
         exportGLTF(rigidGeom, fileName);
+    } else if (extension == ".PLAYSURFACE") {
+        QString fileName;
+        if (exportDir.isEmpty()) {
+            fileName = QFileDialog::getSaveFileName(this, tr("Export JSON"),
+                                                    origFilename.c_str(),
+                                                    tr("JSON Files (*.json)"));
+        } else {
+            fileName = QDir::toNativeSeparators(exportDir + "/" + origFilename.c_str() + ".json");
+        }
+        Playsurface playSurface;
+        uint8_t*    fileData = dfsFile->getFileData(entryNo);
+        int         fileLen = dfsFile->getFileSize(entryNo);
+        playSurface.readFile(fileData, fileLen);
+        exportJSON(playSurface, fileName);
     }
 }
 
 void MainWindow::exportTriggered()
 {
-    auto currentIndex = ui->treeView->selectionModel()->currentIndex();
+    auto              currentIndex = ui->treeView->selectionModel()->currentIndex();
     const QModelIndex sourceIdx = proxyModel->mapToSource(currentIndex);
-    int entryNo = sourceIdx.internalId();
+    int               entryNo = sourceIdx.internalId();
     exportFile(entryNo, "");
 }
-
 
 void MainWindow::treeItemClicked(const QModelIndex& index)
 {
     const QModelIndex sourceIdx = proxyModel->mapToSource(index);
-    int entryNo = sourceIdx.internalId();
+    int               entryNo = sourceIdx.internalId();
     //qDebug() << "Clicked row:" << entryNo;
     auto extension = dfsFile->getFileExtension(entryNo);
 
@@ -255,7 +302,7 @@ void MainWindow::treeItemClicked(const QModelIndex& index)
         std::ostringstream ss;
         playSurface.describe(ss);
         ui->plainTextEdit->setPlainText(ss.str().c_str());
-        exportable = false;
+        exportable = true;
     } else {
         ui->plainTextEdit->setPlainText("Can't parse this format yet.");
     }
@@ -273,12 +320,12 @@ void MainWindow::setBitmap(Bitmap& bitmap, QLabel* label)
     label->resize(label->pixmap().size());
 }
 
-static inline QColor textColor(const QPalette &palette)
+static inline QColor textColor(const QPalette& palette)
 {
     return palette.color(QPalette::Active, QPalette::Text);
 }
 
-static void setTextColor(QWidget *w, const QColor &c)
+static void setTextColor(QWidget* w, const QColor& c)
 {
     auto palette = w->palette();
     if (textColor(palette) != c) {
@@ -292,7 +339,7 @@ void MainWindow::searchRegularExpressionChanged()
     QString pattern = ui->searchText->text();
 
     QRegularExpression::PatternOptions options = QRegularExpression::NoPatternOption | QRegularExpression::CaseInsensitiveOption;
-    QRegularExpression regularExpression(pattern, options);
+    QRegularExpression                 regularExpression(pattern, options);
 
     if (regularExpression.isValid()) {
         ui->searchText->setToolTip(QString());
