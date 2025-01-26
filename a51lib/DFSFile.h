@@ -20,6 +20,8 @@ public:
     uint8_t* getFileData(int entryNo) const;
     int getVersion() const;
 
+    int findEntry(std::string baseFilename, std::string extension) const;
+
 private:
     void readDataFiles();
     void freeSubfileData();

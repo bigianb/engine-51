@@ -93,9 +93,21 @@ public:
         return (const char*)(fileData + cursor);
     }
 
+    std::string consumeString()
+    {
+        std::string s = readString();
+        while (hasData() && fileData[cursor]) { ++cursor; }
+        if (hasData()){ ++cursor; }
+        return s;
+    }
+
     void skip(int n)
     {
         cursor += n;
+    }
+
+    bool hasData(){
+        return cursor < len;
     }
 
     uint8_t* fileData;

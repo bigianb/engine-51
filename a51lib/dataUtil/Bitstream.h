@@ -92,16 +92,16 @@ public:
     void readUnitVector(Vector3& N, int32_t TotalBits) const;
 
     // Quaternion
-    void writeQuaternion(const Quaternion& );
-    void readQuaternion(Quaternion& ) const;
-    /*
-        // Radian3
-        void writeRadian3(const radian3& Radian);
-        void writeRangedRadian3(const radian3& Radian, int32_t NBits);
+    void writeQuaternion(const Quaternion&);
+    void readQuaternion(Quaternion&) const;
 
-        void readRadian3(radian3& Radian) const;
-        void readRangedRadian3(radian3& Radian, int32_t NBits) const;
-    */
+    // Radian3
+    //void writeRadian3(const radian3& Radian);
+    //void writeRangedRadian3(const radian3& Radian, int32_t NBits);
+
+    void readRadian3(Radian3& radian) const;
+    void readRangedRadian3(Radian3& radian, int32_t nBits) const;
+
     // Colour
     void writeColor(Colour colour);
     void readColor(Colour& colour) const;

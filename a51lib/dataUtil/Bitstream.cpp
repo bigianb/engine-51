@@ -1,5 +1,6 @@
 #include "Bitstream.h"
 #include <cassert>
+#include <algorithm>
 
 #define TO_U32(x) (*((int32_t*)(&(x))))
 #define TO_F32(x) (*((float*)(&(x))))
@@ -163,6 +164,49 @@ void Bitstream::readRangedF32(float& value, int nBits, float min, float max) con
     assert((value >= min) && (value <= max));
 }
 
+void Bitstream::readRawBits(void* pData, int nBits) const
+{
+    if (nBits == 0) {
+        return;
+    }
+
+    int   NBitsRemaining = nBits;
+    int   NBitsInBuffer = 0;
+    unsigned int   BitBuffer = 0;
+    int   SrcOffset = (cursor & 0x7);
+    uint8_t* pSrc = data + (cursor >> 3);
+    uint8_t* pDst = (uint8_t*)pData;
+
+    while (NBitsRemaining) {
+        // Determine how many bits we can read from source
+        int NBitsToRead = std::min(NBitsRemaining, 8 - SrcOffset);
+
+        // Read bits into the buffer
+        uint8_t Byte = (*pSrc) >> ((8 - SrcOffset) - NBitsToRead);
+        BitBuffer |= (Byte & (~(-1 << NBitsToRead))) << NBitsInBuffer;
+
+        pSrc++;
+        SrcOffset = 0;
+        NBitsInBuffer += NBitsToRead;
+
+        // Empty buffer if we've got a byte's worth
+        while (NBitsInBuffer >= 8) {
+            *pDst++ = (BitBuffer & 0xFF);
+            BitBuffer >>= 8;
+            NBitsInBuffer -= 8;
+        }
+
+        NBitsRemaining -= NBitsToRead;
+    }
+
+    // Empty buffer if we've got a byte's worth
+    if (NBitsInBuffer) {
+        *pDst++ = BitBuffer;
+    }
+
+    cursor += nBits;
+}
+
 void Bitstream::readVector(Vector3& v) const
 {
     readF32(v.x);
@@ -176,4 +220,60 @@ void Bitstream::readQuaternion(Quaternion& q) const
     readF32(q.y);
     readF32(q.z);
     readF32(q.w);
+}
+
+void Bitstream::readRadian3(Radian3& r) const
+{
+    readF32(r.pitch);
+    readF32(r.yaw);
+    readF32(r.roll);
+}
+
+void Bitstream::readRangedRadian3(Radian3& radian, int nBits) const
+{
+    uint32_t NX, NY, NZ;
+    readU32(NX, nBits);
+    readU32(NY, nBits);
+    readU32(NZ, nBits);
+
+    radian.pitch = (float)((NX * (1 / (float)LOWER_BITS(nBits))) - 0.5f) * 2 * R_360;
+    radian.yaw = (float)((NY * (1 / (float)LOWER_BITS(nBits))) - 0.5f) * 2 * R_360;
+    radian.roll = (float)((NZ * (1 / (float)LOWER_BITS(nBits))) - 0.5f) * 2 * R_360;
+}
+
+void Bitstream::readString(char* pBuf, int maxLength) const
+{
+    uint32_t len;
+    readU32(len, 8);
+    if (len <= maxLength) {
+        readRawBits(pBuf, len * 8);
+        pBuf[len - 1] = '\0';
+    } else {
+        pBuf[0] = 0;
+    }
+}
+
+void Bitstream::readColor(Colour& colour) const
+{
+    colour.b = readRaw32(8);
+    colour.g = readRaw32(8);
+    colour.r = readRaw32(8);
+    colour.a = readRaw32(8);
+}
+
+
+void Bitstream::readU64(uint64_t& value, int nBits) const
+{
+    int NBits0 = std::min(nBits, 32);
+    int NBits1 = nBits - NBits0;
+
+    uint32_t V1 = 0;
+
+    uint32_t V0 = readRaw32(NBits0);
+
+    if (NBits1 > 0) {
+        V1 = readRaw32(NBits1);
+    }
+
+    value = (((uint64_t)V1) << 32) | V0;
 }

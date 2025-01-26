@@ -6,6 +6,7 @@
 #include "../../a51lib/RigidGeom.h"
 #include "../../a51lib/animation/animData.h"
 #include "../../a51lib/Playsurface.h"
+#include "../../a51lib/LevelTemplate.h"
 
 #include "gltfExporter.h"
 #include <iostream>
@@ -303,6 +304,17 @@ void MainWindow::treeItemClicked(const QModelIndex& index)
         playSurface.describe(ss);
         ui->plainTextEdit->setPlainText(ss.str().c_str());
         exportable = true;
+    } else if (extension == ".TEMPLATES") {
+        int dictEntryNo = dfsFile->findEntry(dfsFile->getBaseFilename(entryNo), ".TMPL_DCT");
+        uint8_t* dictFileData = dfsFile->getFileData(dictEntryNo);
+        int      dictFileLen = dfsFile->getFileSize(dictEntryNo);
+
+        LevelTemplate levelTemplate;
+        levelTemplate.readFile(fileData, fileLen, dictFileData, dictFileLen);
+        std::ostringstream ss;
+        levelTemplate.describe(ss);
+        ui->plainTextEdit->setPlainText(ss.str().c_str());
+        exportable = false;
     } else {
         ui->plainTextEdit->setPlainText("Can't parse this format yet.");
     }

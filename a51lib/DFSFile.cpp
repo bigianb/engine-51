@@ -192,6 +192,16 @@ std::string DFSFile::getBaseFilename(int entryNo) const
     return filename;
 }
 
+int DFSFile::findEntry(std::string baseFilename, std::string extension) const
+{
+    for (int i=0; i<numFiles(); ++i){
+        if (baseFilename == getBaseFilename(i) && extension == getFileExtension(i)){
+            return i;
+        }
+    }
+    return -1;
+}
+
 std::string DFSFile::getFileExtension(int entryNo) const
 {
     if (entryNo < 0 || entryNo >= numFiles() || header == nullptr || !header->isValid()) {

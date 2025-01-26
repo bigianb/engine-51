@@ -29,10 +29,13 @@ target_sources(a51lib PRIVATE
         Geom.h
         InevFile.cpp
         InevFile.h
+        LevelTemplate.cpp
+        LevelTemplate.h
         Playsurface.h
         Playsurface.cpp
         PlaysurfaceDB.h
         PlaysurfaceDB.cpp
+        PropertyDefs.h
         ResourceManager.cpp
         ResourceManager.h
         RigidGeom.cpp
