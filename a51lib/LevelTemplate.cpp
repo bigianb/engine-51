@@ -3,6 +3,9 @@
 #include "streamingOperators.h"
 #include "dataUtil/Bitstream.h"
 
+#include <cstring>
+#include <inttypes.h>
+
 LevelTemplate::~LevelTemplate()
 {
     delete[] bitstreamData;
@@ -57,7 +60,7 @@ bool LevelTemplate::readFile(uint8_t* fileData, int len, uint8_t* dictData, int 
     bitstreamData = nullptr;
 
     bitstreamData = new uint8_t[bitstreamLen];
-    memcpy(bitstreamData, fileData + reader.cursor, bitstreamLen);
+    std::memcpy(bitstreamData, fileData + reader.cursor, bitstreamLen);
     return true;
 }
 
@@ -132,7 +135,7 @@ std::string getPropStringVal(PropertyType type, Bitstream& bs)
         {
             uint64_t i;
             bs.readU64(i);
-            snprintf(data, 256, "%lld", i);
+            snprintf(data, 256, "%" PRIu64, i);
         }
 	    break;
     default:
