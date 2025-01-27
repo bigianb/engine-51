@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 
+#include "../../a51lib/BinLevel.h"
 #include "../../a51lib/Bitmap.h"
 #include "../../a51lib/DFSFile.h"
 #include "../../a51lib/RigidGeom.h"
@@ -313,6 +314,17 @@ void MainWindow::treeItemClicked(const QModelIndex& index)
         levelTemplate.readFile(fileData, fileLen, dictFileData, dictFileLen);
         std::ostringstream ss;
         levelTemplate.describe(ss);
+        ui->plainTextEdit->setPlainText(ss.str().c_str());
+        exportable = false;
+    } else if (extension == ".BIN_LEVEL") {
+        int dictEntryNo = dfsFile->findEntry(dfsFile->getBaseFilename(entryNo), ".LEV_DICT");
+        uint8_t* dictFileData = dfsFile->getFileData(dictEntryNo);
+        int      dictFileLen = dfsFile->getFileSize(dictEntryNo);
+
+        BinLevel binLevel;
+        binLevel.readFile(fileData, fileLen, dictFileData, dictFileLen);
+        std::ostringstream ss;
+        binLevel.describe(ss);
         ui->plainTextEdit->setPlainText(ss.str().c_str());
         exportable = false;
     } else {

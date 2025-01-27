@@ -19,6 +19,8 @@ set(DATAUTIL_SOURCES
         )
 
 target_sources(a51lib PRIVATE
+        BinLevel.cpp
+        BinLevel.h
         Bitmap.cpp
         Bitmap.h
         CollisionVolume.cpp
