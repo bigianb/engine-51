@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "../a51lib/ResourceManager.h"
+#include "../a51lib/resourceManager/ResourceManager.h"
 
 TEST(ResourceManagerTest, BasicOperation) {
 
@@ -9,8 +9,7 @@ TEST(ResourceManagerTest, BasicOperation) {
   // General operation is to have a resource handle,
   // set the name and then get the pointer.
 
-  ResourceHandleBase baseHandle;
-  baseHandle.setResourceManager(&resourceManager);
+  ResourceHandleBase baseHandle(&resourceManager);
   baseHandle.setName("myResourceName");
 
 }

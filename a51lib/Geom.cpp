@@ -215,9 +215,9 @@ bool Geom::readFile(uint8_t* fileData, int len)
         return false;
     }
 
-    std::ostringstream ss;
-    inevFile.describe(ss);
-    std::cout << ss.str() << std::endl;
+    //std::ostringstream ss;
+    //inevFile.describe(ss);
+    //std::cout << ss.str() << std::endl;
     read(inevFile);
     return true;
 }

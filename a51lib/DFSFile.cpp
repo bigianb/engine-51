@@ -86,8 +86,9 @@ DFSHeader::DFSHeader(const uint8_t* data)
     }
 }
 
-DFSFile::DFSFile()
+DFSFile::DFSFile(int searchPriorityIn)
 {
+    searchPriority = searchPriorityIn;
     header = nullptr;
     dfsData = nullptr;
 }
@@ -140,7 +141,7 @@ uint32_t DFSFile::getSubfileOffset(int idx) const
     return header->subFileTable3[idx].offset;
 }
 
-uint8_t* DFSFile::getFileData(int entryNo) const
+uint8_t* DFSFile::getFileData(int entryNo)
 {
     if (entryNo < 0 || entryNo >= numFiles() || header == nullptr || !header->isValid()) {
         return nullptr;
@@ -158,6 +159,11 @@ uint8_t* DFSFile::getFileData(int entryNo) const
     if (subFileIdx > 0){
         subOffset -= getSubfileOffset(subFileIdx-1);
     }
+
+    if (subFileData.empty()){
+        readDataFiles();
+    }
+
     return subFileData[subFileIdx] + subOffset;
 }
 
@@ -230,7 +236,7 @@ static uint8_t* readFile(std::string path, size_t& size)
     return data;
 }
 
-void DFSFile::read(std::string path)
+bool DFSFile::read(std::string path, bool headerOnly)
 {
     this->path = path;
     delete[] dfsData;
@@ -244,9 +250,10 @@ void DFSFile::read(std::string path)
         delete header;
         header = new DFSHeader(dfsData);
     }
-    if (header != nullptr && header->isValid()) {
+    if (header != nullptr && header->isValid() && !headerOnly) {
         readDataFiles();
     }
+    return header != nullptr;
 }
 
 void DFSFile::readDataFiles()

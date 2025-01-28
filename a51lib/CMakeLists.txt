@@ -18,6 +18,45 @@ set(DATAUTIL_SOURCES
         dataUtil/Bitstream.h
         )
 
+set(SYSTEM_SOURCES
+        system/Renderer.h
+        )
+
+set(LEVELS_SOURCES
+        levels/LevelLoader.cpp
+        levels/LevelLoader.h
+        )
+
+set(IO_SOURCES
+        io/FileSystem.cpp
+        io/FileSystem.h
+        )
+
+set(UI_SOURCES
+        ui/dialogs/esrbDialog.cpp
+        ui/dialogs/esrbDialog.h
+        ui/UIControl.cpp
+        ui/UIControl.h
+        ui/UIDialog.cpp
+        ui/UIDialog.h
+        ui/UIManager.cpp
+        ui/UIManager.h
+        ui/UIWindow.cpp
+        ui/UIWindow.h
+        )
+
+set(STATE_SOURCES
+        state/StateMachine.cpp
+        state/StateMachine.h
+        )
+
+set(RESOURCE_MGR_SOURCES
+        resourceManager/ResourceLoaders.cpp
+        resourceManager/ResourceLoaders.h
+        resourceManager/ResourceManager.cpp
+        resourceManager/ResourceManager.h
+)
+
 target_sources(a51lib PRIVATE
         BinLevel.cpp
         BinLevel.h
@@ -38,8 +77,6 @@ target_sources(a51lib PRIVATE
         PlaysurfaceDB.h
         PlaysurfaceDB.cpp
         PropertyDefs.h
-        ResourceManager.cpp
-        ResourceManager.h
         RigidGeom.cpp
         RigidGeom.h
         streamingOperators.cpp
@@ -48,6 +85,12 @@ target_sources(a51lib PRIVATE
 	${GLTF_SOURCES}
         ${ANIM_SOURCES}
         ${DATAUTIL_SOURCES}
+        ${SYSTEM_SOURCES}
+        ${LEVELS_SOURCES}
+        ${IO_SOURCES}
+        ${RESOURCE_MGR_SOURCES}
+        ${UI_SOURCES}
+        ${STATE_SOURCES}
 )
 
 target_compile_features(a51lib PUBLIC cxx_std_20)
