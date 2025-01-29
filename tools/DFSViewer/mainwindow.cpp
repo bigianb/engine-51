@@ -9,6 +9,8 @@
 #include "../../a51lib/Playsurface.h"
 #include "../../a51lib/LevelTemplate.h"
 
+#include "../../a51lib/dataUtil/Bitstream.h"
+
 #include "gltfExporter.h"
 #include <iostream>
 #include <sstream>
@@ -192,6 +194,76 @@ void exportJSON(Playsurface playSurface, QString filename)
     }
 }
 
+std::string getPropStringVal(PropertyType type, Bitstream& bs);
+
+void exportJSON(BinLevel& binLevel, QString filename)
+{
+    Bitstream bs;
+    bs.init(binLevel.bitstreamData, binLevel.bitstreamLen);
+
+    json objects;
+    for (auto& object : binLevel.objects) {
+        json jsonObject;
+        jsonObject["type"] = binLevel.dictionary[object.typeIndex];
+        json properties;
+        for (int ip = object.iProperty; ip < object.iProperty + object.nProperty; ++ip){
+            auto& property = binLevel.properties[ip];
+            properties[binLevel.dictionary[property.nameIndex]] = getPropStringVal(property.type, bs);
+        }
+        jsonObject["properties"] = properties;
+        objects.push_back(jsonObject);
+    }
+    json output;
+    output["objects"] = objects;
+    auto          outputString = output.dump(2);
+    std::ofstream outputFile(filename.toStdString());
+    if (outputFile.is_open()) {
+        outputFile << outputString << std::endl;
+    }
+}
+
+void exportJSON(LevelTemplate& levelTemplate, QString filename)
+{
+    Bitstream bs;
+    bs.init(levelTemplate.bitstreamData, levelTemplate.bitstreamLen);
+
+    json jsTemplates;
+    for (auto& entry : levelTemplate.templates)
+    {
+        json jsTemplate;
+        jsTemplate["name"] = levelTemplate.dictionary[entry.nameIndex];
+        std::vector<float> apvec;
+        apvec.push_back(entry.anchorPos.x);
+        apvec.push_back(entry.anchorPos.y);
+        apvec.push_back(entry.anchorPos.z);
+        jsTemplate["anchorpos"] = apvec;
+
+        bs.setCursor(entry.iStartBitStream);
+        json objects;
+        for (int io = entry.iObject; io < entry.iObject + entry.nObjects; ++io){
+            auto& object = levelTemplate.objects[io];
+            json jsonObject;
+            jsonObject["type"] = levelTemplate.dictionary[object.typeIndex];
+            json properties;
+            for (int ip = object.iProperty; ip < object.iProperty + object.nProperty; ++ip){
+                auto& property = levelTemplate.properties[ip];
+                properties[levelTemplate.dictionary[property.nameIndex]] = getPropStringVal(property.type, bs);
+            }
+            jsonObject["properties"] = properties;
+            objects.push_back(jsonObject);
+        }
+        jsTemplate["objects"] = objects;
+        jsTemplates.push_back(jsTemplate);
+    }
+    json output;
+    output["templates"] = jsTemplates;
+    auto          outputString = output.dump(2);
+    std::ofstream outputFile(filename.toStdString());
+    if (outputFile.is_open()) {
+        outputFile << outputString << std::endl;
+    }
+}
+
 void MainWindow::exportFile(int entryNo, QString exportDir)
 {
     auto extension = dfsFile->getFileExtension(entryNo);
@@ -243,6 +315,42 @@ void MainWindow::exportFile(int entryNo, QString exportDir)
         int         fileLen = dfsFile->getFileSize(entryNo);
         playSurface.readFile(fileData, fileLen);
         exportJSON(playSurface, fileName);
+    } else if (extension == ".BIN_LEVEL") {
+        QString fileName;
+        if (exportDir.isEmpty()) {
+            fileName = QFileDialog::getSaveFileName(this, tr("Export JSON"),
+                                                    (origFilename + "_bin_level").c_str(),
+                                                    tr("JSON Files (*.json)"));
+        } else {
+            fileName = QDir::toNativeSeparators(exportDir + "/" + origFilename.c_str() + ".json");
+        }
+        int dictEntryNo = dfsFile->findEntry(dfsFile->getBaseFilename(entryNo), ".LEV_DICT");
+        uint8_t* dictFileData = dfsFile->getFileData(dictEntryNo);
+        int      dictFileLen = dfsFile->getFileSize(dictEntryNo);
+
+        uint8_t*    fileData = dfsFile->getFileData(entryNo);
+        int         fileLen = dfsFile->getFileSize(entryNo);
+        BinLevel binLevel;
+        binLevel.readFile(fileData, fileLen, dictFileData, dictFileLen);
+        exportJSON(binLevel, fileName);
+    } else if (extension == ".TEMPLATES") {
+        QString fileName;
+        if (exportDir.isEmpty()) {
+            fileName = QFileDialog::getSaveFileName(this, tr("Export JSON"),
+                                                    (origFilename + "_templates").c_str(),
+                                                    tr("JSON Files (*.json)"));
+        } else {
+            fileName = QDir::toNativeSeparators(exportDir + "/" + origFilename.c_str() + ".json");
+        }
+        int dictEntryNo = dfsFile->findEntry(dfsFile->getBaseFilename(entryNo), ".TMPL_DCT");
+        uint8_t* dictFileData = dfsFile->getFileData(dictEntryNo);
+        int      dictFileLen = dfsFile->getFileSize(dictEntryNo);
+
+        uint8_t*    fileData = dfsFile->getFileData(entryNo);
+        int         fileLen = dfsFile->getFileSize(entryNo);
+        LevelTemplate levelTemplate;
+        levelTemplate.readFile(fileData, fileLen, dictFileData, dictFileLen);
+        exportJSON(levelTemplate, fileName);
     }
 }
 
@@ -315,7 +423,7 @@ void MainWindow::treeItemClicked(const QModelIndex& index)
         std::ostringstream ss;
         levelTemplate.describe(ss);
         ui->plainTextEdit->setPlainText(ss.str().c_str());
-        exportable = false;
+        exportable = true;
     } else if (extension == ".BIN_LEVEL") {
         int dictEntryNo = dfsFile->findEntry(dfsFile->getBaseFilename(entryNo), ".LEV_DICT");
         uint8_t* dictFileData = dfsFile->getFileData(dictEntryNo);
@@ -326,7 +434,7 @@ void MainWindow::treeItemClicked(const QModelIndex& index)
         std::ostringstream ss;
         binLevel.describe(ss);
         ui->plainTextEdit->setPlainText(ss.str().c_str());
-        exportable = false;
+        exportable = true;
     } else {
         ui->plainTextEdit->setPlainText("Can't parse this format yet.");
     }

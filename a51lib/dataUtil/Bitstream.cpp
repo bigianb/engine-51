@@ -245,7 +245,7 @@ void Bitstream::readString(char* pBuf, int maxLength) const
 {
     uint32_t len;
     readU32(len, 8);
-    if (len <= maxLength) {
+    if (len > 0 && len <= maxLength) {
         readRawBits(pBuf, len * 8);
         pBuf[len - 1] = '\0';
     } else {
