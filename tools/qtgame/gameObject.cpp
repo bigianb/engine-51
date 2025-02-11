@@ -89,7 +89,7 @@ void GameObject::init()
         LoadCamera();
 */
     uiManager = new ui::Manager();
-    uiManager->init(*renderer);
+    uiManager->init(*renderer, resourceManager);
     uiManager->setRes();
 
 //        g_StringTableMgr.LoadTable( "Inventory", xfs("%s\\%s", g_RscMgr.GetRootDirectory(), "ENG_Inventory_strings.stringbin" ) );

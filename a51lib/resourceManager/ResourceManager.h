@@ -76,7 +76,10 @@ public:
 template <class T>
 struct ResourceHandle : public ResourceHandleBase
 {
-    T* GetPointer() const;
+    T* getPointer() const
+    {
+        return (T*)ResourceHandleBase::getPointer(); 
+    }
 };
 
 /**

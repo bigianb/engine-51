@@ -6,8 +6,11 @@
 
 #include "../VectorMath.h"
 #include "UIDialog.h"
+#include "../resourceManager/ResourceManager.h"
+#include "../Bitmap.h"
 
 class Renderer;
+class ResourceManager;
 
 namespace ui
 {
@@ -114,13 +117,17 @@ namespace ui
 
     struct Element
     {
-        std::string name;
-        // TODO
-        //rhandle<xbitmap>  Bitmap;
-        int                  nStates;
-        int                  cx;
-        int                  cy;
-        std::vector<IntRect> r;
+        Element(ResourceManager* rm)
+            : bitmap(rm)
+        {
+        }
+
+        std::string            name;
+        ResourceHandle<Bitmap> bitmap;
+        int                    nStates;
+        int                    cx;
+        int                    cy;
+        std::vector<IntRect>   r;
     };
 
     struct ControlTemplate
@@ -171,7 +178,7 @@ namespace ui
         {
         }
         ~Manager();
-        void init(Renderer& renderer);
+        void init(Renderer& renderer, ResourceManager*);
         void setRes();
 
         void update(float deltaTime);
@@ -183,12 +190,17 @@ namespace ui
 
         Window* createWin(User* user, const char* ClassName, const IntRect& position, Window* parent, int flags);
 
+        int loadElement(ResourceManager* rm, const char* name, const char* pathName, int nStates, int cx, int cy);
+
+        bool registerWinClass(const char* className, WindowFactoryFn factoryFunction);
         bool registerDialogClass(const char* className, DialogTemplate* dialogTemplate, DialogFactoryFn factoryFunction);
 
         float getScaleX() const { return scaleX; }
         float getScaleY() const { return scaleY; }
 
         int findElement(const char* name) const;
+
+        User* getUserId() const { return userId; }
 
     private:
         // Window pixel size, set in init.

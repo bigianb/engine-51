@@ -16,6 +16,8 @@ void StateMachine::init(ui::Manager* ui)
     state = State::idle;
     previousState = state;
     setState(State::ersb_notice);
+
+    ui->enableUser(ui->getUserId(), true);
 }
 
 void StateMachine::update(float deltaTime)

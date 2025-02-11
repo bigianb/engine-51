@@ -5,20 +5,79 @@
 #include "../system/Renderer.h"
 #include "../VectorMath.h"
 #include "dialogs/esrbDialog.h"
+#include "UIText.h"
 
 ui::Manager::~Manager()
 {
     // TODO: delete dialog class map entries.
 }
 
-void ui::Manager::init(Renderer& renderer)
+void ui::Manager::init(Renderer& renderer, ResourceManager* rm)
 {
     renderer.getRes(width, height);
     IntRect r(0, 0, width, height);
     userId = createUser(-1, r);
     enableUser(userId, false);
 
+    registerWinClass("text", &ui::Text::factory);
+
     EsrbDialog::registerDialog(this);
+
+    loadElement(rm, "frame", "UI_frame1.xbmp", 2, 3, 3);
+    loadElement(rm, "frame2", "UI_frame2.xbmp", 1, 3, 3);
+    loadElement(rm, "glow", "UI_barglow.xbmp", 1, 1, 1);
+}
+
+int ui::Manager::loadElement(ResourceManager* rm, const char* name, const char* pathName, int nStates, int cx, int cy)
+{
+    std::vector<int> x;
+    std::vector<int> y;
+
+    int id = findElement(name);
+    if (id != -1) {
+        return id;
+    }
+
+    Element* element = new Element(rm);
+
+    element->name = name;
+    element->nStates = nStates;
+    element->cx = cx;
+    element->cy = cy;
+
+    element->bitmap.setName(pathName);
+    Bitmap* bitmap = element->bitmap.getPointer();
+
+    /*
+    // TODO: figure out the registrations
+    if ((nStates > 0) && (cx > 0) && (cy > 0)) {
+        //RegColor = pBitmap->getPixelColor( 0, 0 );
+
+        // Find the registration markers
+        x.reserve(cx + 1);
+        y.reserve((cy * nStates) + 1);
+        for (int i = 0; i < pBitmap->GetWidth(); i++) {
+            if (pBitmap->GetPixelColor(i, 0) == RegColor) {
+                x.push_back(i);
+            }
+        }
+        for (int i = 0; i < pBitmap->GetHeight(); i++) {
+            if (pBitmap->GetPixelColor(0, i) == RegColor) {
+                y.push_back(i);
+            }
+        }
+        // Setup the rectangles
+        element->r.reserve(cx * cy * nStates);
+        for (int iy = 0; iy < (cy * nStates); iy++) {
+            for (int ix = 0; ix < cx; ix++) {
+                element->r.push_back(IntRect(x[ix] + 1, y[iy] + 1, (x[ix + 1]), (y[iy + 1])));
+            }
+        }
+    }
+    */
+
+    elements.push_back(element);
+    return elements.size() - 1;
 }
 
 ui::User* ui::Manager::createUser(int controllerID, const IntRect& bounds)
@@ -76,6 +135,19 @@ ui::User* ui::Manager::createUser(int controllerID, const IntRect& bounds)
     }
 
     return pUser;
+}
+
+bool ui::Manager::registerWinClass(const char* className, WindowFactoryFn factoryFunction)
+{
+    bool success = false;
+    if (!windowClasses.contains(className)) {
+        WindowClass* clazz = new WindowClass();
+        clazz->className = className;
+        clazz->factoryFn = factoryFunction;
+        windowClasses[className] = clazz;
+        success = true;
+    }
+    return success;
 }
 
 bool ui::Manager::registerDialogClass(const char* className, ui::DialogTemplate* dialogTemplate, ui::DialogFactoryFn factoryFunction)
@@ -159,8 +231,8 @@ ui::Window* ui::Manager::createWin(ui::User* user, const char* className, const 
 
 int ui::Manager::findElement(const char* elementName) const
 {
-    for (int i=0; i<elements.size(); ++i){
-        if (elements[i]->name == elementName){
+    for (int i = 0; i < elements.size(); ++i) {
+        if (elements[i]->name == elementName) {
             return i;
         }
     }
