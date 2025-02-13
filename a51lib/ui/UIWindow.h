@@ -70,21 +70,31 @@ namespace ui
         int  getControlId() const { return id; }
         void setControlId(int id) { this->id = id; }
 
-        bool visible() const { return flags == WF_VISIBLE; }
-        bool disabled() const { return flags == WF_DISABLED; }
-        bool highlighted() const { return flags == WF_HIGHLIGHT; }
-        bool selected() const { return flags == WF_SELECTED; }
+        bool visible() const { return (flags & WF_VISIBLE) == WF_VISIBLE; }
+        bool disabled() const { return (flags & WF_DISABLED) == WF_DISABLED; }
+        bool isStatic() const { return (flags & WF_STATIC) == WF_STATIC; }
+        bool highlighted() const { return (flags & WF_HIGHLIGHT) == WF_HIGHLIGHT; }
+        bool selected() const { return (flags & WF_SELECTED) == WF_SELECTED; }
+        bool isRenderModel() const { return (flags & WF_RENDERMODAL) == WF_RENDERMODAL; }
 
         const IntRect& getPositon() const { return position; }
 
         Manager* getUIManger() const { return manager; }
 
-        int getFlags() const { return flags; }
+        int  getFlags() const { return flags; }
+        void setFlag(int flag) { flags |= flag; }
+        void clearFlag(int flag) { flags &= ~flag; }
 
         void setCreatePosition(IntRect p) { createPosition = p; }
 
         std::vector<Window*> children;
 
+    protected:
+        IntRect position;
+
+        std::wstring  label;
+        unsigned int labelFlags;
+        Colour       labelColor;
     private:
         Manager* manager;
         User*    user;
@@ -93,12 +103,10 @@ namespace ui
 
         int flags;
 
-        int         id;
-        IntRect     createPosition;
-        IntRect     position;
-        std::string label;
-        //unsigned int                 labelFlags;
-        //color              m_LabelColor;
+        int     id;
+        IntRect createPosition;
+
+
         //int                 font;
     };
 };

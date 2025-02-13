@@ -44,22 +44,21 @@ namespace ui
                             Window*         parent,
                             int             flags)
     {
-        bool   success = false;
-    
-        success = Dialog::create( user, manager, dialogTemplate, position, parent, flags );
-    
+        bool success = false;
+
+        success = Dialog::create(user, manager, dialogTemplate, position, parent, flags);
+
         // initialize esrb text
-       // m_pESRBText	= (ui_text*)   findChildByID( IDC_ESRB_MESSAGE );
-      //  m_pESRBText ->SetFlag(Window::WF_VISIBLE, true);
-      //  m_pESRBText ->SetLabelColor( xcolor(230, 230, 230, 255) );
-      //  GotoControl( (ui_control*)m_pESRBText );
-    
+        text = (ui::Text*)findChildById(IDC_ESRB_MESSAGE);
+        text->setFlag(Window::WF_VISIBLE);
+        //text->setLabelColor(Colour(230, 230, 230, 255));
+        gotoControl(text);
+
         waitTime = 5.0f;
 
-    
         // make the dialog active
         //m_State = DIALOG_STATE_ACTIVE;
-    
+
         // Return success code
         return success;
     }

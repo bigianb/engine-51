@@ -81,3 +81,88 @@ bool ui::Dialog::create(User*           user,
 
     return success;
 }
+
+bool ui::Dialog::gotoControl(ui::Control* control)
+{
+    bool success = false;
+    int  iControl = -1;
+
+    Control* child = NULL;
+
+    // Locate the control
+    for (int i = 0; i < children.size() && iControl < 0; i++) {
+        if (children[i] == control) {
+            child = (Control*)children[i];
+            iControl = i;
+        }
+    }
+
+    if (!child->isStatic() && !child->disabled()) {
+        /*
+        int x = child->getWidth() / 2;
+        int y = child->getHeight() / 2;
+
+        // Position cursor over Child
+        child->localToScreen(x, y);
+        manager->setCursorPos(user, x, y);
+        */
+        // Set Navigation cursor to center of the control
+        const IntRect& r = child->getNavPos();
+        navX = r.left + r.getWidth() / 2;
+        navY = r.top + r.getHeight() / 2;
+
+        // store index of current control
+        currentControl = iControl;
+
+        success = true;
+    }
+
+    return success;
+}
+
+void ui::Dialog::render(Renderer& renderer, int ox, int oy)
+{
+    if (!visible()) {
+        return;
+    }
+
+    // manager->RenderScreenHighlight();
+
+    for (auto child : children) {
+        child->render(renderer, position.left + ox, position.top + oy);
+    }
+
+    // manager->RenderScreenWipe();
+    // manager->RenderRefreshBar();
+
+    /*
+    if( m_Flags & WF_BORDER )
+    {
+        // Render the Frame
+        if( m_Flags & WF_DISABLED )
+        {
+            // disabled version
+            m_pManager->RenderElement( m_iElement, r, 1 );
+        }
+        else
+        {
+            // normal frame
+            m_pManager->RenderElement( m_iElement, r, 0 );
+        }
+
+
+        // Render Title
+        if (!m_pManager->IsScreenScaling())
+        {
+            rb.Deflate( 0, 5 );
+            s32 FontID = g_UiMgr->FindFont("large");
+            m_pManager->RenderText( FontID, rb, ui_font::h_center, m_TextColorShadow, m_Label );
+            rb.Translate( -1, -1 );
+            m_pManager->RenderText( FontID, rb, ui_font::h_center, m_TextColorNormal, m_Label );
+        }
+
+        // render screen glow effect
+        g_UiMgr->RenderScreenGlow();
+    }
+*/
+}

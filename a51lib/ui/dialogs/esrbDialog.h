@@ -2,6 +2,7 @@
 
 #include "../UIDialog.h"
 #include "../UIManager.h"
+#include "../UIText.h"
 
 namespace ui
 {
@@ -15,20 +16,19 @@ namespace ui
 
         static void registerDialog(Manager*);
 
-        bool         create(User*           user,
-                            Manager*        manager,
-                            DialogTemplate* dialogTemplate,
-                            const IntRect&  position,
-                            Window*         parent,
-                            int             flags);
-
+        bool create(User*           user,
+                    Manager*        manager,
+                    DialogTemplate* dialogTemplate,
+                    const IntRect&  position,
+                    Window*         parent,
+                    int             flags);
 
         void onPadSelect(Window* pWin);
         void onUpdate(Window* pWin, float DeltaTime);
         void onPadHelp(Window* pWin);
 
     protected:
-        //ui_text*			m_pESRBText;
+        Text* text;
         float waitTime;
     };
 

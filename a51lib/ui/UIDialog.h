@@ -11,16 +11,15 @@ namespace ui
     class Dialog : public Window
     {
     public:
-        virtual void render(Renderer& renderer, int ox = 0, int oy = 0)
-        {
-            // TODO
-        }
+        virtual void render(Renderer& renderer, int ox = 0, int oy = 0);
 
         Control* gotoControl(int controlId = 0)
         {
             // TODO
             return nullptr;
         }
+
+        bool gotoControl( ui::Control* control );
 
         bool create(User*           user,
                     Manager*        manager,

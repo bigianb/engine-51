@@ -17,4 +17,9 @@ public:
         width = 640;
         height = 480;
     }
+
+    void renderText(const char* fontName, IntRect& r, unsigned int flags, Colour colour, std::wstring text) override
+    {
+
+    }
 };

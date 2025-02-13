@@ -254,21 +254,17 @@ void ui::Manager::render(Renderer& renderer)
     for (User* user : users) {
         if (user->enabled) {
             //RenderBackground( user->background );
-            /*
-                        // Find Topmost Render Modal Dialog
-                        s32 j = pUser->DialogStack.GetCount()-1;
-                        while( (j > 0) && !(pUser->DialogStack[j]->GetFlags() & ui_win::WF_RENDERMODAL) )
-                            j--;
-
-                        // Make sure we start with a legal dialog
-                        if( j < 0 ) j = 0;
-
-                        // Render all Dialogs from the Render Modal one
-                        for( ; j<pUser->DialogStack.GetCount() ; j++ )
-                        {
-                            pUser->DialogStack[j]->render( renderer, user->bounds.left, user->bounds.top );
-                        }
-                        */
+            int dlgNo = user->dialogStack.size() - 1;
+            // Find top modal dialog
+            while (dlgNo > 0 && !user->dialogStack[dlgNo]->isRenderModel()){
+                --dlgNo;
+            }
+            if (dlgNo < 0){
+                dlgNo = 0;
+            }
+            while (dlgNo < user->dialogStack.size()){
+                user->dialogStack[dlgNo++]->render(renderer, user->bounds.left, user->bounds.top);
+            }
         }
     }
 }

@@ -202,6 +202,8 @@ namespace ui
 
         User* getUserId() const { return userId; }
 
+        std::wstring lookupString(std::string tablename, int id);
+
     private:
         // Window pixel size, set in init.
         int width;
