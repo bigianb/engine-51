@@ -6,6 +6,7 @@
 
 class ResourceManager;
 class FileSystem;
+class StringTable;
 
 // Abstract base class for a loader.
 // Deserialises a types based on a file extension.
@@ -13,10 +14,10 @@ class ResourceLoader
 {
 public:
     virtual ~ResourceLoader() {}
-    virtual void* resolve(uint8_t* data, int len) = 0;
-    virtual void  unload(void* data) = 0;
+    virtual void* resolve(uint8_t* data, int len, std::string resourceName) const = 0;
+    virtual void  unload(void* data) const = 0;
 
-    std::string getExtension() { return extension; }
+    std::string getExtension() const { return extension; }
 
 protected:
     ResourceLoader(std::string t, std::string e) : typeName(t), extension(e) {}
@@ -76,6 +77,8 @@ public:
 template <class T>
 struct ResourceHandle : public ResourceHandleBase
 {
+    ResourceHandle(ResourceManager* mgr) : ResourceHandleBase(mgr) {}
+
     T* getPointer() const
     {
         return (T*)ResourceHandleBase::getPointer(); 
@@ -106,6 +109,8 @@ public:
 
     void load(std::string resourceName);
 
+    void loadStringTable(std::string tableName, std::string stringbinName);
+
 private:
 
     void* getPointerSlow(const ResourceHandleBase& handle);
@@ -132,6 +137,8 @@ private:
     std::map<std::string, ResourceLoader*> loaders;
     std::vector<Resource> resources;
     std::map<std::string, int> resourceIdxByName;
+
+    std::map<std::string, StringTable*> stringTables;
 
     bool        onDemandLoading;
     std::string rootDir;

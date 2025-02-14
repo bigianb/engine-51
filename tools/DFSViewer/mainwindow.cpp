@@ -8,7 +8,7 @@
 #include "../../a51lib/animation/animData.h"
 #include "../../a51lib/Playsurface.h"
 #include "../../a51lib/LevelTemplate.h"
-
+#include "../../a51lib/strings/StringTable.h"
 #include "../../a51lib/dataUtil/Bitstream.h"
 
 #include "gltfExporter.h"
@@ -396,6 +396,14 @@ void MainWindow::treeItemClicked(const QModelIndex& index)
         ui->plainTextEdit->setPlainText(ss.str().c_str());
         ui->modelPage->setGeom(rigidGeom);
         exportable = true;
+    } else if (extension == ".STRINGBIN") {
+        StringTable stringTable;
+        stringTable.read(fileData, fileLen, "");
+        std::wostringstream ss;
+        stringTable.describe(ss);
+        QString qtString = QString::fromWCharArray( ss.str().c_str() );
+        ui->plainTextEdit->setPlainText(qtString);
+        exportable = false;
     } else if (extension == ".XBMP") {
         ui->imageLabel->clear();
         const bool oldVersion = dfsFile->getVersion() == 1;

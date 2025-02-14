@@ -3,7 +3,19 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <cctype>  
+#include <algorithm>
+#include <string_view>
 
+bool ichar_equals(char a, char b)
+{
+    return std::tolower(static_cast<char>(a)) == std::tolower(static_cast<char>(b));
+}
+
+bool iequals(std::string_view lhs, std::string_view rhs)
+{
+    return std::ranges::equal(lhs, rhs, ichar_equals);
+}
 
 struct DFSSubfile1
 {
@@ -201,7 +213,7 @@ std::string DFSFile::getBaseFilename(int entryNo) const
 int DFSFile::findEntry(std::string baseFilename, std::string extension) const
 {
     for (int i=0; i<numFiles(); ++i){
-        if (baseFilename == getBaseFilename(i) && extension == getFileExtension(i)){
+        if (iequals(baseFilename, getBaseFilename(i)) && iequals(extension, getFileExtension(i))){
             return i;
         }
     }

@@ -14,7 +14,7 @@ public:
 
     float readFloat()
     {
-        if (cursor + 4 < len) {
+        if (cursor + 4 <= len) {
             float f = *(float*)(fileData + cursor);
             cursor += 4;
             return f;
@@ -24,7 +24,7 @@ public:
 
     int16_t readInt16()
     {
-        if (cursor + 2 < len) {
+        if (cursor + 2 <= len) {
             int16_t i = *(int16_t*)(fileData + cursor);
             cursor += 2;
             return i;
@@ -34,7 +34,7 @@ public:
 
     uint16_t readUInt16()
     {
-        if (cursor + 2 < len) {
+        if (cursor + 2 <= len) {
             uint16_t i = *(uint16_t*)(fileData + cursor);
             cursor += 2;
             return i;
@@ -44,7 +44,7 @@ public:
 
     int32_t readInt32()
     {
-        if (cursor + 4 < len) {
+        if (cursor + 4 <= len) {
             int32_t i = *(int32_t*)(fileData + cursor);
             cursor += 4;
             return i;
@@ -54,7 +54,7 @@ public:
 
     uint32_t readUInt32()
     {
-        if (cursor + 4 < len) {
+        if (cursor + 4 <= len) {
             uint32_t i = *(uint32_t*)(fileData + cursor);
             cursor += 4;
             return i;
@@ -101,13 +101,24 @@ public:
         return s;
     }
 
+    std::wstring consumeWString()
+    {
+        std::wstring s;
+        uint16_t c;
+        // Can't simply cast because wchar is 32 bit in linux and 16 bit on windows.
+        while ((c = readUInt16())) {
+            s += c;
+        }
+        return s;
+    }
+
     void skip(int n)
     {
         cursor += n;
     }
 
-    bool hasData(){
-        return cursor < len;
+    bool hasData(int n = 1){
+        return (cursor + n) <= len;
     }
 
     uint8_t* fileData;

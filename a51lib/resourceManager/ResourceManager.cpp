@@ -140,11 +140,13 @@ void ResourceManager::load(std::string resourceName)
         int      len = 0;
         uint8_t* fileData = fs->readFile(resourceName, len);
         if (fileData != nullptr) {
-            void* resolved = loader->resolve(fileData, len);
+            void* resolved = loader->resolve(fileData, len, resourceName);
             if (resolved != nullptr) {
                 std::cout << "Successfully loaded " << resourceName << std::endl;
                 res.state = State::LOADED;
             }
+        } else {
+            std::cout << "Failed to read file " << resourceName << std::endl;
         }
     } else {
         std::cout << "No Loader for " << extension << std::endl;
@@ -158,4 +160,14 @@ void ResourceManager::registerLoader(ResourceLoader* loader)
 {
     std::cout << "Registering loader for " << loader->getExtension() << " files" << std::endl;
     loaders[loader->getExtension()] = loader;
+}
+
+void ResourceManager::loadStringTable(std::string tableName, std::string stringbinName)
+{
+    load(stringbinName);
+    Resource& res = resources.at(resourceIdxByName[stringbinName]);
+    if (res.state == State::LOADED){
+        StringTable* st = (StringTable*)res.data;
+        stringTables[tableName] = st;
+    }
 }

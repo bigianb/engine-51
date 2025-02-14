@@ -92,7 +92,8 @@ void GameObject::init()
     uiManager->init(*renderer, resourceManager);
     uiManager->setRes();
 
-//        g_StringTableMgr.LoadTable( "Inventory", xfs("%s\\%s", g_RscMgr.GetRootDirectory(), "ENG_Inventory_strings.stringbin" ) );
+    // In strings.dfs
+    resourceManager->loadStringTable( "Inventory", "ENG_Inventory_strings.STRINGBIN" );
 
     stateMachine = new StateMachine();
     stateMachine->init(uiManager);

@@ -52,6 +52,11 @@ set(STATE_SOURCES
         state/StateMachine.h
         )
 
+set(STRING_SOURCES
+        strings/StringTable.cpp
+        strings/StringTable.h
+        )
+
 set(RESOURCE_MGR_SOURCES
         resourceManager/ResourceLoaders.cpp
         resourceManager/ResourceLoaders.h
@@ -93,6 +98,7 @@ target_sources(a51lib PRIVATE
         ${RESOURCE_MGR_SOURCES}
         ${UI_SOURCES}
         ${STATE_SOURCES}
+        ${STRING_SOURCES}
 )
 
 target_compile_features(a51lib PUBLIC cxx_std_20)
