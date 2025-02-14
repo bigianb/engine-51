@@ -42,9 +42,9 @@ jobs:
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v4.0.0
+      uses: jurplel/install-qt-action@v4.1.1
       with:
-        version: 6.7.2
+        version: 6.8.1
         modules: qtshadertools
       
     - name: Configure CMake
