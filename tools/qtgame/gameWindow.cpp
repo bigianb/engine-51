@@ -5,7 +5,7 @@
 #include <rhi/qshader.h>
 
 #include "gameObject.h"
-#include "../../a51lib/state/stateMachine.h"
+#include "../../a51lib/state/StateMachine.h"
 #include "../../a51lib/ui/UIManager.h"
 
 //! [rhiwindow-ctor]

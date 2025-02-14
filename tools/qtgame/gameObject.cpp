@@ -5,7 +5,7 @@
 #include "../../a51lib/resourceManager/ResourceManager.h"
 #include "../../a51lib/resourceManager/ResourceLoaders.h"
 #include "../../a51lib/ui/UIManager.h"
-#include "../../a51lib/state/stateMachine.h"
+#include "../../a51lib/state/StateMachine.h"
 
 #include "system/QtEngine.h"
 #include "system/QtRenderer.h"

@@ -1,4 +1,4 @@
-#include "stateMachine.h"
+#include "StateMachine.h"
 
 #include "../ui/UIManager.h"
 #include "../VectorMath.h"
