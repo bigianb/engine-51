@@ -2,6 +2,7 @@
 #include <QPlatformSurfaceEvent>
 #include <QPainter>
 #include <QFile>
+#include <rhi/qrhi.h>
 #include <rhi/qshader.h>
 
 #include "gameObject.h"

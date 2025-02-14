@@ -4,6 +4,9 @@
 
 #include "gameWindow.h"
 
+#if QT_CONFIG(vulkan)
+#include <QVulkanInstance>
+#endif
 
 int main(int argc, char *argv[])
 {
