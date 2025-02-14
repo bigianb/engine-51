@@ -1,4 +1,5 @@
 #include "ResourceManager.h"
+#include <algorithm>
 #include <string>
 #include <iostream>
 
