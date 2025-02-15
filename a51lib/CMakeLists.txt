@@ -39,6 +39,8 @@ set(UI_SOURCES
         ui/UIControl.h
         ui/UIDialog.cpp
         ui/UIDialog.h
+        ui/UIFont.cpp
+        ui/UIFont.h
         ui/UIManager.cpp
         ui/UIManager.h
         ui/UIText.cpp

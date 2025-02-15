@@ -1,6 +1,7 @@
 #include "StringTable.h"
 #include "../DataReader.h"
 
+#include <cstring>
 #include <iostream>
 
 void StringTable::read(uint8_t* data, int len, std::string name)
