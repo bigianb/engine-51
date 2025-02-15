@@ -112,6 +112,9 @@ public:
 
     void loadStringTable(std::string tableName, std::string stringbinName);
 
+    std::wstring lookupString(std::string tablename, int id);
+    std::wstring lookupString(std::string tablename, const char* id);
+    
 private:
 
     void* getPointerSlow(const ResourceHandleBase& handle);

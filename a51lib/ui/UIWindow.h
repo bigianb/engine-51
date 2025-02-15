@@ -87,6 +87,9 @@ namespace ui
 
         void setCreatePosition(IntRect p) { createPosition = p; }
 
+
+        void setLabel(std::wstring newLabel) { label = newLabel; }
+
         std::vector<Window*> children;
 
     protected:

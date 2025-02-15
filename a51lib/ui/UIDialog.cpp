@@ -34,7 +34,7 @@ bool ui::Dialog::create(User*           user,
     }
 
     if (dialogTemplate) {
-        //setLabel(g_StringTableMgr( "ui", dialogTemplate->stringID ));
+        setLabel(manager->lookupString( "ui", dialogTemplate->stringID ));
     }
 
     this->dialogTemplate = dialogTemplate;
@@ -57,13 +57,13 @@ bool ui::Dialog::create(User*           user,
             pControl->setControlId(pControlTem->controlID);
 
             // Configure the control
-            //pControl->setLabel( g_StringTableMgr( "ui", pControlTem->stringID ) );
+            pControl->setLabel( manager->lookupString( "ui", pControlTem->stringID ) );
 
             /*
             if( strcmp( pControlTem->clazz, "edit" ) == 0 )
             {
                 ui_edit*    pEdit = (ui_edit*)pControl;
-                pEdit->SetVirtualKeyboardTitle( g_StringTableMgr( "ui", pControlTem->stringID ) );
+                pEdit->SetVirtualKeyboardTitle( manager->lookupString( "ui", pControlTem->stringID ) );
             }
             */
 

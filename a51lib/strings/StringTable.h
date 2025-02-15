@@ -12,6 +12,9 @@ public:
 
     void describe(std::wostringstream& ss);
 
+    std::wstring lookupStringVal(int id);
+    std::wstring lookupStringVal(const char* id);
+
     std::string tableName;
 
     struct Entry

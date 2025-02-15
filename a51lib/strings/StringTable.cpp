@@ -37,3 +37,19 @@ void StringTable::describe(std::wostringstream& ss)
            << std::endl;
     }
 }
+
+std::wstring StringTable::lookupStringVal(int id)
+{
+    return entries[id].val;
+}
+
+std::wstring StringTable::lookupStringVal(const char* id)
+{
+    std::wstring sid(id, id + strlen(id));
+    for (const auto& entry : entries){
+        if (entry.id == sid){
+            return entry.val;
+        }
+    }
+    return L"unknown";
+}

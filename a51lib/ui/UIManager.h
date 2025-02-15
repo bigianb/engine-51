@@ -203,6 +203,7 @@ namespace ui
         User* getUserId() const { return userId; }
 
         std::wstring lookupString(std::string tablename, int id);
+        std::wstring lookupString(std::string tablename, const char* id);
 
     private:
         // Window pixel size, set in init.
@@ -211,6 +212,8 @@ namespace ui
 
         float scaleX;
         float scaleY;
+
+        ResourceManager* resourceManager;
 
         std::vector<User*> users;
 

@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "../io/FileSystem.h"
+#include "../strings/StringTable.h"
 
 void ResourceHandleBase::setName(std::string resourceName)
 {
@@ -144,6 +145,7 @@ void ResourceManager::load(std::string resourceName)
             void* resolved = loader->resolve(fileData, len, resourceName);
             if (resolved != nullptr) {
                 std::cout << "Successfully loaded " << resourceName << std::endl;
+                res.data = resolved;
                 res.state = State::LOADED;
             }
         } else {
@@ -171,4 +173,32 @@ void ResourceManager::loadStringTable(std::string tableName, std::string stringb
         StringTable* st = (StringTable*)res.data;
         stringTables[tableName] = st;
     }
+}
+
+std::wstring ResourceManager::lookupString(std::string tablename, int id)
+{
+    if (!stringTables.contains(tablename)){
+        return L"unknown";
+    }
+
+    StringTable* st = stringTables[tablename];
+    if (!st){
+        std::cerr << "Unknown string table: " << tablename << std::endl;
+        return L"unknown";
+    }
+    return st->lookupStringVal(id);
+}
+
+std::wstring ResourceManager::lookupString(std::string tablename, const char* id)
+{
+    if (!stringTables.contains(tablename)){
+        return L"unknown";
+    }
+    
+    StringTable* st = stringTables[tablename];
+    if (!st){
+        std::cerr << "Unknown string table: " << tablename << std::endl;
+        return L"unknown";
+    }
+    return st->lookupStringVal(id);
 }

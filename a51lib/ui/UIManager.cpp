@@ -26,6 +26,12 @@ void ui::Manager::init(Renderer& renderer, ResourceManager* rm)
     loadElement(rm, "frame", "UI_frame1.xbmp", 2, 3, 3);
     loadElement(rm, "frame2", "UI_frame2.xbmp", 1, 3, 3);
     loadElement(rm, "glow", "UI_barglow.xbmp", 1, 1, 1);
+
+    rm->loadStringTable( "ui", "ENG_ui_strings.stringbin" );
+    rm->loadStringTable( "scan", "ENG_character_scan_strings.stringbin" );
+    rm->loadStringTable( "lore_ingame", "ENG_ingame_lore_strings.stringbin" );
+
+    resourceManager = rm;
 }
 
 int ui::Manager::loadElement(ResourceManager* rm, const char* name, const char* pathName, int nStates, int cx, int cy)
@@ -267,4 +273,14 @@ void ui::Manager::render(Renderer& renderer)
             }
         }
     }
+}
+
+std::wstring ui::Manager::lookupString(std::string tablename, int id)
+{
+    return resourceManager->lookupString(tablename, id);
+}
+
+std::wstring ui::Manager::lookupString(std::string tablename, const char* id)
+{
+    return resourceManager->lookupString(tablename, id);
 }
