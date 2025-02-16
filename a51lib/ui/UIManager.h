@@ -20,7 +20,7 @@ namespace ui
     class Window;
     class Dialog;
     class Font;
-    
+
     class ButtonInputData
     {
     public:
@@ -207,6 +207,7 @@ namespace ui
         std::wstring lookupString(std::string tablename, const char* id);
 
         void loadFont(std::string name, std::string filename);
+        void renderText(Renderer& renderer, std::string fontName, const IntRect& pos, int flags, Colour textColor, std::wstring text, bool ignoreEmbeddedColor = true, bool useGradient = true, float flareAmount = 0.0) const;
 
     private:
         // Window pixel size, set in init.
@@ -223,7 +224,7 @@ namespace ui
         std::map<std::string, DialogClass*> dialogClasses;
         std::map<std::string, WindowClass*> windowClasses;
 
-        std::vector<Element*> elements;
+        std::vector<Element*>        elements;
         std::map<std::string, Font*> fontMap;
 
         User* userId;

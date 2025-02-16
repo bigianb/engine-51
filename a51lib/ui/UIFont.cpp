@@ -26,3 +26,8 @@ bool ui::Font::readFile(uint8_t* fileData, int len)
     }
     return true;
 }
+
+void ui::Font::renderText(Renderer& renderer, const IntRect& pos, int flags, Colour textColor, std::wstring text, bool ignoreEmbeddedColor, bool useGradient, float flareAmount) const
+{
+
+}

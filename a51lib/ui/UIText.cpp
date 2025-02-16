@@ -11,10 +11,8 @@ void ui::Text::render(Renderer& renderer, int ox, int oy)
         return;
     }
 
-    std::cerr << "render text control" << std::endl;
-
     IntRect     pos(position.left + ox, position.top + oy, position.right + ox, position.bottom + oy);
     Colour      textColor1 = COLOR_WHITE;
     const char* fontName = useSmallText ? "small" : "large";
-    renderer.renderText(fontName, pos, labelFlags, textColor1, label);
+    getUIManger()->renderText(renderer, fontName, pos, labelFlags, textColor1, label);
 }

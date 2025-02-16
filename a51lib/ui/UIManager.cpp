@@ -37,12 +37,12 @@ void ui::Manager::init(Renderer& renderer, ResourceManager* rm)
     loadFont("large", "UI_A51FontLarge");
     loadFont("small", "UI_A51FontLegal");
     loadFont("hudnum", "UI_A51FontHUD");
-    loadFont("loadscr", "UI_A51FontLoadscr");    
+    loadFont("loadscr", "UI_A51FontLoadscr");
 }
 
 void ui::Manager::loadFont(std::string name, std::string filename)
 {
-    if (fontMap.contains(name)){
+    if (fontMap.contains(name)) {
         return;
     }
 
@@ -308,4 +308,13 @@ std::wstring ui::Manager::lookupString(std::string tablename, int id)
 std::wstring ui::Manager::lookupString(std::string tablename, const char* id)
 {
     return resourceManager->lookupString(tablename, id);
+}
+
+void ui::Manager::renderText(Renderer& renderer, std::string fontName, const IntRect& pos, int flags, Colour textColor, std::wstring text, bool ignoreEmbeddedColor, bool useGradient, float flareAmount) const
+{
+    if (!fontMap.contains(fontName)) {
+        return;
+    }
+    const Font* font = fontMap.at(fontName);
+    font->renderText(renderer, pos, flags, textColor, text, ignoreEmbeddedColor, useGradient, flareAmount);
 }

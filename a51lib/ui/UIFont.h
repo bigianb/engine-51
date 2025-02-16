@@ -2,7 +2,12 @@
 
 #include <cstdint>
 #include <vector>
+#include <string>
 #include "../Bitmap.h"
+#include "../Colour.h"
+#include "../VectorMath.h"
+
+class Renderer;
 
 namespace ui
 {
@@ -12,6 +17,8 @@ namespace ui
         Font() : bitmap(nullptr) {};
 
         bool readFile(uint8_t* fileData, int len);
+
+        void renderText(Renderer& renderer, const IntRect& pos, int flags, Colour textColor, std::wstring text, bool ignoreEmbeddedColor = true, bool useGradient = true, float flareAmount = 0.0) const;
 
         struct Glyph
         {
