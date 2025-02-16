@@ -6,6 +6,7 @@
 #include "../VectorMath.h"
 #include "dialogs/esrbDialog.h"
 #include "UIText.h"
+#include "UIFont.h"
 
 ui::Manager::~Manager()
 {
@@ -14,6 +15,8 @@ ui::Manager::~Manager()
 
 void ui::Manager::init(Renderer& renderer, ResourceManager* rm)
 {
+    resourceManager = rm;
+
     renderer.getRes(width, height);
     IntRect r(0, 0, width, height);
     userId = createUser(-1, r);
@@ -27,11 +30,33 @@ void ui::Manager::init(Renderer& renderer, ResourceManager* rm)
     loadElement(rm, "frame2", "UI_frame2.xbmp", 1, 3, 3);
     loadElement(rm, "glow", "UI_barglow.xbmp", 1, 1, 1);
 
-    rm->loadStringTable( "ui", "ENG_ui_strings.stringbin" );
-    rm->loadStringTable( "scan", "ENG_character_scan_strings.stringbin" );
-    rm->loadStringTable( "lore_ingame", "ENG_ingame_lore_strings.stringbin" );
+    rm->loadStringTable("ui", "ENG_ui_strings.stringbin");
+    rm->loadStringTable("scan", "ENG_character_scan_strings.stringbin");
+    rm->loadStringTable("lore_ingame", "ENG_ingame_lore_strings.stringbin");
 
-    resourceManager = rm;
+    loadFont("large", "UI_A51FontLarge");
+    loadFont("small", "UI_A51FontLegal");
+    loadFont("hudnum", "UI_A51FontHUD");
+    loadFont("loadscr", "UI_A51FontLoadscr");    
+}
+
+void ui::Manager::loadFont(std::string name, std::string filename)
+{
+    if (fontMap.contains(name)){
+        return;
+    }
+
+    ResourceHandle<Font> fontResource(resourceManager);
+    fontResource.setName(filename + ".FONT");
+    Font* font = fontResource.getPointer();
+
+    ResourceHandle<Bitmap> fontBitmapResource(resourceManager);
+    fontBitmapResource.setName(filename + ".XBMP");
+    Bitmap* fontBitmap = fontBitmapResource.getPointer();
+
+    font->bitmap = fontBitmap;
+
+    fontMap[name] = font;
 }
 
 int ui::Manager::loadElement(ResourceManager* rm, const char* name, const char* pathName, int nStates, int cx, int cy)
@@ -262,13 +287,13 @@ void ui::Manager::render(Renderer& renderer)
             //RenderBackground( user->background );
             int dlgNo = user->dialogStack.size() - 1;
             // Find top modal dialog
-            while (dlgNo > 0 && !user->dialogStack[dlgNo]->isRenderModel()){
+            while (dlgNo > 0 && !user->dialogStack[dlgNo]->isRenderModel()) {
                 --dlgNo;
             }
-            if (dlgNo < 0){
+            if (dlgNo < 0) {
                 dlgNo = 0;
             }
-            while (dlgNo < user->dialogStack.size()){
+            while (dlgNo < user->dialogStack.size()) {
                 user->dialogStack[dlgNo++]->render(renderer, user->bounds.left, user->bounds.top);
             }
         }

@@ -1,4 +1,5 @@
 #include "ResourceLoaders.h"
+#include "../ui/UIFont.h"
 #include "../Bitmap.h"
 #include "../RigidGeom.h"
 #include "../strings/StringTable.h"
@@ -22,6 +23,28 @@ public:
     {
         Bitmap* bitmap = (Bitmap*)data;
         delete bitmap;
+    }
+};
+
+class FontResourceLoader : public ResourceLoader
+{
+public:
+    FontResourceLoader()
+        : ResourceLoader("FONT", ".FONT")
+    {
+    }
+
+    void* resolve(uint8_t* data, int len, std::string name) const
+    {
+        ui::Font* font = new ui::Font();
+        font->readFile(data, len);
+        return font;
+    }
+
+    void unload(void* data) const
+    {
+        ui::Font* obj = (ui::Font*)data;
+        delete obj;
     }
 };
 
@@ -87,6 +110,7 @@ void ResourceLoaders::registerLoaders(ResourceManager* rm)
     loaders.push_back(new XBMPResourceLoader());
     loaders.push_back(new RGEOMResourceLoader());
     loaders.push_back(new StringResourceLoader());
+    loaders.push_back(new FontResourceLoader());
 
     for (ResourceLoader* loader : loaders) {
         rm->registerLoader(loader);

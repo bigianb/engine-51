@@ -2,12 +2,15 @@
 
 #include <cstdint>
 #include <vector>
+#include "../Bitmap.h"
 
 namespace ui
 {
     class Font
     {
     public:
+        Font() : bitmap(nullptr) {};
+
         bool readFile(uint8_t* fileData, int len);
 
         struct Glyph
@@ -27,5 +30,7 @@ namespace ui
 
         std::vector<Glyph>   glyphs;
         std::vector<Charmap> charmaps;
+
+        Bitmap* bitmap;
     };
 }
