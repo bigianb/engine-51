@@ -316,5 +316,5 @@ void ui::Manager::renderText(Renderer& renderer, std::string fontName, const Int
         return;
     }
     const Font* font = fontMap.at(fontName);
-    font->renderText(renderer, pos, flags, textColor, text, ignoreEmbeddedColor, useGradient, flareAmount);
+    font->renderText(renderer, pos, flags, textColor, text.c_str(), ignoreEmbeddedColor, useGradient, flareAmount);
 }

@@ -18,8 +18,10 @@ public:
         height = 480;
     }
 
-    void renderText(const char* fontName, IntRect& r, unsigned int flags, Colour colour, std::wstring text) override
-    {
-
-    }
+    void drawBegin(Primitive, int drawFlags) override {}
+    void drawEnd() override {}
+    void setTexture(Bitmap* tex) override {}
+    void drawUV(float u, float v) override {}
+    void drawColour(const Colour& colour) override {}
+    void drawVertex(float x, float y, float z) override {}
 };
