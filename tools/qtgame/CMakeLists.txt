@@ -16,6 +16,8 @@ set(GAME_SOURCES
         gameWindow.cpp
         gameWindow.h
         main.cpp
+        system/QtRenderer.cpp
+        system/QtRenderer.h
 )
 
 qt_add_executable(QtGame MANUAL_FINALIZATION ${GAME_SOURCES})

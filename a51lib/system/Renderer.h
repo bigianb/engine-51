@@ -1,5 +1,8 @@
 #pragma once
 
+#include "../Colour.h"
+#include "../VectorMath.h"
+
 #define DRAW_2D (1 << 0)             // Default: 3D
 #define DRAW_TEXTURED (1 << 1)       // Default: Not textured
 #define DRAW_USE_ALPHA (1 << 2)      // Default: Alpha disabled
