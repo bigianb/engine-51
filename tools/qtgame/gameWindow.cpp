@@ -6,6 +6,7 @@
 #include <rhi/qshader.h>
 
 #include "gameObject.h"
+#include "system/QtRenderer.h"
 #include "../../a51lib/state/StateMachine.h"
 #include "../../a51lib/ui/UIManager.h"
 
@@ -396,6 +397,13 @@ void GameWindow::customRender()
     }
 //! [render-1]
 
+    auto renderBatch = gameObject.renderer->endFrame();
+    if (renderBatch != nullptr){
+        resourceUpdates->merge(renderBatch);
+        renderBatch->release();
+    }
+
+
 //! [render-rotation]
     m_rotation += 1.0f;
     QMatrix4x4 modelViewProjection = m_viewProjection;
@@ -445,6 +453,8 @@ void GameWindow::postFrameEnd()
     float deltaTime = 1.0/30.0;
     gameObject.stateMachine->update(deltaTime);
     if (gameObject.stateMachine->getState() != StateMachine::State::playing_game){
+        auto batch = m_rhi->nextResourceUpdateBatch();
+        gameObject.renderer->startFrame(batch, m_rhi.get());
         gameObject.uiManager->render(*gameObject.renderer);
     }
 }

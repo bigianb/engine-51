@@ -2,18 +2,13 @@
 
 #include "../../../a51lib/system/Renderer.h"
 
-class QRhiResourceUpdateBatch;
-class QRhi;
 
-class QtRenderer : public Renderer
+class SDLRenderer : public Renderer
 {
 public:
-    QtRenderer();
+SDLRenderer();
     void begin() override {};
     void end() override {};
-
-    void startFrame(QRhiResourceUpdateBatch *batch, QRhi* rhi);
-    QRhiResourceUpdateBatch * endFrame();
 
     void renderRect(const IntRect& rect, const Colour& colour, bool doWire) override
     {
@@ -32,7 +27,4 @@ public:
     void drawColour(const Colour& colour) override;
     void drawVertex(float x, float y, float z) override;
 
-    private:
-        QRhiResourceUpdateBatch *batch;
-        QRhi* rhi;
 };

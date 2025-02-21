@@ -10,7 +10,7 @@ namespace ui {
 }
 class Engine;
 class StateMachine;
-class QtRenderer;
+class SDLRenderer;
 
 /*
  * Used to hold game global objects.
@@ -29,5 +29,5 @@ class GameObject
     ui::Manager* uiManager;
     Engine* engine;
     StateMachine* stateMachine;
-    QtRenderer* renderer;
+    SDLRenderer* renderer;
 };
