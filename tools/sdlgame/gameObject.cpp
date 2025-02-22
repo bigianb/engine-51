@@ -32,9 +32,13 @@ GameObject::~GameObject()
     delete renderer;
 }
 
-void GameObject::init()
+bool GameObject::init()
 {
     renderer = new SDLRenderer();
+    if (!renderer->init()){
+        return false;
+    }
+
     levelLoader = new LevelLoader();
     fs = new FileSystem();
     resourceManager = new ResourceManager();
@@ -102,4 +106,12 @@ void GameObject::init()
 
     //g_CheckPointMgr.Init(0);
     //g_DebugMenu.Init();
+    return true;
+}
+
+void GameObject::quit()
+{
+    if (renderer){
+        renderer->quit();
+    }
 }

@@ -19,3 +19,7 @@ target_link_libraries(SDL_game
     SDL3::SDL3
     a51lib
 )
+
+add_custom_command(TARGET SDL_game POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/tools/sdlgame/Content $<TARGET_FILE_DIR:SDL_game>/Content
+)

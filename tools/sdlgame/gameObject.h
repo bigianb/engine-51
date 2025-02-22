@@ -20,7 +20,8 @@ class GameObject
     public:
         GameObject();
         ~GameObject();
-        void init();
+        bool init();
+        void quit();
 
     LevelLoader* levelLoader;
     FileSystem* fs;

@@ -2,14 +2,19 @@
 
 #include "../../../a51lib/system/Renderer.h"
 
+class SDL_Window;
+class SDL_GPUDevice;
 
 class SDLRenderer : public Renderer
 {
 public:
-SDLRenderer();
+    SDLRenderer();
     void begin() override {};
     void end() override {};
 
+    bool init();
+    void quit();
+    
     void renderRect(const IntRect& rect, const Colour& colour, bool doWire) override
     {
     }
@@ -27,4 +32,7 @@ SDLRenderer();
     void drawColour(const Colour& colour) override;
     void drawVertex(float x, float y, float z) override;
 
+private:
+    SDL_Window*    window;
+    SDL_GPUDevice* device;
 };
