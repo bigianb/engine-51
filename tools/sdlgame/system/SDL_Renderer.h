@@ -1,6 +1,10 @@
 #pragma once
 
+#include <SDL3/SDL.h>
+#include <map>
+
 #include "../../../a51lib/system/Renderer.h"
+
 
 class SDL_Window;
 class SDL_GPUDevice;
@@ -14,7 +18,8 @@ public:
 
     bool init();
     void quit();
-    
+    void draw();
+
     void renderRect(const IntRect& rect, const Colour& colour, bool doWire) override
     {
     }
@@ -28,11 +33,33 @@ public:
     void drawBegin(Primitive, int drawFlags) override;
     void drawEnd() override;
     void setTexture(Bitmap* tex) override;
-    void drawUV(float u, float v) override;
     void drawColour(const Colour& colour) override;
-    void drawVertex(float x, float y, float z) override;
+    void drawVertex(float x, float y, float z, float u, float v) override;
 
 private:
-    SDL_Window*    window;
-    SDL_GPUDevice* device;
+    struct PositionTextureVertex
+    {
+        float x, y, z;
+        float u, v;
+    };
+
+    struct Batch
+    {
+        SDL_GPUTexture* texture;
+        SDL_GPUBuffer *vertexBuffer;
+        SDL_GPUBuffer *indexBuffer;
+        int numIndices;
+    };
+
+    std::vector<Batch> batches;
+
+    std::vector<PositionTextureVertex> accumulatedVertices;
+
+    SDL_Window*              window;
+    SDL_GPUDevice*           device;
+    SDL_GPUGraphicsPipeline* pipeline;
+    SDL_GPUSampler*          pointSampler;
+
+    std::map<Bitmap*, SDL_GPUTexture*> gpuTextures;
+    Bitmap* currentTex;
 };

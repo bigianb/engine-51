@@ -28,9 +28,8 @@ public:
     void drawBegin(Primitive, int drawFlags) override;
     void drawEnd() override;
     void setTexture(Bitmap* tex) override;
-    void drawUV(float u, float v) override;
     void drawColour(const Colour& colour) override;
-    void drawVertex(float x, float y, float z) override;
+    void drawVertex(float x, float y, float z, float u, float v) override;
 
     private:
         QRhiResourceUpdateBatch *batch;

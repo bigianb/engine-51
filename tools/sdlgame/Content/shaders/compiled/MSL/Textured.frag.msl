@@ -17,6 +17,9 @@ fragment main0_out main0(main0_in in [[stage_in]], texture2d<float> Texture [[te
 {
     main0_out out = {};
     out.out_var_SV_Target0 = Texture.sample(Sampler, in.in_var_TEXCOORD0);
+    if (out.out_var_SV_Target0.a <= 0){
+        discard_fragment();
+    }
     return out;
 }
 

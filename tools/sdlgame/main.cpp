@@ -61,6 +61,7 @@ int main(int argc, char** argv)
         if (gameObject.stateMachine->getState() != StateMachine::State::playing_game) {
 
             gameObject.uiManager->render(*gameObject.renderer);
+            gameObject.renderer->draw();
         }
     }
 

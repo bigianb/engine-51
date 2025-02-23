@@ -443,26 +443,22 @@ void ui::Font::renderText(Renderer& renderer, const IntRect& pos, int flags, Col
             int          ci = lookUpCharacter(c);
             const Glyph& g = glyphs[ci];
 
-            float u0 = (g.x + 0.5f) / bitmap->width;
-            float u1 = (g.x + g.w + 0.5f) / bitmap->width;
-            float v0 = (g.y + 0.5f) / bitmap->height;
-            float v1 = (g.y + lineHeight + 0.5f) / bitmap->height;
+            float u0 = g.x / (float)bitmap->width;
+            float u1 = (g.x + g.w) / (float)bitmap->width;
+            float v0 = (g.y) / (float)bitmap->height;
+            float v1 = (g.y + lineHeight) / (float)bitmap->height;
 
             renderer.drawColour(colour2);
-            renderer.drawUV(u0, v0);
-            renderer.drawVertex(tx, ty, 0.0f);
-            renderer.drawUV(u1, v0);
-            renderer.drawVertex(tx + g.w, ty, 0.0f);
+
+            renderer.drawVertex(tx, ty, 0.0f, u0, v0);
+            renderer.drawVertex(tx + g.w, ty, 0.0f, u1, v0);
             renderer.drawColour(colour1);
-            renderer.drawUV(u0, v1);
-            renderer.drawVertex(tx, ty + lineHeight, 0.0f);
+            renderer.drawVertex(tx, ty + lineHeight, 0.0f, u0, v1);
 
-            renderer.drawVertex(tx, ty + lineHeight, 0.0f);
-            renderer.drawUV(u1, v1);
-            renderer.drawVertex(tx + g.w, ty + lineHeight, 0.0f);
+            renderer.drawVertex(tx, ty + lineHeight, 0.0f, u0, v1);
+            renderer.drawVertex(tx + g.w, ty + lineHeight, 0.0f, u1, v1);
             renderer.drawColour(colour2);
-            renderer.drawUV(u1, v0);
-            renderer.drawVertex(tx + g.w, ty, 0.0f);
+            renderer.drawVertex(tx + g.w, ty, 0.0f, u1, v0);
 
             tx += g.w + 1;
         }

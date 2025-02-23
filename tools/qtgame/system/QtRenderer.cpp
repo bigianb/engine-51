@@ -42,14 +42,10 @@ void QtRenderer::setTexture(Bitmap* tex)
     batch->uploadTexture(texture, image);
 }
 
-void QtRenderer::drawUV(float u, float v)
-{
-}
-
 void QtRenderer::drawColour(const Colour& colour)
 {
 }
 
-void QtRenderer::drawVertex(float x, float y, float z)
+void QtRenderer::drawVertex(float x, float y, float z, float u, float v)
 {
 }

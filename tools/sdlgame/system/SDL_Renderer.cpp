@@ -2,89 +2,80 @@
 
 #include <SDL3/SDL.h>
 
-#include"../../../a51lib/Bitmap.h"
+#include "../../../a51lib/Bitmap.h"
 
 SDLRenderer::SDLRenderer()
 {
-
 }
 
 SDL_GPUShader* LoadShader(
-	SDL_GPUDevice* device,
-    const char* basePath,
-	const char* shaderFilename,
-	Uint32 samplerCount,
-	Uint32 uniformBufferCount,
-	Uint32 storageBufferCount,
-	Uint32 storageTextureCount
-) {
-	// Auto-detect the shader stage from the file name for convenience
-	SDL_GPUShaderStage stage;
-	if (SDL_strstr(shaderFilename, ".vert"))
-	{
-		stage = SDL_GPU_SHADERSTAGE_VERTEX;
-	}
-	else if (SDL_strstr(shaderFilename, ".frag"))
-	{
-		stage = SDL_GPU_SHADERSTAGE_FRAGMENT;
-	}
-	else
-	{
-		SDL_Log("Invalid shader stage!");
-		return nullptr;
-	}
+    SDL_GPUDevice* device,
+    const char*    basePath,
+    const char*    shaderFilename,
+    Uint32         samplerCount,
+    Uint32         uniformBufferCount,
+    Uint32         storageBufferCount,
+    Uint32         storageTextureCount)
+{
+    // Auto-detect the shader stage from the file name for convenience
+    SDL_GPUShaderStage stage;
+    if (SDL_strstr(shaderFilename, ".vert")) {
+        stage = SDL_GPU_SHADERSTAGE_VERTEX;
+    } else if (SDL_strstr(shaderFilename, ".frag")) {
+        stage = SDL_GPU_SHADERSTAGE_FRAGMENT;
+    } else {
+        SDL_Log("Invalid shader stage!");
+        return nullptr;
+    }
 
-	char fullPath[256];
-	SDL_GPUShaderFormat backendFormats = SDL_GetGPUShaderFormats(device);
-	SDL_GPUShaderFormat format = SDL_GPU_SHADERFORMAT_INVALID;
-	const char *entrypoint;
+    char                fullPath[256];
+    SDL_GPUShaderFormat backendFormats = SDL_GetGPUShaderFormats(device);
+    SDL_GPUShaderFormat format = SDL_GPU_SHADERFORMAT_INVALID;
+    const char*         entrypoint;
 
-	if (backendFormats & SDL_GPU_SHADERFORMAT_SPIRV) {
-		SDL_snprintf(fullPath, sizeof(fullPath), "%sContent/Shaders/compiled/SPIRV/%s.spv", basePath, shaderFilename);
-		format = SDL_GPU_SHADERFORMAT_SPIRV;
-		entrypoint = "main";
-	} else if (backendFormats & SDL_GPU_SHADERFORMAT_MSL) {
-		SDL_snprintf(fullPath, sizeof(fullPath), "%sContent/Shaders/compiled/MSL/%s.msl", basePath, shaderFilename);
-		format = SDL_GPU_SHADERFORMAT_MSL;
-		entrypoint = "main0";
-	} else if (backendFormats & SDL_GPU_SHADERFORMAT_DXIL) {
-		SDL_snprintf(fullPath, sizeof(fullPath), "%sContent/Shaders/compiled/DXIL/%s.dxil", basePath, shaderFilename);
-		format = SDL_GPU_SHADERFORMAT_DXIL;
-		entrypoint = "main";
-	} else {
-		SDL_Log("%s", "Unrecognized backend shader format!");
-		return nullptr;
-	}
+    if (backendFormats & SDL_GPU_SHADERFORMAT_SPIRV) {
+        SDL_snprintf(fullPath, sizeof(fullPath), "%sContent/Shaders/compiled/SPIRV/%s.spv", basePath, shaderFilename);
+        format = SDL_GPU_SHADERFORMAT_SPIRV;
+        entrypoint = "main";
+    } else if (backendFormats & SDL_GPU_SHADERFORMAT_MSL) {
+        SDL_snprintf(fullPath, sizeof(fullPath), "%sContent/Shaders/compiled/MSL/%s.msl", basePath, shaderFilename);
+        format = SDL_GPU_SHADERFORMAT_MSL;
+        entrypoint = "main0";
+    } else if (backendFormats & SDL_GPU_SHADERFORMAT_DXIL) {
+        SDL_snprintf(fullPath, sizeof(fullPath), "%sContent/Shaders/compiled/DXIL/%s.dxil", basePath, shaderFilename);
+        format = SDL_GPU_SHADERFORMAT_DXIL;
+        entrypoint = "main";
+    } else {
+        SDL_Log("%s", "Unrecognized backend shader format!");
+        return nullptr;
+    }
 
-	size_t codeSize;
-	void* code = SDL_LoadFile(fullPath, &codeSize);
-	if (code == nullptr)
-	{
-		SDL_Log("Failed to load shader from disk! %s", fullPath);
-		return nullptr;
-	}
+    size_t codeSize;
+    void*  code = SDL_LoadFile(fullPath, &codeSize);
+    if (code == nullptr) {
+        SDL_Log("Failed to load shader from disk! %s", fullPath);
+        return nullptr;
+    }
 
-	SDL_GPUShaderCreateInfo shaderInfo = {
+    SDL_GPUShaderCreateInfo shaderInfo = {
         .code_size = codeSize,
-		.code = (const Uint8 *)code,
-		.entrypoint = entrypoint,
-		.format = format,
-		.stage = stage,
-		.num_samplers = samplerCount,
+        .code = (const Uint8*)code,
+        .entrypoint = entrypoint,
+        .format = format,
+        .stage = stage,
+        .num_samplers = samplerCount,
         .num_storage_textures = storageTextureCount,
-		.num_storage_buffers = storageBufferCount,
-        .num_uniform_buffers = uniformBufferCount
-	};
-	SDL_GPUShader* shader = SDL_CreateGPUShader(device, &shaderInfo);
-	if (shader == nullptr)
-	{
-		SDL_Log("Failed to create shader!");
-		SDL_free(code);
-		return nullptr;
-	}
+        .num_storage_buffers = storageBufferCount,
+        .num_uniform_buffers = uniformBufferCount};
+    SDL_GPUShader* shader = SDL_CreateGPUShader(device, &shaderInfo);
+    if (shader == nullptr) {
+        SDL_Log("Failed to create shader!");
+        SDL_free(code);
+        return nullptr;
+    }
 
-	SDL_free(code);
-	return shader;
+    SDL_free(code);
+    return shader;
 }
 
 bool SDLRenderer::init()
@@ -113,50 +104,321 @@ bool SDLRenderer::init()
     const char* basePath = SDL_GetBasePath();
 
     SDL_GPUShader* vertexShader = LoadShader(device, basePath, "Textured.vert", 0, 0, 0, 0);
-	if (vertexShader == nullptr)
-	{
-		SDL_Log("Failed to create vertex shader!");
-		return false;
-	}
+    if (vertexShader == nullptr) {
+        SDL_Log("Failed to create vertex shader!");
+        return false;
+    }
 
-	SDL_GPUShader* fragmentShader = LoadShader(device, basePath, "Textured.frag", 1, 0, 0, 0);
-	if (fragmentShader == nullptr)
-	{
-		SDL_Log("Failed to create fragment shader!");
-		return false;
-	}
+    SDL_GPUShader* fragmentShader = LoadShader(device, basePath, "Textured.frag", 1, 0, 0, 0);
+    if (fragmentShader == nullptr) {
+        SDL_Log("Failed to create fragment shader!");
+        return false;
+    }
+
+    SDL_GPUColorTargetDescription ctd[]
+    {
+        {.format = SDL_GetGPUSwapchainTextureFormat(device, window)}
+    };
+
+    SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
+        .target_info = {
+            .num_color_targets = 1,
+            .color_target_descriptions = ctd,
+        },
+        .vertex_input_state = (SDL_GPUVertexInputState){
+            .num_vertex_buffers = 1, 
+            .vertex_buffer_descriptions = (SDL_GPUVertexBufferDescription[]){{
+                .slot = 0,
+                .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+                .instance_step_rate = 0,
+                .pitch = sizeof(PositionTextureVertex)}},
+                .num_vertex_attributes = 2,
+                .vertex_attributes = (SDL_GPUVertexAttribute[]){{
+                    .buffer_slot = 0,
+                    .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+                    .location = 0,
+                    .offset = 0
+                }, {
+                    .buffer_slot = 0,
+                    .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+                    .location = 1,
+                    .offset = sizeof(float) * 3
+                }
+            }
+        },
+        .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+        .vertex_shader = vertexShader,
+        .fragment_shader = fragmentShader};
+
+    pipeline = SDL_CreateGPUGraphicsPipeline(device, &pipelineCreateInfo);
+    if (pipeline == nullptr) {
+        SDL_Log("Failed to create pipeline!");
+        return false;
+    }
+    SDL_ReleaseGPUShader(device, vertexShader);
+	SDL_ReleaseGPUShader(device, fragmentShader);
+
+    SDL_GPUSamplerCreateInfo sci
+    {
+		.min_filter = SDL_GPU_FILTER_NEAREST,
+		.mag_filter = SDL_GPU_FILTER_NEAREST,
+		.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
+		.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+		.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+		.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+	};
+	pointSampler = SDL_CreateGPUSampler(device, &sci);
 
     return true;
 }
 
 void SDLRenderer::quit()
 {
+    SDL_ReleaseGPUGraphicsPipeline(device, pipeline);
+    pipeline = nullptr;
+
+    for (const auto& [key, value] : gpuTextures) {
+        SDL_ReleaseGPUTexture(device, value);
+    }
+
+    gpuTextures.clear();
+
+	SDL_ReleaseGPUSampler(device, pointSampler);
+	
     SDL_ReleaseWindowFromGPUDevice(device, window);
     SDL_DestroyWindow(window);
     SDL_DestroyGPUDevice(device);
 }
 
-void SDLRenderer::drawBegin(Primitive, int drawFlags)
+void SDLRenderer::draw()
 {
+    if (batches.empty()){
+        return;
+    }
+    SDL_Log("Draw");
+    SDL_GPUCommandBuffer* cmdbuf = SDL_AcquireGPUCommandBuffer(device);
+    if (cmdbuf == nullptr){
+        SDL_Log("AcquireGPUCommandBuffer failed: %s", SDL_GetError());
+        return;
+    }
+
+    SDL_GPUTexture* swapchainTexture;
+    if (!SDL_WaitAndAcquireGPUSwapchainTexture(cmdbuf, window, &swapchainTexture, nullptr, nullptr)) {
+        SDL_Log("WaitAndAcquireGPUSwapchainTexture failed: %s", SDL_GetError());
+        return;
+    }
+
+    if (swapchainTexture != nullptr){
+        SDL_GPUColorTargetInfo colorTargetInfo = { 0 };
+        colorTargetInfo.texture = swapchainTexture;
+        colorTargetInfo.clear_color = (SDL_FColor){ 0.0f, 0.0f, 0.0f, 1.0f };
+        colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
+        colorTargetInfo.store_op = SDL_GPU_STOREOP_STORE;
+
+        SDL_GPURenderPass* renderPass = SDL_BeginGPURenderPass(cmdbuf, &colorTargetInfo, 1, NULL);
+
+        SDL_BindGPUGraphicsPipeline(renderPass, pipeline);
+        for (auto& batch : batches){
+            SDL_GPUBufferBinding bb{ .buffer = batch.vertexBuffer, .offset = 0 };
+            SDL_BindGPUVertexBuffers(renderPass, 0, &bb, 1);
+            SDL_GPUBufferBinding bbi{ .buffer = batch.indexBuffer, .offset = 0 };
+            SDL_BindGPUIndexBuffer(renderPass, &bbi, SDL_GPU_INDEXELEMENTSIZE_16BIT);
+            SDL_GPUTextureSamplerBinding tsb{ .texture = batch.texture, .sampler = pointSampler };
+            SDL_BindGPUFragmentSamplers(renderPass, 0, &tsb, 1);
+            SDL_DrawGPUIndexedPrimitives(renderPass, batch.numIndices, 1, 0, 0, 0);
+
+            SDL_ReleaseGPUBuffer(device, batch.vertexBuffer);
+            SDL_ReleaseGPUBuffer(device, batch.indexBuffer);
+        }
+
+        SDL_EndGPURenderPass(renderPass);
+    }
+    batches.clear();
+    SDL_SubmitGPUCommandBuffer(cmdbuf);
 }
 
-void SDLRenderer::drawEnd()
+void SDLRenderer::drawBegin(Primitive prim, int drawFlags)
 {
-}
+    if (prim == Primitive::DRAW_TRIANGLES) {
 
-void SDLRenderer::setTexture(Bitmap* tex)
-{
-
-}
-
-void SDLRenderer::drawUV(float u, float v)
-{
+    }
 }
 
 void SDLRenderer::drawColour(const Colour& colour)
 {
 }
 
-void SDLRenderer::drawVertex(float x, float y, float z)
+void SDLRenderer::drawVertex(float x, float y, float z, float u, float v)
 {
+    float wx = (x - 320.0f) / 320.0f;
+    float wy = (240.0f - y) / 240.0f;
+    accumulatedVertices.push_back({wx, wy, z, u, v});
 }
+
+void SDLRenderer::drawEnd()
+{
+    if (accumulatedVertices.empty()){
+        return;
+    }
+
+    SDL_GPUBufferCreateInfo vbci
+    {
+        .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
+		.size = (Uint32)(sizeof(PositionTextureVertex) * accumulatedVertices.size())
+    };
+    SDL_GPUBuffer *vertexBuffer = SDL_CreateGPUBuffer(
+		device,
+		&vbci
+	);
+
+    SDL_GPUBufferCreateInfo ibci
+    {
+        .usage = SDL_GPU_BUFFERUSAGE_INDEX,
+        .size = (Uint32)(sizeof(Uint16) * accumulatedVertices.size())
+    };
+	SDL_GPUBuffer *indexBuffer = SDL_CreateGPUBuffer(
+		device,
+		&ibci
+	);
+
+	SDL_GPUTransferBufferCreateInfo tbci
+    {
+        .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+        .size = (Uint32)((sizeof(PositionTextureVertex) + sizeof(Uint16)) * accumulatedVertices.size())
+    };
+
+    SDL_GPUTransferBuffer* bufferTransferBuffer = SDL_CreateGPUTransferBuffer(
+		device,
+		&tbci
+	);
+
+	PositionTextureVertex* transferData = (PositionTextureVertex*)SDL_MapGPUTransferBuffer(
+		device,
+		bufferTransferBuffer,
+		false
+	);
+    Uint16* indexData = (Uint16*) &transferData[accumulatedVertices.size()];
+    for (int i=0; i<accumulatedVertices.size(); ++i){
+        transferData[i] = accumulatedVertices[i];
+        indexData[i] = i;
+    }
+
+	SDL_UnmapGPUTransferBuffer(device, bufferTransferBuffer);
+
+    // TODO: delay upload until render time?
+    SDL_GPUCommandBuffer* uploadCmdBuf = SDL_AcquireGPUCommandBuffer(device);
+	SDL_GPUCopyPass* copyPass = SDL_BeginGPUCopyPass(uploadCmdBuf);
+
+    SDL_GPUTransferBufferLocation tbl
+    {
+        .transfer_buffer = bufferTransferBuffer,
+        .offset = 0
+    };
+    SDL_GPUBufferRegion br
+    {
+        .buffer = vertexBuffer,
+		.offset = 0,
+		.size = (Uint32)(sizeof(PositionTextureVertex) * accumulatedVertices.size())
+    };
+	SDL_UploadToGPUBuffer(
+		copyPass,
+		&tbl,
+		&br,
+		false
+	);
+
+    SDL_GPUTransferBufferLocation ibl
+    {
+        .transfer_buffer = bufferTransferBuffer,
+        .offset = (Uint32)(sizeof(PositionTextureVertex) * accumulatedVertices.size())
+    };
+    SDL_GPUBufferRegion ibr
+    {
+        .buffer = indexBuffer,
+        .offset = 0,
+        .size = (Uint32)(sizeof(Uint16) * accumulatedVertices.size())
+    };
+	SDL_UploadToGPUBuffer(
+		copyPass,
+		&ibl,
+		&ibr,
+		false
+	);
+    SDL_EndGPUCopyPass(copyPass);
+	SDL_SubmitGPUCommandBuffer(uploadCmdBuf);
+
+    batches.push_back(Batch{gpuTextures[currentTex], vertexBuffer, indexBuffer, (int)accumulatedVertices.size()});
+
+    accumulatedVertices.clear();
+}
+
+void SDLRenderer::setTexture(Bitmap* tex)
+{
+    currentTex = tex;
+    if (gpuTextures.contains(tex)){
+        return;
+    }
+    tex->convertFormat(Bitmap::FMT_32_ABGR_8888); // RGBA in memory
+    SDL_GPUTextureCreateInfo ci
+    {
+        .type = SDL_GPU_TEXTURETYPE_2D,
+		.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+		.width = (Uint32)tex->width,
+		.height = (Uint32)tex->height,
+		.layer_count_or_depth = 1,
+		.num_levels = 1,
+		.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER
+    };
+
+	SDL_GPUTexture* Texture = SDL_CreateGPUTexture(device, &ci);
+
+	// Set up texture data
+    SDL_GPUTransferBufferCreateInfo tbci
+    {
+        .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+        .size = (Uint32)(tex->width * tex->height * 4)
+    };
+	SDL_GPUTransferBuffer* textureTransferBuffer = SDL_CreateGPUTransferBuffer(
+		device,
+		&tbci
+	);
+
+	Uint8* textureTransferPtr = (Uint8*)SDL_MapGPUTransferBuffer(
+		device,
+		textureTransferBuffer,
+		false
+	);
+	SDL_memcpy(textureTransferPtr, (const uint8_t*)tex->getPixelData(0), tex->width * tex->height * 4);
+	SDL_UnmapGPUTransferBuffer(device, textureTransferBuffer);
+
+	// Upload the transfer data to the GPU resources
+	SDL_GPUCommandBuffer* uploadCmdBuf = SDL_AcquireGPUCommandBuffer(device);
+	SDL_GPUCopyPass* copyPass = SDL_BeginGPUCopyPass(uploadCmdBuf);
+
+    SDL_GPUTextureTransferInfo tti
+    {
+        .transfer_buffer = textureTransferBuffer,
+        .offset = 0, /* Zeros out the rest */
+    };
+    SDL_GPUTextureRegion tr
+    {
+        .texture = Texture,
+        .w = (Uint32)tex->width,
+        .h = (Uint32)tex->height,
+        .d = 1
+    };
+	SDL_UploadToGPUTexture(
+		copyPass,
+		&tti,
+		&tr,
+		false
+	);
+
+	SDL_EndGPUCopyPass(copyPass);
+	SDL_SubmitGPUCommandBuffer(uploadCmdBuf);
+	SDL_ReleaseGPUTransferBuffer(device, textureTransferBuffer);
+
+    gpuTextures[tex]=Texture;
+}
+
+

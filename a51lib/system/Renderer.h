@@ -55,7 +55,6 @@ public:
     virtual void drawBegin(Primitive, int drawFlags) = 0;
     virtual void drawEnd() = 0;
     virtual void setTexture(Bitmap* tex) = 0;
-    virtual void drawUV(float u, float v) = 0;
     virtual void drawColour(const Colour& colour) = 0;
-    virtual void drawVertex(float x, float y, float z) = 0;
+    virtual void drawVertex(float x, float y, float z, float u, float v) = 0;
 };
