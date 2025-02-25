@@ -35,11 +35,13 @@ private:
 class ResourceHandleBase
 {
 public:
-    ResourceHandleBase(ResourceManager* mgr)
+    ResourceHandleBase(ResourceManager* mgr = nullptr)
     {
         data = -1;
         resourceManager = mgr;
     }
+
+    ResourceHandleBase(const ResourceHandleBase& rhs) : data(rhs.data), resourceManager(rhs.resourceManager){}
 
     ~ResourceHandleBase()
     {
@@ -78,7 +80,7 @@ public:
 template <class T>
 struct ResourceHandle : public ResourceHandleBase
 {
-    ResourceHandle(ResourceManager* mgr) : ResourceHandleBase(mgr) {}
+    ResourceHandle(ResourceManager* mgr = nullptr) : ResourceHandleBase(mgr) {}
 
     T* getPointer() const
     {

@@ -16,6 +16,11 @@ std::string ResourceHandleBase::getName() const
     return resourceManager->getRHandleName(*this);
 }
 
+void ResourceHandleBase::destroy()
+{
+    // TODO
+}
+
 ResourceManager::ResourceManager()
 {
     onDemandLoading = false;

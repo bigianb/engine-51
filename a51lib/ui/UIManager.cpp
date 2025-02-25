@@ -25,6 +25,7 @@ void ui::Manager::init(Renderer& renderer, ResourceManager* rm)
     enableUser(userId, false);
 
     registerWinClass("text", &ui::Text::factory);
+    registerWinClass("bitmap", &ui::BitmapControl::factory);
 
     EsrbDialog::registerDialog(this);
     PressStartDialog::registerDialog(this);
@@ -113,6 +114,25 @@ int ui::Manager::loadElement(ResourceManager* rm, const char* name, const char* 
 
     elements.push_back(element);
     return elements.size() - 1;
+}
+
+Bitmap* ui::Manager::loadBitmap(const char* name, const char* pathName)
+{
+    if (!bitmaps.contains(name)) {
+        bitmaps[name] = ResourceHandle<Bitmap>(resourceManager);
+        ResourceHandle<Bitmap>& bitmapResource = bitmaps[name];
+        bitmapResource.setName(pathName);
+    }
+    return bitmaps[name].getPointer();
+}
+
+void ui::Manager::unloadBitmap(const char* name)
+{
+    if (bitmaps.contains(name)) {
+        ResourceHandle<Bitmap>& bitmapResource = bitmaps[name];
+        bitmapResource.destroy();
+        bitmaps.erase(name);
+    }
 }
 
 ui::User* ui::Manager::createUser(int controllerID, const IntRect& bounds)
@@ -256,7 +276,7 @@ ui::Dialog* ui::Manager::openDialog(std::string className, IntRect position, ui:
 
 void ui::Manager::endDialog(bool resetCursor)
 {
-    while (!userId->dialogStack.empty()){
+    while (!userId->dialogStack.empty()) {
         Dialog* dlg = userId->dialogStack.back();
         // TODO: deal with reseting the cursor
         delete dlg;

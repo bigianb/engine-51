@@ -3,9 +3,16 @@
 #include "../UIDialog.h"
 #include "../UIManager.h"
 #include "../UIText.h"
+#include "../UIBitmap.h"
 
 namespace ui
 {
+    /*
+        Waits for the user to press start.
+        The movie 'StartScreen' plays in the background and the logo bitmap is hidden.
+        After a given time, the movie changes to 'attract', the logo bitmap is shown and the
+        text is changed to 'demo mode'.
+    */
     class PressStartDialog : public Dialog
     {
     public:
@@ -27,6 +34,6 @@ namespace ui
 
     protected:
         Text* text;
-        bool  startLoading;
+        BitmapControl* logoBitmap;
     };
 }

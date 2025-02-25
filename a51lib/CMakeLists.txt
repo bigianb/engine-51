@@ -39,6 +39,8 @@ set(UI_SOURCES
         ui/dialogs/pressStartDialog.h
         ui/dialogs/startGameDialog.cpp
         ui/dialogs/startGameDialog.h
+        ui/UIBitmap.cpp
+        ui/UIBitmap.h
         ui/UIControl.cpp
         ui/UIControl.h
         ui/UIDialog.cpp

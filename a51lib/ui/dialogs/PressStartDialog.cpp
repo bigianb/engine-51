@@ -13,18 +13,22 @@ namespace ui
 
     enum controlIDs
     {
-        IDC_START_GAME_TEXT,
+        IDC_A51_LOGO,
+        IDC_START_BOX,
+        IDC_PRESS_START,
     };
 
     static ControlTemplate controls[] =
         {
-            {IDC_START_GAME_TEXT, "IDS_LOADING_MSG", "text", 246, 300, 120, 40, 0, 0, 0, 0, Window::WF_VISIBLE | Window::WF_SCALE_XPOS | Window::WF_SCALE_XSIZE},
+            {IDC_A51_LOGO, "IDS_NULL", "bitmap", 280, 10, 200, 50, 0, 0, 0, 0, Window::WF_SCALE_XPOS | Window::WF_SCALE_XSIZE},
+            {IDC_START_BOX, "IDS_NULL", "bitmap", 90, 312, 300, 30, 0, 0, 0, 0, Window::WF_SCALE_XPOS | Window::WF_SCALE_XSIZE},
+            {IDC_PRESS_START, "IDS_PRESS_START_TEXT", "text", 0, 307, 480, 30, 0, 0, 1, 1, Window::WF_SCALE_XPOS | Window::WF_SCALE_XSIZE},
     };
 
     static DialogTemplate thisDialogTemplate =
         {
-            "IDS_NULL",
-            1, 1,
+            "IDS_PRESS_START_SCREEN",
+            1, 9,
             sizeof(controls) / sizeof(ControlTemplate),
             &controls[0],
             0};
@@ -38,23 +42,27 @@ namespace ui
     }
 
     bool PressStartDialog::create(User*           user,
-                                 Manager*        manager,
-                                 DialogTemplate* dialogTemplate,
-                                 const IntRect&  position,
-                                 Window*         parent,
-                                 int             flags)
+                                  Manager*        manager,
+                                  DialogTemplate* dialogTemplate,
+                                  const IntRect&  position,
+                                  Window*         parent,
+                                  int             flags)
     {
         bool success = false;
-
         success = Dialog::create(user, manager, dialogTemplate, position, parent, flags);
 
-        // initialize esrb text
-        text = (ui::Text*)findChildById(IDC_START_GAME_TEXT);
-        text->clearFlag(Window::WF_VISIBLE);
-        text->setLabelColour(Colour(126, 220, 60, 255));
+        text = (ui::Text*)findChildById(IDC_PRESS_START);
+        logoBitmap = (ui::BitmapControl*)findChildById(IDC_A51_LOGO);
 
-        setFlag(Window::WF_DISABLED);
-        startLoading = false;
+        logoBitmap->clearFlag(Window::WF_VISIBLE);
+        Bitmap* bitmap = manager->loadBitmap( "logo",  "UI_A51_Logo.XBMP" );
+        logoBitmap->setBitmap( bitmap );
+        
+        text->setFlag(Window::WF_VISIBLE);
+        text->setLabelColour(Colour(230, 230, 230, 255));
+        gotoControl(text);
+
+        logoBitmap->setFlag(Window::WF_VISIBLE);
         state = DialogState::Active;
         return success;
     }
@@ -66,27 +74,11 @@ namespace ui
 
     void PressStartDialog::onUpdate(float deltaTime)
     {
-        startLoading = true;
-        text->setFlag(Window::WF_VISIBLE);
-        state = DialogState::Select;
+
     }
 
     void PressStartDialog::render(Renderer& renderer, int ox, int oy)
     {
-        // render background filter
-        if (!startLoading) {
-
-            int XRes = 640;
-            int YRes = 480;
-
-            IntRect rb(0, 0, XRes, YRes);
-            /* TODO:
-            renderer->renderGouraudRect(rb, Colour(0, 0, 0, 180),
-                                        Colour(0, 0, 0, 180),
-                                        Colour(0, 0, 0, 180),
-                                        Colour(0, 0, 0, 180), false);
-                                        */
-        }
 
         Dialog::render(renderer, ox, oy);
     }

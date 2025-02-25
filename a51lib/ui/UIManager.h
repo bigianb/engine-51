@@ -193,6 +193,9 @@ namespace ui
 
         int loadElement(ResourceManager* rm, const char* name, const char* pathName, int nStates, int cx, int cy);
 
+        Bitmap*  loadBitmap(const char* name, const char* pathName);
+        void unloadBitmap(const char* name);
+
         bool registerWinClass(const char* className, WindowFactoryFn factoryFunction);
         bool registerDialogClass(const char* className, DialogTemplate* dialogTemplate, DialogFactoryFn factoryFunction);
 
@@ -226,6 +229,8 @@ namespace ui
 
         std::vector<Element*>        elements;
         std::map<std::string, Font*> fontMap;
+
+        std::map<std::string, ResourceHandle<Bitmap>> bitmaps;
 
         User* userId;
     };
