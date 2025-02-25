@@ -34,15 +34,15 @@ SDL_GPUShader* LoadShader(
     const char*         entrypoint;
 
     if (backendFormats & SDL_GPU_SHADERFORMAT_SPIRV) {
-        SDL_snprintf(fullPath, sizeof(fullPath), "%sContent/Shaders/compiled/SPIRV/%s.spv", basePath, shaderFilename);
+        SDL_snprintf(fullPath, sizeof(fullPath), "%sContent/shaders/compiled/SPIRV/%s.spv", basePath, shaderFilename);
         format = SDL_GPU_SHADERFORMAT_SPIRV;
         entrypoint = "main";
     } else if (backendFormats & SDL_GPU_SHADERFORMAT_MSL) {
-        SDL_snprintf(fullPath, sizeof(fullPath), "%sContent/Shaders/compiled/MSL/%s.msl", basePath, shaderFilename);
+        SDL_snprintf(fullPath, sizeof(fullPath), "%sContent/shaders/compiled/MSL/%s.msl", basePath, shaderFilename);
         format = SDL_GPU_SHADERFORMAT_MSL;
         entrypoint = "main0";
     } else if (backendFormats & SDL_GPU_SHADERFORMAT_DXIL) {
-        SDL_snprintf(fullPath, sizeof(fullPath), "%sContent/Shaders/compiled/DXIL/%s.dxil", basePath, shaderFilename);
+        SDL_snprintf(fullPath, sizeof(fullPath), "%sContent/shaders/compiled/DXIL/%s.dxil", basePath, shaderFilename);
         format = SDL_GPU_SHADERFORMAT_DXIL;
         entrypoint = "main";
     } else {
@@ -109,7 +109,7 @@ bool SDLRenderer::init()
         return false;
     }
 
-    SDL_GPUShader* fragmentShader = LoadShader(device, basePath, "Textured.frag", 1, 0, 0, 0);
+    SDL_GPUShader* fragmentShader = LoadShader(device, basePath, "Textured.frag", 1, 1, 0, 0);
     if (fragmentShader == nullptr) {
         SDL_Log("Failed to create fragment shader!");
         return false;
@@ -117,7 +117,18 @@ bool SDLRenderer::init()
 
     SDL_GPUColorTargetDescription ctd[]
     {
-        {.format = SDL_GetGPUSwapchainTextureFormat(device, window)}
+        {
+        .format = SDL_GetGPUSwapchainTextureFormat(device, window),
+        .blend_state = {
+            .enable_blend = true,
+            .color_blend_op = SDL_GPU_BLENDOP_ADD,
+            .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
+            .src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+            .dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+            .src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+            .dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+            }
+        }
     };
 
     SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
@@ -131,9 +142,10 @@ bool SDLRenderer::init()
                 .slot = 0,
                 .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
                 .instance_step_rate = 0,
-                .pitch = sizeof(PositionTextureVertex)}},
-                .num_vertex_attributes = 2,
-                .vertex_attributes = (SDL_GPUVertexAttribute[]){{
+                .pitch = sizeof(PositionTextureVertex)
+            }},
+            .num_vertex_attributes = 2,
+            .vertex_attributes = (SDL_GPUVertexAttribute[]){{
                     .buffer_slot = 0,
                     .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
                     .location = 0,
@@ -190,6 +202,11 @@ void SDLRenderer::quit()
     SDL_DestroyGPUDevice(device);
 }
 
+struct FragMultiplyUniform
+{
+	float r, g, b, a;
+};
+
 void SDLRenderer::draw()
 {
     if (batches.empty()){
@@ -225,6 +242,11 @@ void SDLRenderer::draw()
             SDL_BindGPUIndexBuffer(renderPass, &bbi, SDL_GPU_INDEXELEMENTSIZE_16BIT);
             SDL_GPUTextureSamplerBinding tsb{ .texture = batch.texture, .sampler = pointSampler };
             SDL_BindGPUFragmentSamplers(renderPass, 0, &tsb, 1);
+
+            FragMultiplyUniform uni{batch.colour.r / 255.0f, batch.colour.g / 255.0f, batch.colour.b / 255.0f, batch.colour.a / 255.0f};
+
+            SDL_PushGPUFragmentUniformData(cmdbuf, 0, &uni, sizeof(FragMultiplyUniform));
+
             SDL_DrawGPUIndexedPrimitives(renderPass, batch.numIndices, 1, 0, 0, 0);
 
             SDL_ReleaseGPUBuffer(device, batch.vertexBuffer);
@@ -246,6 +268,7 @@ void SDLRenderer::drawBegin(Primitive prim, int drawFlags)
 
 void SDLRenderer::drawColour(const Colour& colour)
 {
+    currentColour = colour;
 }
 
 void SDLRenderer::drawVertex(float x, float y, float z, float u, float v)
@@ -347,7 +370,7 @@ void SDLRenderer::drawEnd()
     SDL_EndGPUCopyPass(copyPass);
 	SDL_SubmitGPUCommandBuffer(uploadCmdBuf);
 
-    batches.push_back(Batch{gpuTextures[currentTex], vertexBuffer, indexBuffer, (int)accumulatedVertices.size()});
+    batches.push_back(Batch{gpuTextures[currentTex], vertexBuffer, indexBuffer, (int)accumulatedVertices.size(), currentColour});
 
     accumulatedVertices.clear();
 }

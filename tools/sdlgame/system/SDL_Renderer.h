@@ -49,7 +49,10 @@ private:
         SDL_GPUBuffer *vertexBuffer;
         SDL_GPUBuffer *indexBuffer;
         int numIndices;
+        Colour colour;
     };
+
+    Colour currentColour;
 
     std::vector<Batch> batches;
 
