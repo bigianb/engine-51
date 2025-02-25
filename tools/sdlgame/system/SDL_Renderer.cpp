@@ -209,10 +209,6 @@ struct FragMultiplyUniform
 
 void SDLRenderer::draw()
 {
-    if (batches.empty()){
-        return;
-    }
-    SDL_Log("Draw");
     SDL_GPUCommandBuffer* cmdbuf = SDL_AcquireGPUCommandBuffer(device);
     if (cmdbuf == nullptr){
         SDL_Log("AcquireGPUCommandBuffer failed: %s", SDL_GetError());

@@ -32,6 +32,8 @@ private:
     void updateState();
     void exitState();
 
+    void enterPressStart();
+
     State state;
     State previousState;
     ui::Manager* uiManager;

@@ -59,7 +59,7 @@ int main(int argc, char** argv)
         float deltaTime = 1.0 / 30.0;
         gameObject.stateMachine->update(context.DeltaTime);
         if (gameObject.stateMachine->getState() != StateMachine::State::playing_game) {
-
+            gameObject.uiManager->update(context.DeltaTime);
             gameObject.uiManager->render(*gameObject.renderer);
             gameObject.renderer->draw();
         }

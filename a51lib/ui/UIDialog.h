@@ -19,7 +19,7 @@ namespace ui
             return nullptr;
         }
 
-        bool gotoControl( ui::Control* control );
+        bool gotoControl(ui::Control* control);
 
         bool create(User*           user,
                     Manager*        manager,
@@ -28,31 +28,36 @@ namespace ui
                     Window*         parent,
                     int             flags);
 
-        protected:
-            int frameElementIdx;
-            int navW, navH, navX, navY;
-            DialogTemplate* dialogTemplate;
-            Colour backgroundColor;
-            bool inputEnabled;
-            int currentControl;
-            int oldCursorX, oldCursorY;
-            std::vector<Control*> navgraph;
-            enum DialogState
-            {
-                Init,
-                Active,
-                Select,
-                Back,
-                Activate,
-                Delete,
-                Cancel,
-                Retry,
-                Timeout,
-                Exit,
-                Edit,
-                Create,
-                Popup
-            } state;
+        enum DialogState
+        {
+            Init,
+            Active,
+            Select,
+            Back,
+            Activate,
+            Delete,
+            Cancel,
+            Retry,
+            Timeout,
+            Exit,
+            Edit,
+            Create,
+            Popup
+        };
+
+        void        setState(DialogState s) { state = s; }
+        DialogState getState() { return state; }
+
+    protected:
+        int                   frameElementIdx;
+        int                   navW, navH, navX, navY;
+        DialogTemplate*       dialogTemplate;
+        Colour                backgroundColor;
+        bool                  inputEnabled;
+        int                   currentControl;
+        int                   oldCursorX, oldCursorY;
+        std::vector<Control*> navgraph;
+        DialogState           state;
     };
-    
+
 };

@@ -188,7 +188,7 @@ namespace ui
         User*   createUser(int controllerID, const IntRect& bounds);
         void    enableUser(User* user, bool state);
         Dialog* openDialog(std::string className, IntRect position, Window* parent, int flags);
-
+        void    endDialog(bool resetCursor = false);
         Window* createWin(User* user, const char* ClassName, const IntRect& position, Window* parent, int flags);
 
         int loadElement(ResourceManager* rm, const char* name, const char* pathName, int nStates, int cx, int cy);

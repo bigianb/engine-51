@@ -35,6 +35,10 @@ set(IO_SOURCES
 set(UI_SOURCES
         ui/dialogs/esrbDialog.cpp
         ui/dialogs/esrbDialog.h
+        ui/dialogs/pressStartDialog.cpp
+        ui/dialogs/pressStartDialog.h
+        ui/dialogs/startGameDialog.cpp
+        ui/dialogs/startGameDialog.h
         ui/UIControl.cpp
         ui/UIControl.h
         ui/UIDialog.cpp

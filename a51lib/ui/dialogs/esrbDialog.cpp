@@ -51,15 +51,11 @@ namespace ui
         // initialize esrb text
         text = (ui::Text*)findChildById(IDC_ESRB_MESSAGE);
         text->setFlag(Window::WF_VISIBLE);
-        //text->setLabelColor(Colour(230, 230, 230, 255));
+        text->setLabelColour(Colour(230, 230, 230, 255));
         gotoControl(text);
 
-        waitTime = 5.0f;
-
-        // make the dialog active
-        //m_State = DIALOG_STATE_ACTIVE;
-
-        // Return success code
+        waitTime = 2.0f;
+        state = DialogState::Active;
         return success;
     }
 
@@ -68,16 +64,16 @@ namespace ui
         manager->registerDialogClass("ESRB", &Esrb_Dialog, &dlg_esrb_factory);
     }
 
-    void EsrbDialog::onPadSelect(Window* pWin)
+    void EsrbDialog::onUpdate(float deltaTime)
     {
-    }
-
-    void EsrbDialog::onUpdate(Window* pWin, float DeltaTime)
-    {
-    }
-
-    void EsrbDialog::onPadHelp(Window* pWin)
-    {
+        if (waitTime > 0.0f) {
+            waitTime -= deltaTime;
+            if (waitTime <= 0.0f) {
+                waitTime = 0.0f;
+                state = DialogState::Select;
+                text->setLabel(getUIManger()->lookupString("ui", "IDS_NULL"));
+            }
+        }
     }
 
 }

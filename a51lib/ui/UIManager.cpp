@@ -5,6 +5,8 @@
 #include "../system/Renderer.h"
 #include "../VectorMath.h"
 #include "dialogs/esrbDialog.h"
+#include "dialogs/pressStartDialog.h"
+#include "dialogs/startGameDialog.h"
 #include "UIText.h"
 #include "UIFont.h"
 
@@ -25,6 +27,8 @@ void ui::Manager::init(Renderer& renderer, ResourceManager* rm)
     registerWinClass("text", &ui::Text::factory);
 
     EsrbDialog::registerDialog(this);
+    PressStartDialog::registerDialog(this);
+    StartGameDialog::registerDialog(this);
 
     loadElement(rm, "frame", "UI_frame1.xbmp", 2, 3, 3);
     loadElement(rm, "frame2", "UI_frame2.xbmp", 1, 3, 3);
@@ -250,6 +254,16 @@ ui::Dialog* ui::Manager::openDialog(std::string className, IntRect position, ui:
     return pDialog;
 }
 
+void ui::Manager::endDialog(bool resetCursor)
+{
+    while (!userId->dialogStack.empty()){
+        Dialog* dlg = userId->dialogStack.back();
+        // TODO: deal with reseting the cursor
+        delete dlg;
+        userId->dialogStack.pop_back();
+    }
+}
+
 ui::Window* ui::Manager::createWin(ui::User* user, const char* className, const IntRect& position, ui::Window* parent, int flags)
 {
     if (!windowClasses.contains(className)) {
@@ -278,6 +292,35 @@ void ui::Manager::setRes()
 
 void ui::Manager::update(float deltaTime)
 {
+    /*
+    if( highlightFadeUp )
+    {
+        if( ++highlightAlpha == 32)
+        {
+            highlightFadeUp = false;
+        }
+    }
+    else
+    {
+        if( --highlightAlpha == 0 )
+        {
+            highlightFadeUp = true;
+        }
+    }
+    */
+    //UpdateScreenWipe(deltaTime);
+    //UpdateRefreshBar(deltaTime);
+
+    for (User* user : users) {
+        if (user->enabled) {
+            {
+                // Update all Dialogs on Stack
+                for (Dialog* dlg : user->dialogStack) {
+                    dlg->onUpdate(deltaTime);
+                }
+            }
+        }
+    }
 }
 
 void ui::Manager::render(Renderer& renderer)

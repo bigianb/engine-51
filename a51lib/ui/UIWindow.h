@@ -92,6 +92,8 @@ namespace ui
 
         std::vector<Window*> children;
 
+        void setLabelColour(const Colour& c) { labelColor = c; }
+
     protected:
         IntRect position;
 

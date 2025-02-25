@@ -6,11 +6,11 @@
 
 namespace ui
 {
-    class EsrbDialog : public Dialog
+    class StartGameDialog : public Dialog
     {
     public:
-        EsrbDialog();
-        ~EsrbDialog();
+        StartGameDialog();
+        ~StartGameDialog();
 
         static void registerDialog(Manager*);
 
@@ -21,10 +21,12 @@ namespace ui
                     Window*         parent,
                     int             flags);
 
+        void render(Renderer& renderer, int ox = 0, int oy = 0) override;
+
         void onUpdate(float deltaTime) override;
 
     protected:
         Text* text;
-        float waitTime;
+        bool  startLoading;
     };
 }
