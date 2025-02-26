@@ -115,51 +115,47 @@ bool SDLRenderer::init()
         return false;
     }
 
-    SDL_GPUColorTargetDescription ctd[]
-    {
-        {
-        .format = SDL_GetGPUSwapchainTextureFormat(device, window),
-        .blend_state = {
-            .src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
-            .dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
-            .color_blend_op = SDL_GPU_BLENDOP_ADD,
-            .src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
-            .dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
-            .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
-            .color_write_mask = 0,
-            .enable_blend = true,
-            .enable_color_write_mask = false
-            }
-        }
-    };
+    SDL_GPUColorTargetDescription ctd[]{
+        {.format = SDL_GetGPUSwapchainTextureFormat(device, window),
+         .blend_state = {
+             .src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+             .dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+             .color_blend_op = SDL_GPU_BLENDOP_ADD,
+             .src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+             .dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+             .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
+             .color_write_mask = 0,
+             .enable_blend = true,
+             .enable_color_write_mask = false}}};
+
+    SDL_GPUVertexBufferDescription vbd[]{
+        {.slot = 0,
+         .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+         .instance_step_rate = 0,
+         .pitch = sizeof(PositionTextureVertex)}};
+
+    SDL_GPUVertexAttribute vba[]{
+        {.buffer_slot = 0,
+         .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+         .location = 0,
+         .offset = 0},
+        {.buffer_slot = 0,
+         .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+         .location = 1,
+         .offset = sizeof(float) * 3}};
+
+    SDL_GPUVertexInputState vertexInputState{
+        .num_vertex_buffers = 1,
+        .vertex_buffer_descriptions = vbd,
+        .num_vertex_attributes = 2,
+        .vertex_attributes = vba};
 
     SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
         .target_info = {
             .num_color_targets = 1,
             .color_target_descriptions = ctd,
         },
-        .vertex_input_state = (SDL_GPUVertexInputState){
-            .num_vertex_buffers = 1, 
-            .vertex_buffer_descriptions = (SDL_GPUVertexBufferDescription[]){{
-                .slot = 0,
-                .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
-                .instance_step_rate = 0,
-                .pitch = sizeof(PositionTextureVertex)
-            }},
-            .num_vertex_attributes = 2,
-            .vertex_attributes = (SDL_GPUVertexAttribute[]){{
-                    .buffer_slot = 0,
-                    .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-                    .location = 0,
-                    .offset = 0
-                }, {
-                    .buffer_slot = 0,
-                    .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-                    .location = 1,
-                    .offset = sizeof(float) * 3
-                }
-            }
-        },
+        .vertex_input_state = vertexInputState,
         .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
         .vertex_shader = vertexShader,
         .fragment_shader = fragmentShader};
@@ -170,18 +166,17 @@ bool SDLRenderer::init()
         return false;
     }
     SDL_ReleaseGPUShader(device, vertexShader);
-	SDL_ReleaseGPUShader(device, fragmentShader);
+    SDL_ReleaseGPUShader(device, fragmentShader);
 
-    SDL_GPUSamplerCreateInfo sci
-    {
-		.min_filter = SDL_GPU_FILTER_NEAREST,
-		.mag_filter = SDL_GPU_FILTER_NEAREST,
-		.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
-		.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-		.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-		.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-	};
-	pointSampler = SDL_CreateGPUSampler(device, &sci);
+    SDL_GPUSamplerCreateInfo sci{
+        .min_filter = SDL_GPU_FILTER_NEAREST,
+        .mag_filter = SDL_GPU_FILTER_NEAREST,
+        .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
+        .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+        .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+        .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+    };
+    pointSampler = SDL_CreateGPUSampler(device, &sci);
 
     return true;
 }
@@ -197,8 +192,8 @@ void SDLRenderer::quit()
 
     gpuTextures.clear();
 
-	SDL_ReleaseGPUSampler(device, pointSampler);
-	
+    SDL_ReleaseGPUSampler(device, pointSampler);
+
     SDL_ReleaseWindowFromGPUDevice(device, window);
     SDL_DestroyWindow(window);
     SDL_DestroyGPUDevice(device);
@@ -206,13 +201,13 @@ void SDLRenderer::quit()
 
 struct FragMultiplyUniform
 {
-	float r, g, b, a;
+    float r, g, b, a;
 };
 
 void SDLRenderer::draw()
 {
     SDL_GPUCommandBuffer* cmdbuf = SDL_AcquireGPUCommandBuffer(device);
-    if (cmdbuf == nullptr){
+    if (cmdbuf == nullptr) {
         SDL_Log("AcquireGPUCommandBuffer failed: %s", SDL_GetError());
         return;
     }
@@ -223,22 +218,22 @@ void SDLRenderer::draw()
         return;
     }
 
-    if (swapchainTexture != nullptr){
-        SDL_GPUColorTargetInfo colorTargetInfo = { 0 };
+    if (swapchainTexture != nullptr) {
+        SDL_GPUColorTargetInfo colorTargetInfo = {0};
         colorTargetInfo.texture = swapchainTexture;
-        colorTargetInfo.clear_color = (SDL_FColor){ 0.0f, 0.0f, 0.0f, 1.0f };
+        colorTargetInfo.clear_color = (SDL_FColor){0.0f, 0.0f, 0.0f, 1.0f};
         colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
         colorTargetInfo.store_op = SDL_GPU_STOREOP_STORE;
 
         SDL_GPURenderPass* renderPass = SDL_BeginGPURenderPass(cmdbuf, &colorTargetInfo, 1, NULL);
 
         SDL_BindGPUGraphicsPipeline(renderPass, pipeline);
-        for (auto& batch : batches){
-            SDL_GPUBufferBinding bb{ .buffer = batch.vertexBuffer, .offset = 0 };
+        for (auto& batch : batches) {
+            SDL_GPUBufferBinding bb{.buffer = batch.vertexBuffer, .offset = 0};
             SDL_BindGPUVertexBuffers(renderPass, 0, &bb, 1);
-            SDL_GPUBufferBinding bbi{ .buffer = batch.indexBuffer, .offset = 0 };
+            SDL_GPUBufferBinding bbi{.buffer = batch.indexBuffer, .offset = 0};
             SDL_BindGPUIndexBuffer(renderPass, &bbi, SDL_GPU_INDEXELEMENTSIZE_16BIT);
-            SDL_GPUTextureSamplerBinding tsb{ .texture = batch.texture, .sampler = pointSampler };
+            SDL_GPUTextureSamplerBinding tsb{.texture = batch.texture, .sampler = pointSampler};
             SDL_BindGPUFragmentSamplers(renderPass, 0, &tsb, 1);
 
             FragMultiplyUniform uni{batch.colour.r / 255.0f, batch.colour.g / 255.0f, batch.colour.b / 255.0f, batch.colour.a / 255.0f};
@@ -260,7 +255,6 @@ void SDLRenderer::draw()
 void SDLRenderer::drawBegin(Primitive prim, int drawFlags)
 {
     if (prim == Primitive::DRAW_TRIANGLES) {
-
     }
 }
 
@@ -278,95 +272,75 @@ void SDLRenderer::drawVertex(float x, float y, float z, float u, float v)
 
 void SDLRenderer::drawEnd()
 {
-    if (accumulatedVertices.empty()){
+    if (accumulatedVertices.empty()) {
         return;
     }
 
-    SDL_GPUBufferCreateInfo vbci
-    {
+    SDL_GPUBufferCreateInfo vbci{
         .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
-		.size = (Uint32)(sizeof(PositionTextureVertex) * accumulatedVertices.size())
-    };
-    SDL_GPUBuffer *vertexBuffer = SDL_CreateGPUBuffer(
-		device,
-		&vbci
-	);
+        .size = (Uint32)(sizeof(PositionTextureVertex) * accumulatedVertices.size())};
+    SDL_GPUBuffer* vertexBuffer = SDL_CreateGPUBuffer(
+        device,
+        &vbci);
 
-    SDL_GPUBufferCreateInfo ibci
-    {
+    SDL_GPUBufferCreateInfo ibci{
         .usage = SDL_GPU_BUFFERUSAGE_INDEX,
-        .size = (Uint32)(sizeof(Uint16) * accumulatedVertices.size())
-    };
-	SDL_GPUBuffer *indexBuffer = SDL_CreateGPUBuffer(
-		device,
-		&ibci
-	);
+        .size = (Uint32)(sizeof(Uint16) * accumulatedVertices.size())};
+    SDL_GPUBuffer* indexBuffer = SDL_CreateGPUBuffer(
+        device,
+        &ibci);
 
-	SDL_GPUTransferBufferCreateInfo tbci
-    {
+    SDL_GPUTransferBufferCreateInfo tbci{
         .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-        .size = (Uint32)((sizeof(PositionTextureVertex) + sizeof(Uint16)) * accumulatedVertices.size())
-    };
+        .size = (Uint32)((sizeof(PositionTextureVertex) + sizeof(Uint16)) * accumulatedVertices.size())};
 
     SDL_GPUTransferBuffer* bufferTransferBuffer = SDL_CreateGPUTransferBuffer(
-		device,
-		&tbci
-	);
+        device,
+        &tbci);
 
-	PositionTextureVertex* transferData = (PositionTextureVertex*)SDL_MapGPUTransferBuffer(
-		device,
-		bufferTransferBuffer,
-		false
-	);
-    Uint16* indexData = (Uint16*) &transferData[accumulatedVertices.size()];
-    for (int i=0; i<accumulatedVertices.size(); ++i){
+    PositionTextureVertex* transferData = (PositionTextureVertex*)SDL_MapGPUTransferBuffer(
+        device,
+        bufferTransferBuffer,
+        false);
+    Uint16* indexData = (Uint16*)&transferData[accumulatedVertices.size()];
+    for (int i = 0; i < accumulatedVertices.size(); ++i) {
         transferData[i] = accumulatedVertices[i];
         indexData[i] = i;
     }
 
-	SDL_UnmapGPUTransferBuffer(device, bufferTransferBuffer);
+    SDL_UnmapGPUTransferBuffer(device, bufferTransferBuffer);
 
     // TODO: delay upload until render time?
     SDL_GPUCommandBuffer* uploadCmdBuf = SDL_AcquireGPUCommandBuffer(device);
-	SDL_GPUCopyPass* copyPass = SDL_BeginGPUCopyPass(uploadCmdBuf);
+    SDL_GPUCopyPass*      copyPass = SDL_BeginGPUCopyPass(uploadCmdBuf);
 
-    SDL_GPUTransferBufferLocation tbl
-    {
+    SDL_GPUTransferBufferLocation tbl{
         .transfer_buffer = bufferTransferBuffer,
-        .offset = 0
-    };
-    SDL_GPUBufferRegion br
-    {
+        .offset = 0};
+    SDL_GPUBufferRegion br{
         .buffer = vertexBuffer,
-		.offset = 0,
-		.size = (Uint32)(sizeof(PositionTextureVertex) * accumulatedVertices.size())
-    };
-	SDL_UploadToGPUBuffer(
-		copyPass,
-		&tbl,
-		&br,
-		false
-	);
+        .offset = 0,
+        .size = (Uint32)(sizeof(PositionTextureVertex) * accumulatedVertices.size())};
+    SDL_UploadToGPUBuffer(
+        copyPass,
+        &tbl,
+        &br,
+        false);
 
-    SDL_GPUTransferBufferLocation ibl
-    {
+    SDL_GPUTransferBufferLocation ibl{
         .transfer_buffer = bufferTransferBuffer,
-        .offset = (Uint32)(sizeof(PositionTextureVertex) * accumulatedVertices.size())
-    };
-    SDL_GPUBufferRegion ibr
-    {
+        .offset = (Uint32)(sizeof(PositionTextureVertex) * accumulatedVertices.size())};
+    SDL_GPUBufferRegion ibr{
         .buffer = indexBuffer,
         .offset = 0,
-        .size = (Uint32)(sizeof(Uint16) * accumulatedVertices.size())
-    };
-	SDL_UploadToGPUBuffer(
-		copyPass,
-		&ibl,
-		&ibr,
-		false
-	);
+        .size = (Uint32)(sizeof(Uint16) * accumulatedVertices.size())};
+    SDL_UploadToGPUBuffer(
+        copyPass,
+        &ibl,
+        &ibr,
+        false);
     SDL_EndGPUCopyPass(copyPass);
-	SDL_SubmitGPUCommandBuffer(uploadCmdBuf);
+    SDL_SubmitGPUCommandBuffer(uploadCmdBuf);
 
     batches.push_back(Batch{gpuTextures[currentTex], vertexBuffer, indexBuffer, (int)accumulatedVertices.size(), currentColour});
 
@@ -376,70 +350,58 @@ void SDLRenderer::drawEnd()
 void SDLRenderer::setTexture(Bitmap* tex)
 {
     currentTex = tex;
-    if (gpuTextures.contains(tex)){
+    if (gpuTextures.contains(tex)) {
         return;
     }
     tex->convertFormat(Bitmap::FMT_32_ABGR_8888); // RGBA in memory
-    SDL_GPUTextureCreateInfo ci
-    {
+    SDL_GPUTextureCreateInfo ci{
         .type = SDL_GPU_TEXTURETYPE_2D,
-		.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
-		.width = (Uint32)tex->width,
-		.height = (Uint32)tex->height,
-		.layer_count_or_depth = 1,
-		.num_levels = 1,
-		.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER
-    };
+        .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+        .width = (Uint32)tex->width,
+        .height = (Uint32)tex->height,
+        .layer_count_or_depth = 1,
+        .num_levels = 1,
+        .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER};
 
-	SDL_GPUTexture* Texture = SDL_CreateGPUTexture(device, &ci);
+    SDL_GPUTexture* Texture = SDL_CreateGPUTexture(device, &ci);
 
-	// Set up texture data
-    SDL_GPUTransferBufferCreateInfo tbci
-    {
+    // Set up texture data
+    SDL_GPUTransferBufferCreateInfo tbci{
         .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-        .size = (Uint32)(tex->width * tex->height * 4)
-    };
-	SDL_GPUTransferBuffer* textureTransferBuffer = SDL_CreateGPUTransferBuffer(
-		device,
-		&tbci
-	);
+        .size = (Uint32)(tex->width * tex->height * 4)};
+    SDL_GPUTransferBuffer* textureTransferBuffer = SDL_CreateGPUTransferBuffer(
+        device,
+        &tbci);
 
-	Uint8* textureTransferPtr = (Uint8*)SDL_MapGPUTransferBuffer(
-		device,
-		textureTransferBuffer,
-		false
-	);
-	SDL_memcpy(textureTransferPtr, (const uint8_t*)tex->getPixelData(0), tex->width * tex->height * 4);
-	SDL_UnmapGPUTransferBuffer(device, textureTransferBuffer);
+    Uint8* textureTransferPtr = (Uint8*)SDL_MapGPUTransferBuffer(
+        device,
+        textureTransferBuffer,
+        false);
+    SDL_memcpy(textureTransferPtr, (const uint8_t*)tex->getPixelData(0), tex->width * tex->height * 4);
+    SDL_UnmapGPUTransferBuffer(device, textureTransferBuffer);
 
-	// Upload the transfer data to the GPU resources
-	SDL_GPUCommandBuffer* uploadCmdBuf = SDL_AcquireGPUCommandBuffer(device);
-	SDL_GPUCopyPass* copyPass = SDL_BeginGPUCopyPass(uploadCmdBuf);
+    // Upload the transfer data to the GPU resources
+    SDL_GPUCommandBuffer* uploadCmdBuf = SDL_AcquireGPUCommandBuffer(device);
+    SDL_GPUCopyPass*      copyPass = SDL_BeginGPUCopyPass(uploadCmdBuf);
 
-    SDL_GPUTextureTransferInfo tti
-    {
+    SDL_GPUTextureTransferInfo tti{
         .transfer_buffer = textureTransferBuffer,
         .offset = 0, /* Zeros out the rest */
     };
-    SDL_GPUTextureRegion tr
-    {
+    SDL_GPUTextureRegion tr{
         .texture = Texture,
         .w = (Uint32)tex->width,
         .h = (Uint32)tex->height,
-        .d = 1
-    };
-	SDL_UploadToGPUTexture(
-		copyPass,
-		&tti,
-		&tr,
-		false
-	);
+        .d = 1};
+    SDL_UploadToGPUTexture(
+        copyPass,
+        &tti,
+        &tr,
+        false);
 
-	SDL_EndGPUCopyPass(copyPass);
-	SDL_SubmitGPUCommandBuffer(uploadCmdBuf);
-	SDL_ReleaseGPUTransferBuffer(device, textureTransferBuffer);
+    SDL_EndGPUCopyPass(copyPass);
+    SDL_SubmitGPUCommandBuffer(uploadCmdBuf);
+    SDL_ReleaseGPUTransferBuffer(device, textureTransferBuffer);
 
-    gpuTextures[tex]=Texture;
+    gpuTextures[tex] = Texture;
 }
-
-
