@@ -120,13 +120,15 @@ bool SDLRenderer::init()
         {
         .format = SDL_GetGPUSwapchainTextureFormat(device, window),
         .blend_state = {
-            .enable_blend = true,
-            .color_blend_op = SDL_GPU_BLENDOP_ADD,
-            .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
             .src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
             .dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+            .color_blend_op = SDL_GPU_BLENDOP_ADD,
             .src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
             .dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+            .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
+            .color_write_mask = 0,
+            .enable_blend = true,
+            .enable_color_write_mask = false
             }
         }
     };

@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 #include <map>
+#include <vector>
 
 #include "../../../a51lib/system/Renderer.h"
 
