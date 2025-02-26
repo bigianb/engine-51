@@ -408,18 +408,20 @@ void SDLRenderer::setTexture(Bitmap* tex)
     SDL_GPUTextureCreateInfo ci{
         .type = SDL_GPU_TEXTURETYPE_2D,
         .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+        .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
         .width = (Uint32)tex->width,
         .height = (Uint32)tex->height,
         .layer_count_or_depth = 1,
         .num_levels = 1,
-        .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER};
+    };
 
     SDL_GPUTexture* Texture = SDL_CreateGPUTexture(device, &ci);
 
     // Set up texture data
     SDL_GPUTransferBufferCreateInfo tbci{
         .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-        .size = (Uint32)(tex->width * tex->height * 4)};
+        .size = (Uint32)(tex->width * tex->height * 4),
+    };
     SDL_GPUTransferBuffer* textureTransferBuffer = SDL_CreateGPUTransferBuffer(
         device,
         &tbci);
