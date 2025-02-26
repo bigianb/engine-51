@@ -32,8 +32,6 @@ private:
     void updateState();
     void exitState();
 
-    void enterPressStart();
-
     State state;
     State previousState;
     ui::Manager* uiManager;
@@ -42,4 +40,10 @@ private:
     void enterESRBNotice();
     void updateESRBNotice();
     void exitESRBNotice();
+
+    void enterPressStart();
+    void updatePressStart();
+
+    void enterMainMenu();
+    void updateMainMenu();
 };

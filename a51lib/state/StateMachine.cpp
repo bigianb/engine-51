@@ -3,6 +3,9 @@
 #include "../ui/UIManager.h"
 #include "../VectorMath.h"
 
+#define DIALOG_TOP 24
+#define DIALOG_BOTTOM 448-72
+
 StateMachine::StateMachine()
 {
     uiManager = nullptr;
@@ -58,6 +61,9 @@ void StateMachine::enterState()
     case State::press_start_screen:
         enterPressStart();
         break;
+    case State::main_menu:
+        enterMainMenu();
+        break;
     default:
         break;
     }
@@ -68,6 +74,12 @@ void StateMachine::updateState()
     switch (state) {
     case State::ersb_notice:
         updateESRBNotice();
+        break;
+    case State::press_start_screen:
+        updatePressStart();
+        break;
+    case State::main_menu:
+        updateMainMenu();
         break;
     default:
         break;
@@ -93,9 +105,20 @@ void StateMachine::enterPressStart()
     //g_UiMgr->SetUserBackground( g_UiUserID, "" );
 }
 
+void StateMachine::updatePressStart()
+{
+    if (currentDialog != nullptr) {
+        auto dialogState = currentDialog->getState();
+
+        if (dialogState == ui::Dialog::DialogState::Select) {
+            // TODO: really should go to inevitable intro which will play the midway movie
+            setState(State::main_menu);
+        }
+    }
+}
+
 void StateMachine::updateESRBNotice()
 {
-
     if (currentDialog != nullptr) {
         auto dialogState = currentDialog->getState();
 
@@ -109,4 +132,24 @@ void StateMachine::updateESRBNotice()
 void StateMachine::exitESRBNotice()
 {
     //uiManager->endDialog( g_UiUserID, TRUE );
+}
+
+void StateMachine::enterMainMenu()
+{
+    // Should play movie MenuBackground instead of the background.
+    //uiManager->loadBackground ( "background1", "A51Background.XBMP" );
+    IntRect mainarea(136, DIALOG_TOP, 376, DIALOG_BOTTOM );
+    currentDialog = uiManager->openDialog("main menu", mainarea, nullptr, ui::Window::WF_VISIBLE | ui::Window::WF_BORDER);
+    // If playing movie, don't set the background.
+    //uiManager->setUserBackground( "background1" );
+}
+
+void StateMachine::updateMainMenu()
+{
+    if (currentDialog != nullptr) {
+        auto dialogState = currentDialog->getState();
+        if (dialogState == ui::Dialog::DialogState::Select) {
+            // TODO: main menu should contain the update logic.
+        }
+    }
 }
