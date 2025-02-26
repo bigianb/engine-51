@@ -270,9 +270,10 @@ void SDLRenderer::draw()
     }
 
     if (swapchainTexture != nullptr) {
+        SDL_FColor black{0.0f, 0.0f, 0.0f, 1.0f};
         SDL_GPUColorTargetInfo colorTargetInfo = {0};
         colorTargetInfo.texture = swapchainTexture;
-        colorTargetInfo.clear_color = (SDL_FColor){0.0f, 0.0f, 0.0f, 1.0f};
+        colorTargetInfo.clear_color = black;
         colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
         colorTargetInfo.store_op = SDL_GPU_STOREOP_STORE;
 
