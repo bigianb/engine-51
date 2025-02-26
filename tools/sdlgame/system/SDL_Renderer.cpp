@@ -129,36 +129,87 @@ bool SDLRenderer::init()
              .enable_color_write_mask = false}}};
 
     SDL_GPUVertexBufferDescription vbd[]{
-        {.slot = 0,
-         .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
-         .instance_step_rate = 0,
-         .pitch = sizeof(PositionTextureVertex)}};
+        {
+            .slot = 0,
+            .pitch = sizeof(PositionTextureVertex),
+            .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+            .instance_step_rate = 0,
+        }};
 
     SDL_GPUVertexAttribute vba[]{
-        {.buffer_slot = 0,
-         .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
-         .location = 0,
-         .offset = 0},
-        {.buffer_slot = 0,
-         .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-         .location = 1,
-         .offset = sizeof(float) * 3}};
+        {
+            .location = 0,
+            .buffer_slot = 0,
+            .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+            .offset = 0,
+        },
+        {
+            .location = 1,
+            .buffer_slot = 0,
+            .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+            .offset = sizeof(float) * 3,
+        }};
 
     SDL_GPUVertexInputState vertexInputState{
-        .num_vertex_buffers = 1,
         .vertex_buffer_descriptions = vbd,
+        .num_vertex_buffers = 1,
+        .vertex_attributes = vba,
         .num_vertex_attributes = 2,
-        .vertex_attributes = vba};
+    };
+
+    SDL_GPURasterizerState rasteriserState{
+        .fill_mode = SDL_GPU_FILLMODE_FILL,
+        .cull_mode = SDL_GPU_CULLMODE_NONE,
+        .front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE,
+        .depth_bias_constant_factor = 0.0f,
+        .depth_bias_clamp = 0.0f,
+        .depth_bias_slope_factor = 0.0f,
+        .enable_depth_bias = false,
+        .enable_depth_clip = false,
+    };
+
+    SDL_GPUMultisampleState multisampleState{
+        .sample_count = SDL_GPU_SAMPLECOUNT_1,
+        .sample_mask = 0xFFFFFFFF,
+        .enable_mask = false,
+    };
+
+    SDL_GPUDepthStencilState depthStencilState{
+        .compare_op = SDL_GPU_COMPAREOP_INVALID,
+        .back_stencil_state = {
+            .fail_op = SDL_GPU_STENCILOP_INVALID,
+            .pass_op = SDL_GPU_STENCILOP_INVALID,
+            .depth_fail_op = SDL_GPU_STENCILOP_INVALID,
+            .compare_op = SDL_GPU_COMPAREOP_INVALID,
+        },
+        .front_stencil_state = {
+            .fail_op = SDL_GPU_STENCILOP_INVALID,
+            .pass_op = SDL_GPU_STENCILOP_INVALID,
+            .depth_fail_op = SDL_GPU_STENCILOP_INVALID,
+            .compare_op = SDL_GPU_COMPAREOP_INVALID,
+        },
+        .compare_mask = 0,
+        .write_mask = 0,
+        .enable_depth_test = false,
+        .enable_depth_write = false,
+        .enable_stencil_test = false,
+    };
 
     SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
-        .target_info = {
-            .num_color_targets = 1,
-            .color_target_descriptions = ctd,
-        },
+        .vertex_shader = vertexShader,
+        .fragment_shader = fragmentShader,
         .vertex_input_state = vertexInputState,
         .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
-        .vertex_shader = vertexShader,
-        .fragment_shader = fragmentShader};
+        .rasterizer_state = rasteriserState,
+        .multisample_state = multisampleState,
+        .depth_stencil_state = depthStencilState,
+        .target_info = {
+            .color_target_descriptions = ctd,
+            .num_color_targets = 1,
+
+        },
+        .props = 0,
+    };
 
     pipeline = SDL_CreateGPUGraphicsPipeline(device, &pipelineCreateInfo);
     if (pipeline == nullptr) {
