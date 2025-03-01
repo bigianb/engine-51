@@ -65,8 +65,6 @@ namespace ui
 
         Window* findChildById(int id) const;
 
-        virtual void onUpdate(float deltaTime);
-
         int  getControlId() const { return id; }
         void setControlId(int id) { this->id = id; }
 
@@ -87,20 +85,51 @@ namespace ui
 
         void setCreatePosition(IntRect p) { createPosition = p; }
 
-
         void setLabel(std::wstring newLabel) { label = newLabel; }
 
         std::vector<Window*> children;
 
-        void setLabelColour(const Colour& c) { labelColor = c; }
+        void          setLabelColour(const Colour& c) { labelColor = c; }
         const Colour& getLabelColour() const { return labelColor; }
+
+        virtual void onUpdate(float deltaTime);
+        virtual void onNotify(Window* sender, int command, void* data);
+        virtual void onLBDown();
+        virtual void onLBUp();
+        virtual void onMBDown();
+        virtual void onMBUp();
+        virtual void onRBDown();
+        virtual void onRBUp();
+        virtual void onCursorMove(int x, int y);
+        virtual void onCursorEnter();
+        virtual void onCursorExit();
+        virtual void onKeyDown(int key);
+        virtual void onKeyUp(int key);
+
+        enum NavigateDir
+        {
+            NAV_UP,
+            NAV_DOWN,
+            NAV_LEFT,
+            NAV_RIGHT,
+        };
+
+        virtual void onPadNavigate(NavigateDir code, int presses, int repeats, bool wrapX = false, bool wrapY = false);
+        virtual void onPadSelect();
+        virtual void onPadBack();
+        virtual void onPadDelete();
+        virtual void onPadHelp();
+        virtual void onPadActivate();
+        virtual void onPadShoulder(int direction);
+        virtual void onPadShoulder2(int direction);
 
     protected:
         IntRect position;
 
-        std::wstring  label;
+        std::wstring label;
         unsigned int labelFlags;
         Colour       labelColor;
+
     private:
         Manager* manager;
         User*    user;
@@ -111,7 +140,6 @@ namespace ui
 
         int     id;
         IntRect createPosition;
-
 
         //int                 font;
     };

@@ -57,6 +57,9 @@ int main(int argc, char** argv)
         lastTime = newTime;
 
         float deltaTime = 1.0 / 30.0;
+        if (gameObject.stateMachine->getState() != StateMachine::State::playing_game) {
+            gameObject.uiManager->processInput(gameObject.engine, context.DeltaTime );
+        }
         gameObject.stateMachine->update(context.DeltaTime);
         if (gameObject.stateMachine->getState() != StateMachine::State::playing_game) {
             gameObject.uiManager->update(context.DeltaTime);

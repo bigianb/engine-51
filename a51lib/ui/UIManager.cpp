@@ -1,7 +1,9 @@
 #include "UIManager.h"
 
 #include <iostream>
+#include <algorithm>
 
+#include "../system/Engine.h"
 #include "../system/Renderer.h"
 #include "../VectorMath.h"
 #include "dialogs/esrbDialog.h"
@@ -43,6 +45,8 @@ void ui::Manager::init(Renderer& renderer, ResourceManager* rm)
     loadFont("small", "UI_A51FontLegal");
     loadFont("hudnum", "UI_A51FontHUD");
     loadFont("loadscr", "UI_A51FontLoadscr");
+
+    enableUserInput = true;
 }
 
 void ui::Manager::loadFont(std::string name, std::string filename)
@@ -308,6 +312,315 @@ void ui::Manager::setRes()
 {
     scaleX = 1.0;
     scaleY = 1.0;
+}
+
+bool ui::Manager::processInput(Engine* engine, float deltaTime)
+{
+    bool result = true;
+    for (User* user : users) {
+        if (user->enabled) {
+            result &= processInput(engine, deltaTime, user);
+        }
+    }
+    return result;
+}
+
+void ui::Manager::updateButton(ui::ButtonInputData& button, bool state, float deltaTime)
+{
+    // Clear number of presses, repeats and releases
+    button.nPresses = 0;
+    button.nRepeats = 0;
+    button.nReleases = 0;
+
+    if (enableUserInput) {
+        // Check for press
+        if (!button.state && state) {
+            button.nPresses++;
+            button.repeatTimer = button.repeatDelay;
+        }
+
+        // Check for repeat
+        if (button.state && state) {
+            // If repeat interval is 0 then repeat is disabled
+            if (button.repeatInterval > 0.0f) {
+                button.repeatTimer -= deltaTime;
+                while (button.repeatTimer < 0.0f) {
+                    button.nRepeats++;
+                    button.repeatTimer += button.repeatInterval;
+                }
+            }
+        }
+
+        // Check for release
+        if (button.state && !state) {
+            button.nReleases++;
+        }
+    } else {
+        state = 0;
+    }
+
+    // Set new state
+    button.state = state;
+}
+
+bool ui::Manager::processInput(Engine* engine, float deltaTime, User* user)
+{
+    bool iterate = false;
+    int  iterateCount = 0;
+    int  startController = 0;
+    int  endController = 0;
+
+    do {
+        if (iterate) {
+            iterateCount++;
+            iterate = false;
+        }
+
+        // Get pointer to window to receive input
+        ui::Window* pWin = user->captureWindow;
+        user->cursorX += engine->input_GetValue(InputGadget::INPUT_MOUSE_X_REL);
+        user->cursorY += engine->input_GetValue(InputGadget::INPUT_MOUSE_Y_REL);
+
+        user->cursorX = std::max(user->cursorX, 0);
+        user->cursorX = std::min(user->cursorX, (user->bounds.getWidth() - 1));
+        user->cursorY = std::max(user->cursorY, 0);
+        user->cursorY = std::min(user->cursorY, (user->bounds.getHeight() - 1));
+
+        // Determine which window cursor is now over and call appropriate EXIT/ENTER functions
+        /*
+        if( pWin == NULL )
+        {
+            //ui_win* pWindowUnderCursor = GetWindowAtXY( pUser, pUser->CursorX, pUser->CursorY );
+
+            // Has window under cursor changed?
+            if( pWindowUnderCursor != pUser->pLastWindowUnderCursor )
+            {
+                // Call exit function if there was a window under the cursor
+                if( pUser->pLastWindowUnderCursor )
+                {
+                    pUser->pLastWindowUnderCursor->OnCursorExit( pUser->pLastWindowUnderCursor );
+                }
+
+                // Set new window under cursor and call enter function
+                pUser->pLastWindowUnderCursor = pWindowUnderCursor;
+                if( pUser->pLastWindowUnderCursor )
+                {
+                    pUser->pLastWindowUnderCursor->OnCursorEnter( pUser->pLastWindowUnderCursor );
+                }
+            }
+
+            // Set pointer to window to receive input
+            pWin = pUser->pLastWindowUnderCursor;
+        }
+        */
+
+        for (int i = startController; i <= endController; i++) {
+
+            updateButton(user->dpadUp[i], engine->input_IsPressed(InputGadget::INPUT_PS2_BTN_L_UP, i), deltaTime);
+            updateButton(user->dpadDown[i], engine->input_IsPressed(InputGadget::INPUT_PS2_BTN_L_DOWN, i), deltaTime);
+            updateButton(user->dpadLeft[i], engine->input_IsPressed(InputGadget::INPUT_PS2_BTN_L_LEFT, i), deltaTime);
+            updateButton(user->dpadRight[i], engine->input_IsPressed(InputGadget::INPUT_PS2_BTN_L_RIGHT, i), deltaTime);
+
+            updateButton(user->padSelect[i], engine->input_WasPressed(InputGadget::INPUT_PS2_BTN_CROSS, i), deltaTime);
+            updateButton(user->padBack[i], engine->input_WasPressed(InputGadget::INPUT_PS2_BTN_TRIANGLE, i), deltaTime);
+            updateButton(user->padDelete[i], engine->input_WasPressed(InputGadget::INPUT_PS2_BTN_SQUARE, i), deltaTime);
+            updateButton(user->padActivate[i], engine->input_WasPressed(InputGadget::INPUT_PS2_BTN_CIRCLE, i), deltaTime);
+            updateButton(user->padShoulderL[i], engine->input_WasPressed(InputGadget::INPUT_PS2_BTN_L1, i), deltaTime);
+            updateButton(user->padShoulderR[i], engine->input_WasPressed(InputGadget::INPUT_PS2_BTN_R1, i), deltaTime);
+            updateButton(user->padShoulderL2[i], engine->input_WasPressed(InputGadget::INPUT_PS2_BTN_L2, i), deltaTime);
+            updateButton(user->padShoulderR2[i], engine->input_WasPressed(InputGadget::INPUT_PS2_BTN_R2, i), deltaTime);
+            updateButton(user->padHelp[i], engine->input_WasPressed(InputGadget::INPUT_PS2_BTN_START, i), deltaTime);
+
+            updateButton(user->lStickUp[i], engine->input_GetValue(InputGadget::INPUT_PS2_STICK_LEFT_Y, i), deltaTime);
+            updateButton(user->lStickDown[i], engine->input_GetValue(InputGadget::INPUT_PS2_STICK_LEFT_Y, i), deltaTime);
+            updateButton(user->lStickLeft[i], engine->input_GetValue(InputGadget::INPUT_PS2_STICK_LEFT_X, i), deltaTime);
+            updateButton(user->lStickRight[i], engine->input_GetValue(InputGadget::INPUT_PS2_STICK_LEFT_X, i), deltaTime);
+
+            // Keep index of last controller that pressed a select button so we can hack
+            // the controller number into the players controller for 1 player games
+            if (user->padSelect[i].nPresses > 0) {
+                uiLastSelectController = i;
+            }
+        }
+
+        // Update mouse buttons
+        updateButton(user->buttonLB, engine->input_IsPressed(InputGadget::INPUT_MOUSE_BTN_L), deltaTime);
+        updateButton(user->buttonMB, engine->input_IsPressed(InputGadget::INPUT_MOUSE_BTN_C), deltaTime);
+        updateButton(user->buttonRB, engine->input_IsPressed(InputGadget::INPUT_MOUSE_BTN_R), deltaTime);
+
+        // Only do this if there is a target window
+        if (pWin) {
+            // Issue window calls for mouse
+            if ((user->lastCursorX != user->cursorX) || (user->lastCursorY != user->cursorY)) {
+                pWin->onCursorMove(user->cursorX, user->cursorY);
+            }
+            if (user->buttonLB.nPresses) {
+                pWin->onLBDown();
+            }
+            if (user->buttonLB.nReleases) {
+                pWin->onLBUp();
+            }
+            if (user->buttonMB.nPresses) {
+                pWin->onMBDown();
+            }
+            if (user->buttonMB.nReleases) {
+                pWin->onMBUp();
+            }
+            if (user->buttonRB.nPresses) {
+                pWin->onRBDown();
+            }
+            if (user->buttonRB.nReleases) {
+                pWin->onRBUp();
+            }
+
+            // Sum up button presses
+            int pdpadUp = 0;
+            int pdpadDown = 0;
+            int pdpadLeft = 0;
+            int pdpadRight = 0;
+            int rdpadUp = 0;
+            int rdpadDown = 0;
+            int rdpadLeft = 0;
+            int rdpadRight = 0;
+            int tdpadUp = 0;
+            int tdpadDown = 0;
+            int tdpadLeft = 0;
+            int tdpadRight = 0;
+            int PadSelect = 0;
+            int PadBack = 0;
+            int PadDelete = 0;
+            int PadActivate = 0;
+            int PadShoulderL = 0;
+            int PadShoulderR = 0;
+            int PadShoulderL2 = 0;
+            int PadShoulderR2 = 0;
+            int PadHelp = 0;
+            {
+                for (int i = startController; i <= endController; i++) {
+                    // set active controller
+                    ativeController = i;
+
+                    // check input for each controller
+                    pdpadUp = user->dpadUp[i].nPresses;
+                    pdpadDown = user->dpadDown[i].nPresses;
+                    pdpadLeft = user->dpadLeft[i].nPresses;
+                    pdpadRight = user->dpadRight[i].nPresses;
+                    rdpadUp = user->dpadUp[i].nRepeats;
+                    rdpadDown = user->dpadDown[i].nRepeats;
+                    rdpadLeft = user->dpadLeft[i].nRepeats;
+                    rdpadRight = user->dpadRight[i].nRepeats;
+                    tdpadUp = user->dpadUp[i].nPresses + user->dpadUp[i].nRepeats;
+                    tdpadDown = user->dpadDown[i].nPresses + user->dpadDown[i].nRepeats;
+                    tdpadLeft = user->dpadLeft[i].nPresses + user->dpadLeft[i].nRepeats;
+                    tdpadRight = user->dpadRight[i].nPresses + user->dpadRight[i].nRepeats;
+                    PadSelect = user->padSelect[i].nPresses;
+                    PadBack = user->padBack[i].nPresses;
+                    PadDelete = user->padDelete[i].nPresses;
+                    PadActivate = user->padActivate[i].nPresses;
+                    PadShoulderL = user->padShoulderL[i].nPresses + user->padShoulderL[i].nRepeats;
+                    PadShoulderR = user->padShoulderR[i].nPresses + user->padShoulderR[i].nRepeats;
+                    PadShoulderL2 = user->padShoulderL2[i].nPresses + user->padShoulderL2[i].nRepeats;
+                    PadShoulderR2 = user->padShoulderR2[i].nPresses + user->padShoulderR2[i].nRepeats;
+
+                    PadHelp = user->padHelp[i].nPresses;
+
+                    pdpadUp += user->lStickUp[i].nPresses;
+                    pdpadDown += user->lStickDown[i].nPresses;
+                    pdpadLeft += user->lStickLeft[i].nPresses;
+                    pdpadRight += user->lStickRight[i].nPresses;
+                    rdpadUp += user->lStickUp[i].nRepeats;
+                    rdpadDown += user->lStickDown[i].nRepeats;
+                    rdpadLeft += user->lStickLeft[i].nRepeats;
+                    rdpadRight += user->lStickRight[i].nRepeats;
+                    tdpadUp += user->lStickUp[i].nPresses + user->lStickUp[i].nRepeats;
+                    tdpadDown += user->lStickDown[i].nPresses + user->lStickDown[i].nRepeats;
+                    tdpadLeft += user->lStickLeft[i].nPresses + user->lStickLeft[i].nRepeats;
+                    tdpadRight += user->lStickRight[i].nPresses + user->lStickRight[i].nRepeats;
+
+                    // send commands for each controller
+                    endDialogCount = 0;
+                    // Issue window calls for pad navigation
+                    if (tdpadUp) {
+                        iterate = true;
+                        pWin->onPadNavigate(Window::NavigateDir::NAV_UP, pdpadUp, rdpadUp, false, true);
+                    }
+
+                    if (tdpadDown) {
+                        iterate = true;
+                        pWin->onPadNavigate(Window::NavigateDir::NAV_DOWN, pdpadDown, rdpadDown, false, true);
+                    }
+
+                    if (tdpadLeft) {
+                        iterate = true;
+                        pWin->onPadNavigate(Window::NavigateDir::NAV_LEFT, pdpadLeft, rdpadLeft);
+                    }
+
+                    if (tdpadRight) {
+                        iterate = true;
+                        pWin->onPadNavigate(Window::NavigateDir::NAV_RIGHT, pdpadRight, rdpadRight);
+                    }
+
+                    // Issue window calls for pad select / back / help
+                    if (!iterate && PadSelect && !endDialogCount) {
+                        iterate = true;
+                        pWin->onPadSelect();
+                    }
+
+                    if (!iterate && PadBack && !endDialogCount) {
+                        iterate = true;
+                        pWin->onPadBack();
+                    }
+
+                    if (!iterate && PadDelete && !endDialogCount) {
+                        iterate = true;
+                        pWin->onPadDelete();
+                    }
+
+                    if (!iterate && PadActivate && !endDialogCount) {
+                        iterate = true;
+                        pWin->onPadActivate();
+                    }
+
+                    if (!iterate && PadHelp && !endDialogCount) {
+                        iterate = true;
+                        pWin->onPadHelp();
+                    }
+
+                    // Issue window calls for pad shoulders
+                    if (PadShoulderL && !endDialogCount) {
+                        pWin->onPadShoulder(-1);
+                    } else if (PadShoulderR && !endDialogCount) {
+                        pWin->onPadShoulder(1);
+                    };
+
+                    if (PadShoulderL2 && !endDialogCount) {
+                        pWin->onPadShoulder2(-1);
+                    } else if (PadShoulderR2 && !endDialogCount) {
+                        pWin->onPadShoulder2(1);
+                    }
+
+                    endDialogCount = 0;
+                }
+            }
+        }
+
+        // Save Last Cursor Position for next time around
+        user->lastCursorX = user->cursorX;
+        user->lastCursorY = user->cursorY;
+
+        // Clear deltaTime in case of next iteration
+        deltaTime = 0.0f;
+
+    } while (iterate && !iterateCount);
+
+    // Do Global inputs
+
+    if (engine->input_IsPressed(InputGadget::INPUT_MSG_EXIT)) {
+        return false;
+    }
+
+    // Return TRUE if not exiting
+    return true;
 }
 
 void ui::Manager::update(float deltaTime)

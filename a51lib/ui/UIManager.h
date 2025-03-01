@@ -9,6 +9,7 @@
 #include "../resourceManager/ResourceManager.h"
 #include "../Bitmap.h"
 
+class Engine;
 class Renderer;
 class ResourceManager;
 
@@ -176,6 +177,10 @@ namespace ui
             , height(1)
             , scaleX(1.0)
             , scaleY(1.0)
+            , enableUserInput(false)
+            , uiLastSelectController(0)
+            , ativeController(0)
+            , endDialogCount(0)
         {
         }
         ~Manager();
@@ -183,6 +188,8 @@ namespace ui
         void setRes();
 
         void update(float deltaTime);
+        bool processInput(Engine*, float deltaTime);
+        bool processInput(Engine*, float deltaTime, User* user);
         void render(Renderer& renderer);
 
         User*   createUser(int controllerID, const IntRect& bounds);
@@ -213,6 +220,17 @@ namespace ui
         void renderText(Renderer& renderer, std::string fontName, const IntRect& pos, int flags, Colour textColor, std::wstring text, bool ignoreEmbeddedColor = true, bool useGradient = true, float flareAmount = 0.0) const;
 
     private:
+        void updateButton( ui::ButtonInputData& button, bool state, float deltaTime );
+
+        bool enableUserInput;
+
+        // maybe better in the engine object
+        int uiLastSelectController;
+
+        int ativeController;
+
+        int endDialogCount;
+
         // Window pixel size, set in init.
         int width;
         int height;
