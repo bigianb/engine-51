@@ -26,30 +26,16 @@ int main(int argc, char** argv)
     }
     Context      context;
     float        lastTime = 0;
-    SDL_Gamepad* gamepad = nullptr;
+
 
     GameObject gameObject;
     if (!gameObject.init()){
         return 1;
     }
 
-    bool quit = false;
-    while (!quit) {
-        SDL_Event evt;
-        while (SDL_PollEvent(&evt)) {
-            if (evt.type == SDL_EVENT_QUIT) {
-                quit = true;
-            } else if (evt.type == SDL_EVENT_GAMEPAD_ADDED) {
-                if (gamepad == nullptr) {
-                    gamepad = SDL_OpenGamepad(evt.gdevice.which);
-                }
-            } else if (evt.type == SDL_EVENT_GAMEPAD_REMOVED) {
-                if (evt.gdevice.which == SDL_GetGamepadID(gamepad)) {
-                    SDL_CloseGamepad(gamepad);
-                }
-            }
-        }
-        if (quit) {
+    while (!gameObject.engine->isQuitRequested()) {
+        gameObject.engine->processEventQueue();
+        if (gameObject.engine->isQuitRequested()) {
             break;
         }
         float newTime = SDL_GetTicks() / 1000.0f;

@@ -43,5 +43,7 @@ enum class InputGadget
     INPUT_PS2_STICK_LEFT_X,   // ANALOG            
     INPUT_PS2_STICK_LEFT_Y,   // ANALOG            
     INPUT_PS2_STICK_RIGHT_X,  // ANALOG            
-    INPUT_PS2_STICK_RIGHT_Y,  // ANALOG            
+    INPUT_PS2_STICK_RIGHT_Y,  // ANALOG   
+    
+    NUM_INPUT_GADGETS
 };

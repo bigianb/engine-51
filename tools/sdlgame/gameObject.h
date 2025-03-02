@@ -1,5 +1,7 @@
 #pragma once
 
+#include "system/SDL_Engine.h"
+#include "system/SDL_Renderer.h"
 
 class LevelLoader;
 class FileSystem;
@@ -8,9 +10,7 @@ class ResourceLoaders;
 namespace ui {
     class Manager;
 }
-class Engine;
 class StateMachine;
-class SDLRenderer;
 
 /*
  * Used to hold game global objects.
@@ -28,7 +28,7 @@ class GameObject
     ResourceManager* resourceManager;
     ResourceLoaders* resourceLoaders;
     ui::Manager* uiManager;
-    Engine* engine;
+    SDLEngine* engine;
     StateMachine* stateMachine;
     SDLRenderer* renderer;
 };
