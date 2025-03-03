@@ -75,7 +75,7 @@ namespace ui
         bool selected() const { return (flags & WF_SELECTED) == WF_SELECTED; }
         bool isRenderModel() const { return (flags & WF_RENDERMODAL) == WF_RENDERMODAL; }
 
-        const IntRect& getPositon() const { return position; }
+        const IntRect& getPosition() const { return position; }
 
         Manager* getUIManger() const { return manager; }
 
@@ -86,6 +86,11 @@ namespace ui
         void setCreatePosition(IntRect p) { createPosition = p; }
 
         void setLabel(std::wstring newLabel) { label = newLabel; }
+
+        void screenToLocal( int& x, int& y ) const;
+        Window* getWindowAtXY(int x, int y);
+
+        bool isChildOf( Window* parent ) const;
 
         std::vector<Window*> children;
 

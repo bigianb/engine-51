@@ -48,6 +48,8 @@ namespace ui
         void        setState(DialogState s) { state = s; }
         DialogState getState() { return state; }
 
+        int                   oldCursorX, oldCursorY;
+        
     protected:
         int                   frameElementIdx;
         int                   navW, navH, navX, navY;
@@ -55,7 +57,7 @@ namespace ui
         Colour                backgroundColor;
         bool                  inputEnabled;
         int                   currentControl;
-        int                   oldCursorX, oldCursorY;
+        
         std::vector<Control*> navgraph;
         DialogState           state;
     };

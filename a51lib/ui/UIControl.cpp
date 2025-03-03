@@ -14,7 +14,7 @@ void ui::Control::render(Renderer& renderer, int x, int y)
         return;
     }
 
-    IntRect r((getPositon().left + x), (getPositon().top + y), (getPositon().right + x), (getPositon().bottom + y));
+    IntRect r((getPosition().left + x), (getPosition().top + y), (getPosition().right + x), (getPosition().bottom + y));
 
     Colour color = COLOR_WHITE;
     if (disabled()) {
@@ -27,6 +27,6 @@ void ui::Control::render(Renderer& renderer, int x, int y)
 
     // Render children
     for (Window* child : children) {
-        child->render(renderer, getPositon().left + x, getPositon().top + y);
+        child->render(renderer, getPosition().left + x, getPosition().top + y);
     }
 }

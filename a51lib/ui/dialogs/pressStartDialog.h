@@ -32,6 +32,8 @@ namespace ui
 
         void onUpdate(float deltaTime) override;
 
+        void onPadSelect() override;
+
     protected:
         Text* text;
         BitmapControl* logoBitmap;

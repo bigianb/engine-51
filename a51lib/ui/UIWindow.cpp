@@ -72,6 +72,53 @@ void ui::Window::render(Renderer& renderer, int x, int y)
     }
 }
 
+void ui::Window::screenToLocal(int& x, int& y) const
+{
+    x -= position.left;
+    y -= position.top;
+    if (parent) {
+        parent->screenToLocal(x, y);
+    }
+}
+
+bool ui::Window::isChildOf(Window* parentIn) const
+{
+    if (parent) {
+        if (parent == parentIn) {
+            return true;
+        } else {
+            return parent->isChildOf(parentIn);
+        }
+    }
+
+    return false;
+}
+
+ui::Window* ui::Window::getWindowAtXY(int x, int y)
+{
+    Window* pFound = nullptr;
+
+    // Don't process for STATIC, DISABLED or INVISIBLE windows
+    if (!(flags & WF_STATIC) && !(flags & WF_DISABLED) && (flags & WF_VISIBLE)) {
+        // Check if the coordinates hit our rectangle
+        if (((x >= 0) && (x < position.getWidth())) &&
+            ((y >= 0) && (y < position.getHeight()))) {
+            // Loop through all children testing
+            for (int i = 0; (i < children.size()) && !pFound; i++) {
+                IntRect r = children[i]->getPosition();
+                pFound = children[i]->getWindowAtXY(x - r.left, y - r.top);
+            }
+
+            // If no child found then return this window
+            if (pFound == nullptr) {
+                pFound = this;
+            }
+        }
+    }
+
+    return pFound;
+}
+
 void ui::Window::onNotify(ui::Window* sender, int command, void* data)
 {
 }
@@ -126,6 +173,9 @@ void ui::Window::onPadNavigate(ui::Window::NavigateDir code, int presses, int re
 
 void ui::Window::onPadSelect()
 {
+    if (parent) {
+        parent->onPadSelect();
+    }
 }
 
 void ui::Window::onPadBack()

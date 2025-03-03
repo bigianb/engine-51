@@ -81,7 +81,6 @@ namespace ui
         IntRect     bounds;
         int         data;
         int         height;
-        Window*     captureWindow;
         Window*     lastWindowUnderCursor;
         std::string background;
         int         highlightElement;
@@ -200,8 +199,8 @@ namespace ui
 
         int loadElement(ResourceManager* rm, const char* name, const char* pathName, int nStates, int cx, int cy);
 
-        Bitmap*  loadBitmap(const char* name, const char* pathName);
-        void unloadBitmap(const char* name);
+        Bitmap* loadBitmap(const char* name, const char* pathName);
+        void    unloadBitmap(const char* name);
 
         bool registerWinClass(const char* className, WindowFactoryFn factoryFunction);
         bool registerDialogClass(const char* className, DialogTemplate* dialogTemplate, DialogFactoryFn factoryFunction);
@@ -219,8 +218,10 @@ namespace ui
         void loadFont(std::string name, std::string filename);
         void renderText(Renderer& renderer, std::string fontName, const IntRect& pos, int flags, Colour textColor, std::wstring text, bool ignoreEmbeddedColor = true, bool useGradient = true, float flareAmount = 0.0) const;
 
+        Window* getWindowAtXY(User* user, int x, int y);
+
     private:
-        void updateButton( ui::ButtonInputData& button, bool state, float deltaTime );
+        void updateButton(ui::ButtonInputData& button, bool state, float deltaTime);
 
         bool enableUserInput;
 

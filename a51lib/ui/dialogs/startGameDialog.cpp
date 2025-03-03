@@ -47,8 +47,6 @@ namespace ui
         bool success = false;
 
         success = Dialog::create(user, manager, dialogTemplate, position, parent, flags);
-
-        // initialize esrb text
         text = (ui::Text*)findChildById(IDC_START_GAME_TEXT);
         text->clearFlag(Window::WF_VISIBLE);
         text->setLabelColour(Colour(126, 220, 60, 255));

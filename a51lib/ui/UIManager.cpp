@@ -151,8 +151,7 @@ ui::User* ui::Manager::createUser(int controllerID, const IntRect& bounds)
         pUser->bounds = bounds;
         pUser->data = 0;
         pUser->height = 0;
-        pUser->captureWindow = 0;
-        pUser->lastWindowUnderCursor = 0;
+        pUser->lastWindowUnderCursor = nullptr;
         //pUser->highlightElement = FindElement("highlight");
         //ASSERT(pUser->iHighlightElement);
 
@@ -282,7 +281,19 @@ void ui::Manager::endDialog(bool resetCursor)
 {
     while (!userId->dialogStack.empty()) {
         Dialog* dlg = userId->dialogStack.back();
-        // TODO: deal with reseting the cursor
+        if (resetCursor) {
+            userId->cursorX = dlg->oldCursorX;
+            userId->cursorY = dlg->oldCursorY;
+        }
+
+        // Clear LastWindow under cursor if it was part of this dialog
+        if (userId->lastWindowUnderCursor) {
+            if ((userId->lastWindowUnderCursor == dlg) ||
+                (userId->lastWindowUnderCursor->isChildOf(dlg))) {
+                userId->lastWindowUnderCursor = nullptr;
+            }
+        }
+
         delete dlg;
         userId->dialogStack.pop_back();
     }
@@ -363,6 +374,39 @@ void ui::Manager::updateButton(ui::ButtonInputData& button, bool state, float de
     button.state = state;
 }
 
+ui::Window* ui::Manager::getWindowAtXY(User* user, int x, int y)
+{
+    Window* window = nullptr;
+
+    // Check if anything on dialog stack
+    if (user->dialogStack.size() > 0) {
+        int i = user->dialogStack.size() - 1;
+
+        // Yes search from topmost dialog back
+        while ((window == nullptr) && (i >= 0)) {
+            Dialog* dialog = user->dialogStack[i];
+            dialog->screenToLocal(x, y);
+            window = dialog->getWindowAtXY(x, y);
+
+            // Don't select a disabled window
+            if (window && (window->getFlags() & ui::Window::WF_DISABLED)) {
+                window = dialog;
+            }
+
+            // If modal then exit, otherwise step back to next dialog
+            if (dialog->getFlags() & ui::Window::WF_INPUTMODAL) {
+                if (window == nullptr) {
+                    window = dialog;
+                }
+                break;
+            } else {
+                i--;
+            }
+        }
+    }
+    return window;
+}
+
 bool ui::Manager::processInput(Engine* engine, float deltaTime, User* user)
 {
     bool iterate = false;
@@ -376,8 +420,6 @@ bool ui::Manager::processInput(Engine* engine, float deltaTime, User* user)
             iterate = false;
         }
 
-        // Get pointer to window to receive input
-        ui::Window* pWin = user->captureWindow;
         user->cursorX += engine->input_GetValue(InputGadget::INPUT_MOUSE_X_REL);
         user->cursorY += engine->input_GetValue(InputGadget::INPUT_MOUSE_Y_REL);
 
@@ -386,33 +428,21 @@ bool ui::Manager::processInput(Engine* engine, float deltaTime, User* user)
         user->cursorY = std::max(user->cursorY, 0);
         user->cursorY = std::min(user->cursorY, (user->bounds.getHeight() - 1));
 
-        // Determine which window cursor is now over and call appropriate EXIT/ENTER functions
-        /*
-        if( pWin == NULL )
-        {
-            //ui_win* pWindowUnderCursor = GetWindowAtXY( pUser, pUser->CursorX, pUser->CursorY );
+        Window* windowUnderCursor = getWindowAtXY(user, user->cursorX, user->cursorY);
 
-            // Has window under cursor changed?
-            if( pWindowUnderCursor != pUser->pLastWindowUnderCursor )
-            {
-                // Call exit function if there was a window under the cursor
-                if( pUser->pLastWindowUnderCursor )
-                {
-                    pUser->pLastWindowUnderCursor->OnCursorExit( pUser->pLastWindowUnderCursor );
-                }
-
-                // Set new window under cursor and call enter function
-                pUser->pLastWindowUnderCursor = pWindowUnderCursor;
-                if( pUser->pLastWindowUnderCursor )
-                {
-                    pUser->pLastWindowUnderCursor->OnCursorEnter( pUser->pLastWindowUnderCursor );
-                }
+        // Has window under cursor changed?
+        if (windowUnderCursor != user->lastWindowUnderCursor) {
+            // Call exit function if there was a window under the cursor
+            if (user->lastWindowUnderCursor) {
+                user->lastWindowUnderCursor->onCursorExit();
             }
 
-            // Set pointer to window to receive input
-            pWin = pUser->pLastWindowUnderCursor;
+            // Set new window under cursor and call enter function
+            user->lastWindowUnderCursor = windowUnderCursor;
+            if (user->lastWindowUnderCursor) {
+                user->lastWindowUnderCursor->onCursorEnter();
+            }
         }
-        */
 
         for (int i = startController; i <= endController; i++) {
 
@@ -449,28 +479,28 @@ bool ui::Manager::processInput(Engine* engine, float deltaTime, User* user)
         updateButton(user->buttonRB, engine->input_IsPressed(InputGadget::INPUT_MOUSE_BTN_R), deltaTime);
 
         // Only do this if there is a target window
-        if (pWin) {
+        if (windowUnderCursor) {
             // Issue window calls for mouse
             if ((user->lastCursorX != user->cursorX) || (user->lastCursorY != user->cursorY)) {
-                pWin->onCursorMove(user->cursorX, user->cursorY);
+                windowUnderCursor->onCursorMove(user->cursorX, user->cursorY);
             }
             if (user->buttonLB.nPresses) {
-                pWin->onLBDown();
+                windowUnderCursor->onLBDown();
             }
             if (user->buttonLB.nReleases) {
-                pWin->onLBUp();
+                windowUnderCursor->onLBUp();
             }
             if (user->buttonMB.nPresses) {
-                pWin->onMBDown();
+                windowUnderCursor->onMBDown();
             }
             if (user->buttonMB.nReleases) {
-                pWin->onMBUp();
+                windowUnderCursor->onMBUp();
             }
             if (user->buttonRB.nPresses) {
-                pWin->onRBDown();
+                windowUnderCursor->onRBDown();
             }
             if (user->buttonRB.nReleases) {
-                pWin->onRBUp();
+                windowUnderCursor->onRBUp();
             }
 
             // Sum up button presses
@@ -542,61 +572,61 @@ bool ui::Manager::processInput(Engine* engine, float deltaTime, User* user)
                     // Issue window calls for pad navigation
                     if (tdpadUp) {
                         iterate = true;
-                        pWin->onPadNavigate(Window::NavigateDir::NAV_UP, pdpadUp, rdpadUp, false, true);
+                        windowUnderCursor->onPadNavigate(Window::NavigateDir::NAV_UP, pdpadUp, rdpadUp, false, true);
                     }
 
                     if (tdpadDown) {
                         iterate = true;
-                        pWin->onPadNavigate(Window::NavigateDir::NAV_DOWN, pdpadDown, rdpadDown, false, true);
+                        windowUnderCursor->onPadNavigate(Window::NavigateDir::NAV_DOWN, pdpadDown, rdpadDown, false, true);
                     }
 
                     if (tdpadLeft) {
                         iterate = true;
-                        pWin->onPadNavigate(Window::NavigateDir::NAV_LEFT, pdpadLeft, rdpadLeft);
+                        windowUnderCursor->onPadNavigate(Window::NavigateDir::NAV_LEFT, pdpadLeft, rdpadLeft);
                     }
 
                     if (tdpadRight) {
                         iterate = true;
-                        pWin->onPadNavigate(Window::NavigateDir::NAV_RIGHT, pdpadRight, rdpadRight);
+                        windowUnderCursor->onPadNavigate(Window::NavigateDir::NAV_RIGHT, pdpadRight, rdpadRight);
                     }
 
                     // Issue window calls for pad select / back / help
                     if (!iterate && PadSelect && !endDialogCount) {
                         iterate = true;
-                        pWin->onPadSelect();
+                        windowUnderCursor->onPadSelect();
                     }
 
                     if (!iterate && PadBack && !endDialogCount) {
                         iterate = true;
-                        pWin->onPadBack();
+                        windowUnderCursor->onPadBack();
                     }
 
                     if (!iterate && PadDelete && !endDialogCount) {
                         iterate = true;
-                        pWin->onPadDelete();
+                        windowUnderCursor->onPadDelete();
                     }
 
                     if (!iterate && PadActivate && !endDialogCount) {
                         iterate = true;
-                        pWin->onPadActivate();
+                        windowUnderCursor->onPadActivate();
                     }
 
                     if (!iterate && PadHelp && !endDialogCount) {
                         iterate = true;
-                        pWin->onPadHelp();
+                        windowUnderCursor->onPadHelp();
                     }
 
                     // Issue window calls for pad shoulders
                     if (PadShoulderL && !endDialogCount) {
-                        pWin->onPadShoulder(-1);
+                        windowUnderCursor->onPadShoulder(-1);
                     } else if (PadShoulderR && !endDialogCount) {
-                        pWin->onPadShoulder(1);
+                        windowUnderCursor->onPadShoulder(1);
                     };
 
                     if (PadShoulderL2 && !endDialogCount) {
-                        pWin->onPadShoulder2(-1);
+                        windowUnderCursor->onPadShoulder2(-1);
                     } else if (PadShoulderR2 && !endDialogCount) {
-                        pWin->onPadShoulder2(1);
+                        windowUnderCursor->onPadShoulder2(1);
                     }
 
                     endDialogCount = 0;

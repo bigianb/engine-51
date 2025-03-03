@@ -59,6 +59,6 @@ void ui::BitmapControl::render(Renderer& renderer, int ox, int oy)
     }
 
     for (Window* child : children) {
-        child->render(renderer, getPositon().left + ox, getPositon().top + oy);
+        child->render(renderer, getPosition().left + ox, getPosition().top + oy);
     }
 }

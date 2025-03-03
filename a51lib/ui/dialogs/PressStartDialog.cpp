@@ -55,9 +55,9 @@ namespace ui
         logoBitmap = (ui::BitmapControl*)findChildById(IDC_A51_LOGO);
 
         logoBitmap->clearFlag(Window::WF_VISIBLE);
-        Bitmap* bitmap = manager->loadBitmap( "logo",  "UI_A51_Logo.XBMP" );
-        logoBitmap->setBitmap( bitmap );
-        
+        Bitmap* bitmap = manager->loadBitmap("logo", "UI_A51_Logo.XBMP");
+        logoBitmap->setBitmap(bitmap);
+
         text->setFlag(Window::WF_VISIBLE);
         text->setLabelColour(Colour(230, 230, 230, 255));
         gotoControl(text);
@@ -74,7 +74,18 @@ namespace ui
 
     void PressStartDialog::onUpdate(float deltaTime)
     {
+    }
 
+    void PressStartDialog::onPadSelect()
+    {
+        if (state == DialogState::Active) {
+            // set state
+            state = DialogState::Select;
+            currentControl = IDC_PRESS_START;
+
+            //g_StateMgr.CloseMovie();
+            //g_StateMgr.PlayMovie( "MenuBackground", true, true );
+        }
     }
 
     void PressStartDialog::render(Renderer& renderer, int ox, int oy)
