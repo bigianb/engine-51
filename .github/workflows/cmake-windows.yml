@@ -4,6 +4,7 @@ on: [push, pull_request]
 
 jobs:
   build:
+  # https://github.com/actions/runner-images/blob/main/images/windows/Windows2025-Readme.md
     runs-on: windows-2025
     steps:
     - uses: actions/checkout@v4
@@ -18,16 +19,9 @@ jobs:
     - name: vcpkg
       run: vcpkg install
 
-    - name: Install Qt
-      uses: jurplel/install-qt-action@v4.1.1
-      with:
-        version: 6.8.1
-        modules: qtshadertools
-    
-
     - name: Configure CMake
       run: >
-        cmake -B ${{ steps.strings.outputs.build-output-dir }}
+        cmake -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg/scripts/buildsystems/vcpkg.cmake -B ${{ steps.strings.outputs.build-output-dir }}
         -S ${{ github.workspace }}
 
     - name: Build

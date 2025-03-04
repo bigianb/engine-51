@@ -1,5 +1,5 @@
 {
   "dependencies": [
-    "sdl3", "vulkan"
+    "sdl3", "vulkan", "qt", "qtshadertools"
   ]
 }
