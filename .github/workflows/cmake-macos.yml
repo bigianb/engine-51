@@ -16,6 +16,9 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
+    - name: update
+      run: brew update
+
     - name: brew
       run: brew install sdl3 qt
 
