@@ -32,13 +32,12 @@ set(IO_SOURCES
         io/FileSystem.h
         )
 
+file(GLOB DIALOGS_INCLUDES ui/dialogs/*.h)
+file(GLOB DIALOGS_SOURCES ui/dialogs/*.cpp)
+
 set(UI_SOURCES
-        ui/dialogs/esrbDialog.cpp
-        ui/dialogs/esrbDialog.h
-        ui/dialogs/pressStartDialog.cpp
-        ui/dialogs/pressStartDialog.h
-        ui/dialogs/startGameDialog.cpp
-        ui/dialogs/startGameDialog.h
+        ${DIALOGS_INCLUDES}
+        ${DIALOGS_SOURCES}
         ui/UIBitmap.cpp
         ui/UIBitmap.h
         ui/UIControl.cpp

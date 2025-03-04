@@ -202,6 +202,9 @@ namespace ui
         Bitmap* loadBitmap(const char* name, const char* pathName);
         void    unloadBitmap(const char* name);
 
+        void loadBackground(const char* name, const char* pathName);
+        void setUserBackground(const char* name);
+        
         bool registerWinClass(const char* className, WindowFactoryFn factoryFunction);
         bool registerDialogClass(const char* className, DialogTemplate* dialogTemplate, DialogFactoryFn factoryFunction);
 

@@ -54,7 +54,7 @@ namespace ui
         text->setLabelColour(Colour(230, 230, 230, 255));
         gotoControl(text);
 
-        waitTime = 2.0f;
+        waitTime = 20.0f;
         state = DialogState::Active;
         return success;
     }
@@ -62,6 +62,13 @@ namespace ui
     void EsrbDialog::registerDialog(Manager* manager)
     {
         manager->registerDialogClass("ESRB", &Esrb_Dialog, &dlg_esrb_factory);
+    }
+
+    void EsrbDialog::onPadSelect()
+    {
+        if (state == DialogState::Active) {
+            waitTime = 0.1f;
+        }
     }
 
     void EsrbDialog::onUpdate(float deltaTime)

@@ -53,7 +53,10 @@ bool ui::Dialog::create(User*           user,
             Pos.bottom = Pos.top + (int)(pControlTem->h * manager->getScaleY());
 
             Control* pControl = (Control*)manager->createWin(user, pControlTem->clazz, Pos, this, pControlTem->flags);
-
+            if (pControl == nullptr){
+                continue;
+            }
+            
             pControl->setControlId(pControlTem->controlID);
 
             // Configure the control

@@ -3,14 +3,16 @@
 #include "../UIDialog.h"
 #include "../UIManager.h"
 #include "../UIText.h"
+#include "../UIBitmap.h"
 
 namespace ui
 {
-    class EsrbDialog : public Dialog
+
+    class MainMenuDialog : public Dialog
     {
     public:
-        EsrbDialog();
-        ~EsrbDialog();
+        MainMenuDialog();
+        ~MainMenuDialog();
 
         static void registerDialog(Manager*);
 
@@ -21,12 +23,13 @@ namespace ui
                     Window*         parent,
                     int             flags);
 
+        void render(Renderer& renderer, int ox = 0, int oy = 0) override;
+
         void onUpdate(float deltaTime) override;
 
         void onPadSelect() override;
 
     protected:
-        Text* text;
-        float waitTime;
+
     };
 }

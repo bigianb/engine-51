@@ -4,7 +4,7 @@
 #include "../VectorMath.h"
 
 #define DIALOG_TOP 24
-#define DIALOG_BOTTOM 448-72
+#define DIALOG_BOTTOM 448 - 72
 
 StateMachine::StateMachine()
 {
@@ -99,8 +99,8 @@ void StateMachine::enterESRBNotice()
 
 void StateMachine::enterPressStart()
 {
-    uiManager->endDialog( true );
-    IntRect mainarea(16, 16, 512-16, 448-16);
+    uiManager->endDialog(true);
+    IntRect mainarea(16, 16, 512 - 16, 448 - 16);
     currentDialog = uiManager->openDialog("press start", mainarea, nullptr, ui::Window::WF_VISIBLE);
     //g_UiMgr->SetUserBackground( g_UiUserID, "" );
 }
@@ -131,17 +131,18 @@ void StateMachine::updateESRBNotice()
 
 void StateMachine::exitESRBNotice()
 {
-    //uiManager->endDialog( g_UiUserID, TRUE );
 }
 
 void StateMachine::enterMainMenu()
 {
     // Should play movie MenuBackground instead of the background.
-    //uiManager->loadBackground ( "background1", "A51Background.XBMP" );
-    IntRect mainarea(136, DIALOG_TOP, 376, DIALOG_BOTTOM );
+    uiManager->loadBackground ( "background1", "A51Background.XBMP" );
+    uiManager->endDialog(true);
+
+    IntRect mainarea(136, DIALOG_TOP, 376, DIALOG_BOTTOM);
     currentDialog = uiManager->openDialog("main menu", mainarea, nullptr, ui::Window::WF_VISIBLE | ui::Window::WF_BORDER);
     // If playing movie, don't set the background.
-    //uiManager->setUserBackground( "background1" );
+    uiManager->setUserBackground( "background1" );
 }
 
 void StateMachine::updateMainMenu()

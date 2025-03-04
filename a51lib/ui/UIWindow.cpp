@@ -7,10 +7,10 @@ ui::Window::~Window()
 
 void ui::Window::destroy()
 {
-    for (Window* child : children) {
-        delete child;
+    // child destructor will remove it from the child list.
+    while(children.size() > 0){
+        delete children[0];
     }
-    children.clear();
     if (parent) {
         parent->removeChild(this);
         parent = nullptr;

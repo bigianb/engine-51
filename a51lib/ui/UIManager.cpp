@@ -7,6 +7,7 @@
 #include "../system/Renderer.h"
 #include "../VectorMath.h"
 #include "dialogs/esrbDialog.h"
+#include "dialogs/mainMenuDialog.h"
 #include "dialogs/pressStartDialog.h"
 #include "dialogs/startGameDialog.h"
 #include "UIText.h"
@@ -32,6 +33,7 @@ void ui::Manager::init(Renderer& renderer, ResourceManager* rm)
     EsrbDialog::registerDialog(this);
     PressStartDialog::registerDialog(this);
     StartGameDialog::registerDialog(this);
+    MainMenuDialog::registerDialog(this);
 
     loadElement(rm, "frame", "UI_frame1.xbmp", 2, 3, 3);
     loadElement(rm, "frame2", "UI_frame2.xbmp", 1, 3, 3);
@@ -137,6 +139,16 @@ void ui::Manager::unloadBitmap(const char* name)
         bitmapResource.destroy();
         bitmaps.erase(name);
     }
+}
+
+void ui::Manager::loadBackground(const char* name, const char* pathName)
+{
+
+}
+
+void ui::Manager::setUserBackground(const char* name)
+{
+    
 }
 
 ui::User* ui::Manager::createUser(int controllerID, const IntRect& bounds)
