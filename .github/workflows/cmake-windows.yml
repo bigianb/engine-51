@@ -19,6 +19,12 @@ jobs:
     - name: vcpkg
       run: vcpkg install
 
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4.1.1
+      with:
+        version: 6.8.1
+        modules: qtshadertools
+        
     - name: Configure CMake
       run: >
         cmake -DCMAKE_TOOLCHAIN_FILE=c:\vcpkg/scripts/buildsystems/vcpkg.cmake -B ${{ steps.strings.outputs.build-output-dir }}
