@@ -20,7 +20,7 @@ jobs:
       run: sudo apt-get update
 
     - name: deps
-      run: sudo apt-get install -y qt6-base-dev qt6-shadertools vulkan vulkan-loader vulkan-tools
+      run: sudo apt-get install -y qt6-base-dev qt6-base-dev-tools libvulkan-dev vulkan-tools vulkan-utility-libraries-dev vulkan-validationlayers
 
     - name: Install SDL3
       uses: libsdl-org/setup-sdl@main
