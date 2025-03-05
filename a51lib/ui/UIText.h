@@ -15,9 +15,14 @@ namespace ui
             return control;
         }
 
-        Text() : useSmallText(false) {}
+        Text()
+            : useSmallText(false)
+        {
+        }
 
         void render(Renderer& renderer, int ox = 0, int oy = 0);
+
+        void setUseSmallText() { useSmallText = true; }
 
     private:
         bool useSmallText;

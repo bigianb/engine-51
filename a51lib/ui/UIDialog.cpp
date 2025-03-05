@@ -34,7 +34,7 @@ bool ui::Dialog::create(User*           user,
     }
 
     if (dialogTemplate) {
-        setLabel(manager->lookupString( "ui", dialogTemplate->stringID ));
+        setLabel(manager->lookupString("ui", dialogTemplate->stringID));
     }
 
     this->dialogTemplate = dialogTemplate;
@@ -53,14 +53,14 @@ bool ui::Dialog::create(User*           user,
             Pos.bottom = Pos.top + (int)(pControlTem->h * manager->getScaleY());
 
             Control* pControl = (Control*)manager->createWin(user, pControlTem->clazz, Pos, this, pControlTem->flags);
-            if (pControl == nullptr){
+            if (pControl == nullptr) {
                 continue;
             }
-            
+
             pControl->setControlId(pControlTem->controlID);
 
             // Configure the control
-            pControl->setLabel( manager->lookupString( "ui", pControlTem->stringID ) );
+            pControl->setLabel(manager->lookupString("ui", pControlTem->stringID));
 
             /*
             if( strcmp( pControlTem->clazz, "edit" ) == 0 )
@@ -83,6 +83,30 @@ bool ui::Dialog::create(User*           user,
     }
 
     return success;
+}
+
+ui::Control* ui::Dialog::gotoControl(int controlId)
+{
+    Control* control = nullptr;
+    if (controlId < children.size()) {
+        Window* child = children[controlId];
+
+        if (child->enabled() && child->isDynamic()) {
+            /*
+            int x = child->getWidth() / 2;
+            int y = child->getHeight() / 2;
+            child->LocalToScreen(x, y);
+            m_pManager->SetCursorPos(m_UserID, x, y);
+            */
+            control = (Control*)child;
+            const IntRect& r = control->getNavPos();
+            navX = r.left + r.getWidth() / 2;
+            navY = r.top + r.getHeight() / 2;
+
+            currentControl = controlId;
+        }
+    }
+    return control;
 }
 
 bool ui::Dialog::gotoControl(ui::Control* control)
@@ -129,7 +153,7 @@ void ui::Dialog::render(Renderer& renderer, int ox, int oy)
         return;
     }
 
-    // manager->RenderScreenHighlight();
+    getUIManger()->renderScreenHighlight(renderer);
 
     for (auto child : children) {
         child->render(renderer, position.left + ox, position.top + oy);

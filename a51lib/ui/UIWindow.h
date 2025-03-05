@@ -70,7 +70,9 @@ namespace ui
 
         bool visible() const { return (flags & WF_VISIBLE) == WF_VISIBLE; }
         bool disabled() const { return (flags & WF_DISABLED) == WF_DISABLED; }
+        bool enabled() const { return !disabled(); }
         bool isStatic() const { return (flags & WF_STATIC) == WF_STATIC; }
+        bool isDynamic() const { return !isStatic(); }
         bool highlighted() const { return (flags & WF_HIGHLIGHT) == WF_HIGHLIGHT; }
         bool selected() const { return (flags & WF_SELECTED) == WF_SELECTED; }
         bool isRenderModel() const { return (flags & WF_RENDERMODAL) == WF_RENDERMODAL; }
@@ -96,6 +98,7 @@ namespace ui
 
         void          setLabelColour(const Colour& c) { labelColor = c; }
         const Colour& getLabelColour() const { return labelColor; }
+        void setLabelFlags(unsigned int newFlags) { labelFlags = newFlags; }
 
         virtual void onUpdate(float deltaTime);
         virtual void onNotify(Window* sender, int command, void* data);

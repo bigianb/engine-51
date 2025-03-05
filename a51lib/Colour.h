@@ -9,6 +9,11 @@ public:
     Colour() : r(255), b(255), g(255), a(255) {}
     Colour(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255) : r(red), b(blue), g(green), a(alpha) {}
 
+    bool operator==(const Colour &other) const
+    {
+        return b == other.b && g == other.g && r == other.r && a == other.a;
+    }
+
     void clear(){
         b = g = r = a = 0;
     }

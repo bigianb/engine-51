@@ -25,6 +25,7 @@ void ui::Manager::init(Renderer& renderer, ResourceManager* rm)
 
     renderer.getRes(width, height);
     IntRect r(0, 0, width, height);
+    setScreenSize(r);
     userId = createUser(-1, r);
     enableUser(userId, false);
 
@@ -37,9 +38,29 @@ void ui::Manager::init(Renderer& renderer, ResourceManager* rm)
     StartGameDialog::registerDialog(this);
     MainMenuDialog::registerDialog(this);
 
-    loadElement(rm, "frame", "UI_frame1.xbmp", 2, 3, 3);
-    loadElement(rm, "frame2", "UI_frame2.xbmp", 1, 3, 3);
-    loadElement(rm, "glow", "UI_barglow.xbmp", 1, 1, 1);
+    loadElement(rm, "frame", "UI_frame1.XBMP", 2, 3, 3);
+    loadElement(rm, "frame2", "UI_frame2.XBMP", 1, 3, 3);
+    loadElement(rm, "glow", "UI_barglow.XBMP", 1, 1, 1);
+    loadElement(rm, "highlight", "UI_highlight.XBMP", 1, 3, 3);
+    loadElement(rm, "screenglow", "UI_screenglow.XBMP", 1, 3, 3);
+
+    loadElement(rm, "button", "UI_uibutton.XBMP", 5, 3, 1);
+
+    loadElement(rm, "button_check", "UI_checkbox.XBMP", 5, 1, 1);
+
+    loadElement(rm, "sb_frame", "UI_frame2.XBMP", 1, 3, 3);
+    loadElement(rm, "sb_arrowdown", "UI_downarrow.XBMP", 5, 1, 1);
+    loadElement(rm, "sb_arrowup", "UI_uparrow.XBMP", 5, 1, 1);
+    loadElement(rm, "sb_container", "UI_container.XBMP", 5, 3, 3);
+    loadElement(rm, "sb_thumb", "UI_thumb.XBMP", 5, 1, 3);
+
+    loadElement(rm, "slider_bar", "UI_slidercontainer.XBMP", 1, 3, 1);
+    loadElement(rm, "slider_thumb", "UI_sliderthumb.XBMP", 5, 1, 1);
+
+    loadElement(rm, "button_combo1", "UI_combobox.XBMP", 5, 3, 1);
+    loadElement(rm, "button_combo2", "UI_combobox_128.XBMP", 1, 3, 1);
+
+    loadElement(rm, "button_edit", "UI_editbox.XBMP", 5, 3, 1);
 
     rm->loadStringTable("ui", "ENG_ui_strings.stringbin");
     rm->loadStringTable("scan", "ENG_character_scan_strings.stringbin");
@@ -50,16 +71,17 @@ void ui::Manager::init(Renderer& renderer, ResourceManager* rm)
     loadFont("hudnum", "UI_A51FontHUD");
     loadFont("loadscr", "UI_A51FontLoadscr");
 
-    Button::setTextColorNormal       (Colour(126,220,60,255));   
-    Button::setTextColorHightlight   (Colour(255,252,204,255));
-    Button::setTextColorDisabled     (COLOR_GREY);
-    Button::setTextColorShadow       (Colour(0,0,0,0));
+    Button::setTextColorNormal(Colour(126, 220, 60, 255));
+    Button::setTextColorHightlight(Colour(255, 252, 204, 255));
+    Button::setTextColorDisabled(COLOR_GREY);
+    Button::setTextColorShadow(Colour(0, 0, 0, 0));
 
     //Dialog::setTextColorNormal       (Colour(255,252,204,255));
     //Dialog::setTextColorShadow       (COLOR_BLACK);
 
-
     enableUserInput = true;
+    enableBackground = false;
+    initScreenHighlight();
 }
 
 void ui::Manager::loadFont(std::string name, std::string filename)
@@ -101,21 +123,19 @@ int ui::Manager::loadElement(ResourceManager* rm, const char* name, const char* 
     element->bitmap.setName(pathName);
     Bitmap* bitmap = element->bitmap.getPointer();
 
-    /*
-    // TODO: figure out the registrations
     if ((nStates > 0) && (cx > 0) && (cy > 0)) {
-        //RegColor = pBitmap->getPixelColor( 0, 0 );
+        Colour RegColor = bitmap->getPixelColor(0, 0);
 
         // Find the registration markers
         x.reserve(cx + 1);
         y.reserve((cy * nStates) + 1);
-        for (int i = 0; i < pBitmap->GetWidth(); i++) {
-            if (pBitmap->GetPixelColor(i, 0) == RegColor) {
+        for (int i = 0; i < bitmap->getWidth(); i++) {
+            if (bitmap->getPixelColor(i, 0) == RegColor) {
                 x.push_back(i);
             }
         }
-        for (int i = 0; i < pBitmap->GetHeight(); i++) {
-            if (pBitmap->GetPixelColor(0, i) == RegColor) {
+        for (int i = 0; i < bitmap->getHeight(); i++) {
+            if (bitmap->getPixelColor(0, i) == RegColor) {
                 y.push_back(i);
             }
         }
@@ -127,7 +147,6 @@ int ui::Manager::loadElement(ResourceManager* rm, const char* name, const char* 
             }
         }
     }
-    */
 
     elements.push_back(element);
     return elements.size() - 1;
@@ -152,14 +171,29 @@ void ui::Manager::unloadBitmap(const char* name)
     }
 }
 
-void ui::Manager::loadBackground(const char* name, const char* pathName)
+Bitmap* ui::Manager::loadBackground(const char* name, const char* pathName)
 {
+    if (!backgrounds.contains(name)) {
+        backgrounds[name] = ResourceHandle<Bitmap>(resourceManager);
+        ResourceHandle<Bitmap>& bitmapResource = backgrounds[name];
+        bitmapResource.setName(pathName);
+    }
+    return backgrounds[name].getPointer();
+}
 
+void ui::Manager::unloadBackground(const char* name)
+{
+    if (backgrounds.contains(name)) {
+        ResourceHandle<Bitmap>& bitmapResource = backgrounds[name];
+        bitmapResource.destroy();
+        backgrounds.erase(name);
+    }
 }
 
 void ui::Manager::setUserBackground(const char* name)
 {
-    
+    enableBackground = true;
+    userId->background = name;
 }
 
 ui::User* ui::Manager::createUser(int controllerID, const IntRect& bounds)
@@ -260,7 +294,7 @@ ui::Dialog* ui::Manager::openDialog(std::string className, IntRect position, ui:
     const DialogClass* dlgClass = dialogClasses[className];
 
     if (flags & Window::WF_DLG_CENTER) {
-        /*
+        /* TODO: Implement
         IntRect b = GetUserBounds( UserID );
 
         if (b.GetWidth() > position.GetWidth())
@@ -713,7 +747,7 @@ void ui::Manager::render(Renderer& renderer)
 {
     for (User* user : users) {
         if (user->enabled) {
-            //RenderBackground( user->background );
+            renderBackground(renderer, user->background);
             int dlgNo = user->dialogStack.size() - 1;
             // Find top modal dialog
             while (dlgNo > 0 && !user->dialogStack[dlgNo]->isRenderModel()) {
@@ -746,4 +780,123 @@ void ui::Manager::renderText(Renderer& renderer, std::string fontName, const Int
     }
     const Font* font = fontMap.at(fontName);
     font->renderText(renderer, pos, flags, textColor, text.c_str(), ignoreEmbeddedColor, useGradient, flareAmount);
+}
+
+void ui::Manager::renderBackground(Renderer& renderer, std::string name)
+{
+    IntRect r(0, 0, width, height);
+    if (!enableBackground) {
+        renderer.renderRect(r, COLOR_BLACK, false);
+        return;
+    }
+    if (!backgrounds.contains(name)) {
+        return;
+    }
+
+    const Bitmap* bitmap = backgrounds[name].getPointer();
+    if (bitmap == nullptr) {
+        return;
+    }
+
+    renderer.drawBegin(Renderer::Primitive::DRAW_TRIANGLES, DRAW_2D | DRAW_TEXTURED | DRAW_NO_ZBUFFER | DRAW_UV_CLAMP);
+    renderer.setTexture(backgrounds[name].getPointer());
+    renderer.drawVertex(r.left, r.top, 0.0f, 0, 0);
+    renderer.drawVertex(r.right, r.top, 0.0f, 1.0, 0);
+    renderer.drawVertex(r.left, r.bottom, 0.0f, 0, 1.0);
+
+    renderer.drawVertex(r.left, r.bottom, 0.0f, 0, 1.0);
+    renderer.drawVertex(r.right, r.bottom, 0.0f, 1.0, 1.0);
+    renderer.drawVertex(r.right, r.top, 0.0f, 1.0, 0);
+
+    renderer.drawEnd();
+}
+
+void ui::Manager::renderElement(Renderer& renderer, int iElement, const IntRect& Position, int State, const Colour& Color, bool IsAdditive) const
+{
+    if (iElement < 0 || iElement >= elements.size()) {
+        return;
+    }
+    const Element* element = elements[iElement];
+    const Bitmap*  bitmap = element->bitmap.getPointer();
+    if (bitmap == nullptr) {
+        return;
+    }
+
+    /*
+    if( IsAdditive )
+    {
+        renderer.SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA );
+        renderer.SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );
+    }
+    */
+
+    renderer.drawBegin(Renderer::Primitive::DRAW_TRIANGLES, DRAW_2D | DRAW_TEXTURED | DRAW_USE_ALPHA | DRAW_NO_ZBUFFER);
+
+    int     ie = State * (element->cx * element->cy);
+    Vector2 p(0.0, Position.top);
+    Vector2 wh;
+    for (int iy = 0; iy < element->cy; iy++) {
+        // Reset x position
+        p.x = Position.left;
+
+        // Set Height
+        if ((element->cy == 3) && (iy == 1)) {
+            wh.y = Position.getHeight() - (element->r[2 * element->cx].getHeight() + element->r[0].getHeight());
+        } else {
+            wh.y = element->r[ie].getHeight();
+        }
+
+        // Loop on x
+        for (int ix = 0; ix < element->cx; ix++) {
+            Vector2 uv0, uv1;
+            uv0.x = (element->r[ie].left + 0.0f) / bitmap->getWidth();
+            uv0.y = (element->r[ie].top + 0.0f) / bitmap->getHeight();
+            uv1.x = (element->r[ie].right - 0.0f) / bitmap->getWidth();
+            uv1.y = (element->r[ie].bottom - 0.0f) / bitmap->getHeight();
+
+            if ((element->cx == 3) && (ix == 1)) {
+                wh.x = Position.getWidth() - (element->r[2].getWidth() + element->r[0].getWidth());
+            } else {
+                wh.x = element->r[ie].getWidth();
+            }
+            // TODO: renderer.draw_SpriteUV( Vector3( p.x, p.y, 0.0f ), wh, uv0, uv1, Color );
+            p.x += wh.x;
+            ie++;
+        }
+        p.y += wh.y;
+    }
+    renderer.drawEnd();
+}
+
+void ui::Manager::setScreenSize(const IntRect& size)
+{
+    m_CurrScreenSize = size;
+    m_GlowStartX = m_CurrScreenSize.left + 46;
+    m_GlowEndX = m_CurrScreenSize.right - 46 - 16;
+}
+
+void ui::Manager::initScreenHighlight()
+{
+    m_ScreenHighlightID = findElement("highlight");
+    m_ScreenGlowID = findElement("screenglow");
+    m_HighlightAlpha = 0;
+    m_ScreenHighlightEnabled = false;
+    m_HighlightFadeUp = true;
+    m_CycleFadeUp = true;
+}
+
+void ui::Manager::setScreenHighlight(const IntRect& pos)
+{
+    m_ScreenHighlightPos.top = m_CurrScreenSize.top + pos.top - 12;
+    m_ScreenHighlightPos.bottom = m_CurrScreenSize.top + pos.bottom + 12;
+    m_ScreenHighlightPos.left = m_CurrScreenSize.left + 22;
+    m_ScreenHighlightPos.right = m_CurrScreenSize.right - 22;
+
+    m_ScreenHighlightEnabled = true;
+}
+
+void ui::Manager::renderScreenHighlight(Renderer& renderer)
+{
+    int val = 64 + (m_HighlightAlpha * 1);
+    renderElement(renderer, m_ScreenHighlightID, m_ScreenHighlightPos, 0, Colour(val, val, val, val), true);
 }

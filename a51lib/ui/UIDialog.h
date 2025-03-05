@@ -13,11 +13,7 @@ namespace ui
     public:
         virtual void render(Renderer& renderer, int ox = 0, int oy = 0);
 
-        Control* gotoControl(int controlId = 0)
-        {
-            // TODO
-            return nullptr;
-        }
+        Control* gotoControl(int controlId);
 
         bool gotoControl(ui::Control* control);
 

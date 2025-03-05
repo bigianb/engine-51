@@ -1,4 +1,6 @@
 #include "mainMenuDialog.h"
+#include "../UIButton.h"
+#include "../UIFont.h"
 
 namespace ui
 {
@@ -66,15 +68,15 @@ namespace ui
         bool success = false;
         success = Dialog::create(user, manager, dialogTemplate, position, parent, flags);
 
-        //ui::Button* buttonCampaign = (ui::Button*)findChildById(IDC_MAIN_MENU_CAMPAIGN);
-        
-        //gotoControl(buttonCampaign);
+        ui::Button* buttonCampaign = (ui::Button*)findChildById(IDC_MAIN_MENU_CAMPAIGN);
+        gotoControl(buttonCampaign);
 
         ui::Text* navText   = (ui::Text*)findChildById( IDC_MAIN_MENU_NAV_TEXT);
         std::wstring wNavText = manager->lookupString("ui", "IDS_NAV_SELECT");
         navText->setLabel(wNavText);
-        //navText->setLabelFlags(ui_font::h_center|ui_font::v_top|ui_font::is_help_text);
-        //navText->useSmallText(true);
+        navText->setLabelFlags(Font::h_center|Font::v_top|Font::is_help_text);
+        navText->setUseSmallText();
+
         state = DialogState::Active;
         return success;
     }
@@ -87,6 +89,11 @@ namespace ui
 
     void MainMenuDialog::onUpdate(float deltaTime)
     {
+        Control* control = gotoControl( currentControl );
+        if (control){
+            control->setFlag(WF_HIGHLIGHT);
+            getUIManger()->setScreenHighlight(control->getPosition() );
+        }
     }
 
     void MainMenuDialog::onPadSelect()

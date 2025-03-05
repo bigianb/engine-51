@@ -202,9 +202,10 @@ namespace ui
         Bitmap* loadBitmap(const char* name, const char* pathName);
         void    unloadBitmap(const char* name);
 
-        void loadBackground(const char* name, const char* pathName);
-        void setUserBackground(const char* name);
-        
+        Bitmap* loadBackground(const char* name, const char* pathName);
+        void    unloadBackground(const char* name);
+        void    setUserBackground(const char* name);
+
         bool registerWinClass(const char* className, WindowFactoryFn factoryFunction);
         bool registerDialogClass(const char* className, DialogTemplate* dialogTemplate, DialogFactoryFn factoryFunction);
 
@@ -219,14 +220,47 @@ namespace ui
         std::wstring lookupString(std::string tablename, const char* id);
 
         void loadFont(std::string name, std::string filename);
-        void renderText(Renderer& renderer, std::string fontName, const IntRect& pos, int flags, Colour textColor, std::wstring text, bool ignoreEmbeddedColor = true, bool useGradient = true, float flareAmount = 0.0) const;
 
         Window* getWindowAtXY(User* user, int x, int y);
+
+        void getScreenSize(IntRect& size) { size = m_CurrScreenSize; }
+        void setScreenSize(const IntRect& size);
+
+        // highlight
+        void initScreenHighlight();
+        void setScreenHighlight(const IntRect& pos);
+        void renderScreenHighlight(Renderer& renderer);
+
+        // render helpers
+        void renderText(Renderer& renderer, std::string fontName, const IntRect& pos, int flags, Colour textColor, std::wstring text, bool ignoreEmbeddedColor = true, bool useGradient = true, float flareAmount = 0.0) const;
+        void renderBackground(Renderer& renderer, std::string name);
+        void renderElement(Renderer& renderer, int iElement, const IntRect& Position, int State, const Colour& Color, bool IsAdditive ) const;
 
     private:
         void updateButton(ui::ButtonInputData& button, bool state, float deltaTime);
 
         bool enableUserInput;
+
+        bool enableBackground;
+
+        IntRect m_CurrScreenSize;
+
+        // highlight
+        int     m_ScreenHighlightID;
+        int     m_ScreenGlowID;
+        IntRect m_ScreenHighlightPos;
+        bool    m_ScreenHighlightEnabled;
+        int     m_HighlightAlpha;
+        bool    m_HighlightFadeUp;
+        bool    m_CycleFadeUp;
+
+        int     m_GlowID;
+        int     m_GlowStartX;
+        int     m_GlowEndX;
+        float   m_GlowSpeed;
+        IntRect m_GlowPos;
+        IntRect m_GlowTrail[8];
+        bool    m_GlowOnTop;
 
         // maybe better in the engine object
         int uiLastSelectController;
@@ -253,6 +287,7 @@ namespace ui
         std::map<std::string, Font*> fontMap;
 
         std::map<std::string, ResourceHandle<Bitmap>> bitmaps;
+        std::map<std::string, ResourceHandle<Bitmap>> backgrounds;
 
         User* userId;
     };
