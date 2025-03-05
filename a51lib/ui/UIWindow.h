@@ -134,14 +134,15 @@ namespace ui
         std::wstring label;
         unsigned int labelFlags;
         Colour       labelColor;
-
+        int flags;
+        
     private:
         Manager* manager;
         User*    user;
 
         Window* parent;
 
-        int flags;
+        
 
         int     id;
         IntRect createPosition;

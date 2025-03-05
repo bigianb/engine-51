@@ -24,7 +24,11 @@
 struct Vector2
 {
     Vector2() {}
-    Vector2(float xx, float yy) : x(xx), y(yy) {}
+    Vector2(float xx, float yy)
+        : x(xx)
+        , y(yy)
+    {
+    }
     float x, y;
 };
 
@@ -150,5 +154,13 @@ public:
     int getHeight() const
     {
         return bottom - top;
+    }
+
+    void translate(int dx, int dy)
+    {
+        left += dx;
+        right += dx;
+        top += dy;
+        bottom += dy;
     }
 };

@@ -34,24 +34,14 @@ set(IO_SOURCES
 
 file(GLOB DIALOGS_INCLUDES ui/dialogs/*.h)
 file(GLOB DIALOGS_SOURCES ui/dialogs/*.cpp)
+file(GLOB UI_INCLUDES ui/*.h)
+file(GLOB UI_SOURCES ui/*.cpp)
 
-set(UI_SOURCES
+set(UI_FILES
         ${DIALOGS_INCLUDES}
         ${DIALOGS_SOURCES}
-        ui/UIBitmap.cpp
-        ui/UIBitmap.h
-        ui/UIControl.cpp
-        ui/UIControl.h
-        ui/UIDialog.cpp
-        ui/UIDialog.h
-        ui/UIFont.cpp
-        ui/UIFont.h
-        ui/UIManager.cpp
-        ui/UIManager.h
-        ui/UIText.cpp
-        ui/UIText.h
-        ui/UIWindow.cpp
-        ui/UIWindow.h
+        ${UI_INCLUDES}
+        ${UI_SOURCES}
         )
 
 set(STATE_SOURCES
@@ -103,7 +93,7 @@ target_sources(a51lib PRIVATE
         ${LEVELS_SOURCES}
         ${IO_SOURCES}
         ${RESOURCE_MGR_SOURCES}
-        ${UI_SOURCES}
+        ${UI_FILES}
         ${STATE_SOURCES}
         ${STRING_SOURCES}
 )

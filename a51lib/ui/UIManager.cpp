@@ -10,6 +10,7 @@
 #include "dialogs/mainMenuDialog.h"
 #include "dialogs/pressStartDialog.h"
 #include "dialogs/startGameDialog.h"
+#include "UIButton.h"
 #include "UIText.h"
 #include "UIFont.h"
 
@@ -29,6 +30,7 @@ void ui::Manager::init(Renderer& renderer, ResourceManager* rm)
 
     registerWinClass("text", &ui::Text::factory);
     registerWinClass("bitmap", &ui::BitmapControl::factory);
+    registerWinClass("button", &ui::Button::factory);
 
     EsrbDialog::registerDialog(this);
     PressStartDialog::registerDialog(this);
@@ -47,6 +49,15 @@ void ui::Manager::init(Renderer& renderer, ResourceManager* rm)
     loadFont("small", "UI_A51FontLegal");
     loadFont("hudnum", "UI_A51FontHUD");
     loadFont("loadscr", "UI_A51FontLoadscr");
+
+    Button::setTextColorNormal       (Colour(126,220,60,255));   
+    Button::setTextColorHightlight   (Colour(255,252,204,255));
+    Button::setTextColorDisabled     (COLOR_GREY);
+    Button::setTextColorShadow       (Colour(0,0,0,0));
+
+    //Dialog::setTextColorNormal       (Colour(255,252,204,255));
+    //Dialog::setTextColorShadow       (COLOR_BLACK);
+
 
     enableUserInput = true;
 }
