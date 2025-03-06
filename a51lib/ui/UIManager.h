@@ -171,6 +171,15 @@ namespace ui
     class Manager
     {
     public:
+        enum ControlState
+        {
+            CS_NORMAL = 0,
+            CS_HIGHLIGHT,
+            CS_SELECTED,
+            CS_HIGHLIGHT_SELECTED,
+            CS_DISABLED
+        };
+
         Manager()
             : width(1)
             , height(1)
@@ -231,10 +240,16 @@ namespace ui
         void setScreenHighlight(const IntRect& pos);
         void renderScreenHighlight(Renderer& renderer);
 
+        // Glow bar
+        void initGlowBar();
+        void renderGlowBar(Renderer&);
+        void updateGlowBar(float deltaTime);
+        void getGlowBarPos(IntRect& pos) { pos = m_GlowPos; }
+
         // render helpers
         void renderText(Renderer& renderer, std::string fontName, const IntRect& pos, int flags, Colour textColor, std::wstring text, bool ignoreEmbeddedColor = true, bool useGradient = true, float flareAmount = 0.0) const;
         void renderBackground(Renderer& renderer, std::string name);
-        void renderElement(Renderer& renderer, int iElement, const IntRect& Position, int State, const Colour& Color, bool IsAdditive ) const;
+        void renderElement(Renderer& renderer, int iElement, const IntRect& position, int state, const Colour& color = COLOR_WHITE, bool isAdditive = false) const;
 
     private:
         void updateButton(ui::ButtonInputData& button, bool state, float deltaTime);

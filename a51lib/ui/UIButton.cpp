@@ -1,5 +1,9 @@
 #include "UIButton.h"
 #include "UIFont.h"
+#include "../Colour.h"
+#include "../system/Renderer.h"
+
+#include <cassert>
 
 namespace ui
 {
@@ -20,74 +24,75 @@ namespace ui
             return;
         }
 
-        //int     State = ui_manager::CS_NORMAL;
-
         Colour TextColor1 = m_TextColorNormal;
         Colour TextColor2 = m_TextColorShadow;
 
         // Calculate rectangle
         IntRect r((position.left + ox), (position.top + oy), (position.right + ox), (position.bottom + oy));
 
-        // Render appropriate state
+        int state = Manager::CS_NORMAL;
         if (disabled()) {
-            // state = ui_manager::CS_DISABLED;
+            state = Manager::CS_DISABLED;
             TextColor1 = m_TextColorDisabled;
             TextColor2 = Colour(0, 0, 0, 0);
         } else if ((flags & (WF_HIGHLIGHT | WF_SELECTED)) == WF_HIGHLIGHT) {
-            //State = ui_manager::CS_HIGHLIGHT;
+            state = Manager::CS_HIGHLIGHT;
             TextColor1 = m_TextColorHighlight;
             TextColor2 = m_TextColorShadow;
         } else if ((flags & (WF_HIGHLIGHT | WF_SELECTED)) == WF_SELECTED) {
-            //State = ui_manager::CS_SELECTED;
+            state = Manager::CS_SELECTED;
             TextColor1 = m_TextColorHighlight;
             TextColor2 = m_TextColorShadow;
         } else if ((flags & (WF_HIGHLIGHT | WF_SELECTED)) == (WF_HIGHLIGHT | WF_SELECTED)) {
-            //State = ui_manager::CS_HIGHLIGHT_SELECTED;
+            state = Manager::CS_HIGHLIGHT_SELECTED;
             TextColor1 = m_TextColorHighlight;
             TextColor2 = m_TextColorShadow;
         } else {
-            //State = ui_manager::CS_NORMAL;
+            state = Manager::CS_NORMAL;
             TextColor1 = m_TextColorNormal;
             TextColor2 = m_TextColorShadow;
         }
-        /*
-                // check to see if we should render the button artwork
-                if (flags & WF_BORDER) {
-                    m_pManager->RenderElement(m_iElement, r, State);
 
-                    // Add Highlight to list
-                    if (flags & WF_HIGHLIGHT) {
-                        m_pManager->AddHighlight(m_UserID, r);
-                    }
-                } else if (m_useSmallText) {
-                    if (flags & WF_HIGHLIGHT) {
-                        TextColor1 = Colour(0, 0, 0, 255);
-                        TextColor2 = Colour(0, 0, 0, 0);
+        // check to see if we should render the button artwork
+        if (flags & WF_BORDER) {
+            getUIManger()->renderElement(renderer, m_iElement, r, state);
 
-                        s32 alpha = 128 + (g_UiMgr->GetHighlightAlpha(8) * 8); // 64<->192
-                        m_pManager->RenderRect(r, Colour(79, 214, 60, alpha), false);
-                    }
-                } else {
-                    if (m_BitmapID != -1) {
-                        if (flags & WF_HIGHLIGHT) {
-                            IntRect r2 = r;
-                            r2.top -= 2;
-                            r2.left -= 2;
-                            r2.bottom += 2;
-                            r2.right += 2;
+            // Add Highlight to list
+            if (flags & WF_HIGHLIGHT) {
+                //getUIManger()->addHighlight(m_UserID, r);
+            }
+        } else if (m_useSmallText) {
+            if (flags & WF_HIGHLIGHT) {
+                TextColor1 = Colour(0, 0, 0, 255);
+                TextColor2 = Colour(0, 0, 0, 0);
 
-                            m_pManager->RenderRect(r2, TextColor1, false);
-                        }
+                int alpha = 128; // + (getUIManger()->getHighlightAlpha(8) * 8); // 64<->192
+                renderer.renderRect(r, Colour(79, 214, 60, alpha), false);
+            }
+        } else {
+            if (m_BitmapID != -1) {
+                assert(false);
+                /* Don't think this ever happens
+                if (flags & WF_HIGHLIGHT) {
+                    IntRect r2 = r;
+                    r2.top -= 2;
+                    r2.left -= 2;
+                    r2.bottom += 2;
+                    r2.right += 2;
 
-                        // render the button bitmap
-                        if (m_useNativeColor) {
-                            m_pManager->RenderBitmap(m_BitmapID, r, COLOR_WHITE);
-                        } else {
-                            m_pManager->RenderBitmap(m_BitmapID, r, TextColor1);
-                        }
-                    }
+                    renderer.renderRect(r2, TextColor1, false);
                 }
-        */
+
+                // render the button bitmap
+                if (m_useNativeColor) {
+                    renderer.renderBitmap(m_BitmapID, r, COLOR_WHITE);
+                } else {
+                    renderer.renderBitmap(m_BitmapID, r, TextColor1);
+                }
+                    */
+            }
+        }
+
         // Render Text
         int justFlags = 0;
         if (flags & WF_BUTTON_LEFT) {

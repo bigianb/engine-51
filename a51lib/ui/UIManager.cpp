@@ -82,6 +82,7 @@ void ui::Manager::init(Renderer& renderer, ResourceManager* rm)
     enableUserInput = true;
     enableBackground = false;
     initScreenHighlight();
+    initGlowBar();
 }
 
 void ui::Manager::loadFont(std::string name, std::string filename)
@@ -899,4 +900,79 @@ void ui::Manager::renderScreenHighlight(Renderer& renderer)
 {
     int val = 64 + (m_HighlightAlpha * 1);
     renderElement(renderer, m_ScreenHighlightID, m_ScreenHighlightPos, 0, Colour(val, val, val, val), true);
+}
+
+void ui::Manager::initGlowBar()
+{
+    m_GlowID = findElement("glow");
+
+    m_GlowStartX = m_CurrScreenSize.left + 46;
+    m_GlowEndX = m_CurrScreenSize.right - 46 - 16;
+
+    m_GlowPos.left = m_GlowStartX;
+    m_GlowPos.top = m_CurrScreenSize.top;
+    m_GlowPos.right = 16;
+    m_GlowPos.bottom = 7;
+
+    m_GlowSpeed = 120;
+    m_GlowOnTop = true;
+
+    // initialize trail
+    for (int i = 0; i < 8; i++) {
+        m_GlowTrail[i].left = -1;
+    }
+}
+
+void ui::Manager::renderGlowBar(Renderer &renderer)
+{
+    for (int i = 0; i < 8; i++) {
+        if (m_GlowTrail[i].left != -1) {
+            uint8_t val = 255 - (i * 32);
+            renderElement(renderer, m_GlowID, m_GlowTrail[i], 0, Colour(val, val, val, val), true);
+        }
+    }
+}
+
+void ui::Manager::updateGlowBar(float deltaTime)
+{
+    deltaTime = deltaTime;
+
+    if (m_GlowOnTop) {
+        m_GlowPos.left += (int)((m_GlowSpeed * deltaTime) + 0.5f);
+
+        if (m_GlowPos.left > m_GlowEndX) {
+            m_GlowPos.left = m_GlowEndX;
+            m_GlowPos.top = m_CurrScreenSize.bottom - 7;
+            m_GlowOnTop = false;
+        } else if (m_GlowPos.left < m_GlowStartX) {
+            m_GlowPos.left = m_GlowStartX;
+
+            for (int i = 0; i < 8; i++) {
+                if (m_GlowTrail[i].left < m_GlowStartX) {
+                    m_GlowTrail[i].left = -1;
+                }
+            }
+        }
+    } else {
+        m_GlowPos.left -= (int)((m_GlowSpeed * deltaTime) + 0.5f);
+
+        if (m_GlowPos.left < m_GlowStartX) {
+            m_GlowPos.left = m_GlowStartX;
+            m_GlowPos.top = m_CurrScreenSize.top;
+            m_GlowOnTop = true;
+        } else if (m_GlowPos.left > m_GlowEndX) {
+            m_GlowPos.left = m_GlowEndX;
+
+            for (int i = 0; i < 8; i++) {
+                if (m_GlowTrail[i].left > m_GlowEndX) {
+                    m_GlowTrail[i].left = -1;
+                }
+            }
+        }
+    }
+
+    for (int i = 7; i > 0; i--) {
+        m_GlowTrail[i] = m_GlowTrail[i - 1];
+    }
+    m_GlowTrail[0] = m_GlowPos;
 }

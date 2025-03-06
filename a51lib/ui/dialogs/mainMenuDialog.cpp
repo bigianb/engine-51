@@ -85,10 +85,13 @@ namespace ui
     {
 
         Dialog::render(renderer, ox, oy);
+        getUIManger()->renderGlowBar(renderer);
     }
 
     void MainMenuDialog::onUpdate(float deltaTime)
     {
+        getUIManger()->updateGlowBar(deltaTime);
+        
         Control* control = gotoControl( currentControl );
         if (control){
             control->setFlag(WF_HIGHLIGHT);
