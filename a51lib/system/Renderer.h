@@ -57,4 +57,10 @@ public:
     virtual void setTexture(Bitmap* tex) = 0;
     virtual void drawColour(const Colour& colour) = 0;
     virtual void drawVertex(float x, float y, float z, float u, float v) = 0;
+
+    virtual void drawSpriteUV   ( const Vector3& Position,  // Hot spot (2D Left-Top), (3D Center)
+                          const Vector2& WH,        // (2D pixel W&H), (3D World W&H)
+                          const Vector2& UV0,       // Upper Left   UV  [0.0 - 1.0]
+                          const Vector2& UV1,       // Bottom Right UV  [0.0 - 1.0]
+                          const Colour &  Color ) = 0;
 };

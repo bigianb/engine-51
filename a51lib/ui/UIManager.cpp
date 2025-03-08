@@ -818,7 +818,7 @@ void ui::Manager::renderElement(Renderer& renderer, int iElement, const IntRect&
         return;
     }
     const Element* element = elements[iElement];
-    const Bitmap*  bitmap = element->bitmap.getPointer();
+    Bitmap*        bitmap = element->bitmap.getPointer();
     if (bitmap == nullptr) {
         return;
     }
@@ -832,7 +832,7 @@ void ui::Manager::renderElement(Renderer& renderer, int iElement, const IntRect&
     */
 
     renderer.drawBegin(Renderer::Primitive::DRAW_TRIANGLES, DRAW_2D | DRAW_TEXTURED | DRAW_USE_ALPHA | DRAW_NO_ZBUFFER);
-
+    renderer.setTexture(bitmap);
     int     ie = State * (element->cx * element->cy);
     Vector2 p(0.0, Position.top);
     Vector2 wh;
@@ -860,7 +860,7 @@ void ui::Manager::renderElement(Renderer& renderer, int iElement, const IntRect&
             } else {
                 wh.x = element->r[ie].getWidth();
             }
-            // TODO: renderer.draw_SpriteUV( Vector3( p.x, p.y, 0.0f ), wh, uv0, uv1, Color );
+            renderer.drawSpriteUV(Vector3(p.x, p.y, 0.0f), wh, uv0, uv1, Color);
             p.x += wh.x;
             ie++;
         }
@@ -923,7 +923,7 @@ void ui::Manager::initGlowBar()
     }
 }
 
-void ui::Manager::renderGlowBar(Renderer &renderer)
+void ui::Manager::renderGlowBar(Renderer& renderer)
 {
     for (int i = 0; i < 8; i++) {
         if (m_GlowTrail[i].left != -1) {

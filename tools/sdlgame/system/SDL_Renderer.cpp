@@ -1,6 +1,7 @@
 #include "SDL_Renderer.h"
 
 #include <SDL3/SDL.h>
+#include <cassert>
 
 #include "../../../a51lib/Bitmap.h"
 
@@ -270,7 +271,7 @@ void SDLRenderer::draw()
     }
 
     if (swapchainTexture != nullptr) {
-        SDL_FColor black{0.0f, 0.0f, 0.0f, 1.0f};
+        SDL_FColor             black{0.0f, 0.0f, 0.0f, 1.0f};
         SDL_GPUColorTargetInfo colorTargetInfo = {0};
         colorTargetInfo.texture = swapchainTexture;
         colorTargetInfo.clear_color = black;
@@ -306,6 +307,11 @@ void SDLRenderer::draw()
 
 void SDLRenderer::drawBegin(Primitive prim, int drawFlags)
 {
+    primitive  = prim;
+    this->drawFlags      = drawFlags;
+    is2D       = drawFlags & (DRAW_2D | DRAW_2D_KEEP_Z);
+    isTextured = drawFlags & DRAW_TEXTURED;
+
     if (prim == Primitive::DRAW_TRIANGLES) {
     }
 }
@@ -320,6 +326,27 @@ void SDLRenderer::drawVertex(float x, float y, float z, float u, float v)
     float wx = (x - 320.0f) / 320.0f;
     float wy = (240.0f - y) / 240.0f;
     accumulatedVertices.push_back({wx, wy, z, u, v});
+}
+
+void SDLRenderer::drawSpriteUV(const Vector3& position, // Hot spot (2D Left-Top), (3D Center)
+                  const Vector2& WH,       // (2D pixel W&H), (3D World W&H)
+                  const Vector2& UV0,      // Upper Left   UV  [0.0 - 1.0]
+                  const Vector2& UV1,      // Bottom Right UV  [0.0 - 1.0]
+                  const Colour&  Color)
+{
+    if (is2D){
+        IntRect r(position.x, position.y, position.x + WH.x, position.y + WH.y);
+        drawVertex(r.left, r.top, 0.5f, UV0.x, UV0.y);
+        drawVertex(r.right, r.top, 0.5f, UV1.x, UV0.y);
+        drawVertex(r.left, r.bottom, 0.5f,UV0.x, UV1.y);
+    
+        drawVertex(r.left, r.bottom, 0.5f, UV0.x, UV1.y);
+        drawVertex(r.right, r.bottom, 0.5f, UV1.x, UV1.y);
+        drawVertex(r.right, r.top, 0.5f, UV1.x, UV0.y);
+
+    } else {
+        assert(false);
+    }
 }
 
 void SDLRenderer::drawEnd()

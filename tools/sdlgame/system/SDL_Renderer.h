@@ -36,8 +36,17 @@ public:
     void setTexture(Bitmap* tex) override;
     void drawColour(const Colour& colour) override;
     void drawVertex(float x, float y, float z, float u, float v) override;
-
+    void drawSpriteUV   ( const Vector3& Position,  // Hot spot (2D Left-Top), (3D Center)
+                          const Vector2& WH,        // (2D pixel W&H), (3D World W&H)
+                          const Vector2& UV0,       // Upper Left   UV  [0.0 - 1.0]
+                          const Vector2& UV1,       // Bottom Right UV  [0.0 - 1.0]
+                          const Colour &  Color ) override;
 private:
+    Primitive primitive;
+    int drawFlags;
+    bool is2D;
+    bool isTextured;
+
     struct PositionTextureVertex
     {
         float x, y, z;
