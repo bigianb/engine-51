@@ -44,18 +44,31 @@ namespace ui
         void        setState(DialogState s) { state = s; }
         DialogState getState() { return state; }
 
-        int                   oldCursorX, oldCursorY;
-        
+        void initScreenScaling(const IntRect& position);
+        bool updateScreenScaling(float DeltaTime, bool DoWipe);
+
+        int oldCursorX, oldCursorY;
+
     protected:
-        int                   frameElementIdx;
-        int                   navW, navH, navX, navY;
-        DialogTemplate*       dialogTemplate;
-        Colour                backgroundColor;
-        bool                  inputEnabled;
-        int                   currentControl;
-        
+        int             frameElementIdx;
+        int             navW, navH, navX, navY;
+        DialogTemplate* dialogTemplate;
+        Colour          backgroundColor;
+        bool            inputEnabled;
+        int             currentControl;
+
         std::vector<Control*> navgraph;
         DialogState           state;
+
+        // scaling
+        IntRect m_CurrPos;
+        IntRect m_RequestedPos;
+        IntRect m_StartPos;
+        float   m_scaleX;
+        float   m_scaleY;
+        float   m_totalX;
+        float   m_scaleCount;
+        float   m_scaleAngle;
     };
 
 };

@@ -78,6 +78,7 @@ namespace ui
         bool isRenderModel() const { return (flags & WF_RENDERMODAL) == WF_RENDERMODAL; }
 
         const IntRect& getPosition() const { return position; }
+        void setPosition(IntRect& r) { position = r; }
 
         Manager* getUIManger() const { return manager; }
 
@@ -130,6 +131,9 @@ namespace ui
         virtual void onPadActivate();
         virtual void onPadShoulder(int direction);
         virtual void onPadShoulder2(int direction);
+
+
+
 
     protected:
         IntRect position;

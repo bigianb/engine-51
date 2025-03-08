@@ -232,8 +232,12 @@ namespace ui
 
         Window* getWindowAtXY(User* user, int x, int y);
 
+        bool isScreenScaling(void) { return m_isScaling; }
+        void setScreenScaling(bool val) { m_isScaling = val; }
         void getScreenSize(IntRect& size) { size = m_CurrScreenSize; }
         void setScreenSize(const IntRect& size);
+        bool isScreenOn(void) { return (m_ScreenIsOn); }
+        void setScreenOn(bool state) { m_ScreenIsOn = state; }
 
         // highlight
         void initScreenHighlight();
@@ -259,6 +263,7 @@ namespace ui
         bool enableBackground;
 
         IntRect m_CurrScreenSize;
+        bool    m_ScreenIsOn;
 
         // highlight
         int     m_ScreenHighlightID;
@@ -287,6 +292,8 @@ namespace ui
         // Window pixel size, set in init.
         int width;
         int height;
+
+        bool m_isScaling;
 
         float scaleX;
         float scaleY;

@@ -147,6 +147,92 @@ bool ui::Dialog::gotoControl(ui::Control* control)
     return success;
 }
 
+void ui::Dialog::initScreenScaling(const IntRect& position)
+{
+    // store requested frame size
+    m_RequestedPos = position;
+
+    // set starting position
+    getUIManger()->getScreenSize(m_CurrPos);
+    m_StartPos = m_CurrPos;
+
+    // set up scaling
+    m_scaleCount = 0.3f; // time to scale in seconds
+    m_scaleAngle = 180.0f / m_scaleCount;
+    m_scaleX = (position.left - m_CurrPos.left) / 2.0f;
+    m_totalX = 0.0f;
+
+    // set starting position
+    setPosition(m_CurrPos);
+    getUIManger()->setScreenScaling(true);
+
+    // play scaling sound
+    /*
+    if( g_UiMgr->IsScreenOn() )
+    {
+        if( m_scaleX > 0 )
+        {
+            g_AudioMgr.Play( "ResizeLarge" );
+        }
+        else
+        {
+            g_AudioMgr.Play( "ResizeSmall" );
+        }
+    }
+    else
+    {
+        if( m_scaleX > 0 )
+        {
+            g_AudioMgr.Play( "Bars_Out" );
+        }
+        else
+        {
+            g_AudioMgr.Play( "Bars_In" );
+        }
+    }
+        */
+}
+
+bool ui::Dialog::updateScreenScaling(float DeltaTime, bool DoWipe)
+{
+    // scale window if necessary
+    if (m_scaleCount) {
+        // apply delta time
+        m_scaleCount -= DeltaTime;
+
+        if (m_scaleCount <= 0) {
+            // last one - make sure window is correct size
+            m_scaleCount = 0;
+            m_CurrPos = m_RequestedPos;
+
+            // resize the window
+            setPosition(m_CurrPos);
+            getUIManger()->setScreenSize(m_CurrPos);
+            getUIManger()->setScreenScaling(false);
+
+            // start a screen wipe
+            if (DoWipe) {
+                //g_UiMgr->InitScreenWipe();
+            }
+        } else {
+            /*
+            m_totalX = m_scaleX + (m_scaleX * x_cos( DEG_TO_RAD( m_scaleAngle * m_scaleCount ) ) );
+            m_CurrPos.l = m_StartPos.l + (s32)m_totalX;
+            m_CurrPos.r = m_StartPos.r - (s32)m_totalX;
+
+            // resize the window
+            SetPosition(m_CurrPos);
+            getUIManger()->SetScreenSize(m_CurrPos);
+*/
+            // still more to do!
+            return true;
+        }
+    }
+
+    // we're done!
+    return false;
+}
+
 void ui::Dialog::render(Renderer& renderer, int ox, int oy)
 {
     if (!visible()) {

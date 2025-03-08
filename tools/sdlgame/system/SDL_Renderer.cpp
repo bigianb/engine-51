@@ -332,8 +332,14 @@ void SDLRenderer::drawSpriteUV(const Vector3& position, // Hot spot (2D Left-Top
                   const Vector2& WH,       // (2D pixel W&H), (3D World W&H)
                   const Vector2& UV0,      // Upper Left   UV  [0.0 - 1.0]
                   const Vector2& UV1,      // Bottom Right UV  [0.0 - 1.0]
-                  const Colour&  Color)
+                  const Colour&  colour)
 {
+    if (colour != currentColour){
+        drawEnd();
+        currentColour = colour;
+        drawBegin(primitive, drawFlags);
+    }
+
     if (is2D){
         IntRect r(position.x, position.y, position.x + WH.x, position.y + WH.y);
         drawVertex(r.left, r.top, 0.5f, UV0.x, UV0.y);

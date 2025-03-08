@@ -71,11 +71,13 @@ namespace ui
         ui::Button* buttonCampaign = (ui::Button*)findChildById(IDC_MAIN_MENU_CAMPAIGN);
         gotoControl(buttonCampaign);
 
-        ui::Text* navText   = (ui::Text*)findChildById( IDC_MAIN_MENU_NAV_TEXT);
+        ui::Text*    navText = (ui::Text*)findChildById(IDC_MAIN_MENU_NAV_TEXT);
         std::wstring wNavText = manager->lookupString("ui", "IDS_NAV_SELECT");
         navText->setLabel(wNavText);
-        navText->setLabelFlags(Font::h_center|Font::v_top|Font::is_help_text);
+        navText->setLabelFlags(Font::h_center | Font::v_top | Font::is_help_text);
         navText->setUseSmallText();
+
+        initScreenScaling(position);
 
         state = DialogState::Active;
         return success;
@@ -90,19 +92,24 @@ namespace ui
 
     void MainMenuDialog::onUpdate(float deltaTime)
     {
-        getUIManger()->updateGlowBar(deltaTime);
-        
-        Control* control = gotoControl( currentControl );
-        if (control){
-            control->setFlag(WF_HIGHLIGHT);
-            getUIManger()->setScreenHighlight(control->getPosition() );
+        if( getUIManger()->isScreenScaling() )
+        {
+            if( !updateScreenScaling( deltaTime, false ) )
+            {
+                Control* control = gotoControl(currentControl);
+                if (control) {
+                    control->setFlag(WF_HIGHLIGHT);
+                    getUIManger()->setScreenHighlight(control->getPosition());
+                }
+            }
         }
+
+        getUIManger()->updateGlowBar(deltaTime);
     }
 
     void MainMenuDialog::onPadSelect()
     {
         if (state == DialogState::Active) {
-            
         }
     }
 }
