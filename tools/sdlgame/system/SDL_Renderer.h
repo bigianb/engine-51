@@ -6,7 +6,6 @@
 
 #include "../../../a51lib/system/Renderer.h"
 
-
 class SDL_Window;
 class SDL_GPUDevice;
 
@@ -36,16 +35,18 @@ public:
     void setTexture(Bitmap* tex) override;
     void drawColour(const Colour& colour) override;
     void drawVertex(float x, float y, float z, float u, float v) override;
-    void drawSpriteUV   ( const Vector3& Position,  // Hot spot (2D Left-Top), (3D Center)
-                          const Vector2& WH,        // (2D pixel W&H), (3D World W&H)
-                          const Vector2& UV0,       // Upper Left   UV  [0.0 - 1.0]
-                          const Vector2& UV1,       // Bottom Right UV  [0.0 - 1.0]
-                          const Colour &  Color ) override;
+    void drawSpriteUV(const Vector3& Position, // Hot spot (2D Left-Top), (3D Center)
+                      const Vector2& WH,       // (2D pixel W&H), (3D World W&H)
+                      const Vector2& UV0,      // Upper Left   UV  [0.0 - 1.0]
+                      const Vector2& UV1,      // Bottom Right UV  [0.0 - 1.0]
+                      const Colour&  Color) override;
+    void drawColourRect(const IntRect& pos, const Colour& colour, bool isAdditive) override;
+
 private:
     Primitive primitive;
-    int drawFlags;
-    bool is2D;
-    bool isTextured;
+    int       drawFlags;
+    bool      is2D;
+    bool      isTextured;
 
     struct PositionTextureVertex
     {
@@ -53,13 +54,19 @@ private:
         float u, v;
     };
 
+    struct PositionColourVertex
+    {
+        float x, y, z;
+        float r, g, b, a;
+    };
+
     struct Batch
     {
         SDL_GPUTexture* texture;
-        SDL_GPUBuffer *vertexBuffer;
-        SDL_GPUBuffer *indexBuffer;
-        int numIndices;
-        Colour colour;
+        SDL_GPUBuffer*  vertexBuffer;
+        SDL_GPUBuffer*  indexBuffer;
+        int             numIndices;
+        Colour          colour;
     };
 
     Colour currentColour;
@@ -71,8 +78,9 @@ private:
     SDL_Window*              window;
     SDL_GPUDevice*           device;
     SDL_GPUGraphicsPipeline* pipeline;
+    SDL_GPUGraphicsPipeline* colourPipeline;
     SDL_GPUSampler*          pointSampler;
 
     std::map<Bitmap*, SDL_GPUTexture*> gpuTextures;
-    Bitmap* currentTex;
+    Bitmap*                            currentTex;
 };

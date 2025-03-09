@@ -1,5 +1,7 @@
 #include "UIDialog.h"
 #include "UIControl.h"
+#include "UIFont.h"
+#include <cmath>
 
 bool ui::Dialog::create(User*           user,
                         Manager*        manager,
@@ -215,15 +217,14 @@ bool ui::Dialog::updateScreenScaling(float DeltaTime, bool DoWipe)
                 //g_UiMgr->InitScreenWipe();
             }
         } else {
-            /*
-            m_totalX = m_scaleX + (m_scaleX * x_cos( DEG_TO_RAD( m_scaleAngle * m_scaleCount ) ) );
-            m_CurrPos.l = m_StartPos.l + (s32)m_totalX;
-            m_CurrPos.r = m_StartPos.r - (s32)m_totalX;
+            m_totalX = m_scaleX + (m_scaleX * cos( DEG_TO_RAD( m_scaleAngle * m_scaleCount ) ) );
+            m_CurrPos.left = m_StartPos.left + m_totalX;
+            m_CurrPos.right = m_StartPos.right - m_totalX;
 
             // resize the window
-            SetPosition(m_CurrPos);
-            getUIManger()->SetScreenSize(m_CurrPos);
-*/
+            setPosition(m_CurrPos);
+            getUIManger()->setScreenSize(m_CurrPos);
+
             // still more to do!
             return true;
         }
@@ -248,34 +249,38 @@ void ui::Dialog::render(Renderer& renderer, int ox, int oy)
     // manager->RenderScreenWipe();
     // manager->RenderRefreshBar();
 
-    /*
-    if( m_Flags & WF_BORDER )
+    
+    if( flags & WF_BORDER )
     {
+        IntRect  r( position.left+ox, position.top+oy, position.right+ox, position.bottom+oy );
+
         // Render the Frame
-        if( m_Flags & WF_DISABLED )
+        if( flags & WF_DISABLED )
         {
             // disabled version
-            m_pManager->RenderElement( m_iElement, r, 1 );
+            getUIManger()->renderElement( renderer, frameElementIdx, r, 1 );
         }
         else
         {
             // normal frame
-            m_pManager->RenderElement( m_iElement, r, 0 );
+            getUIManger()->renderElement( renderer, frameElementIdx, r, 0 );
         }
 
 
         // Render Title
-        if (!m_pManager->IsScreenScaling())
+        if (!getUIManger()->isScreenScaling())
         {
+            /*
             rb.Deflate( 0, 5 );
             s32 FontID = g_UiMgr->FindFont("large");
-            m_pManager->RenderText( FontID, rb, ui_font::h_center, m_TextColorShadow, m_Label );
+            getUIManger()->renderText( FontID, rb, ui::Font::h_center, m_TextColorShadow, m_Label );
             rb.Translate( -1, -1 );
-            m_pManager->RenderText( FontID, rb, ui_font::h_center, m_TextColorNormal, m_Label );
+            getUIManger()->renderText( FontID, rb, ui_font::h_center, m_TextColorNormal, m_Label );
+            */
         }
 
         // render screen glow effect
-        g_UiMgr->RenderScreenGlow();
+       // getUIManger()->renderScreenGlow();
     }
-*/
+
 }

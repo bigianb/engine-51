@@ -116,6 +116,18 @@ bool SDLRenderer::init()
         return false;
     }
 
+    SDL_GPUShader* positionColorVertexShader = LoadShader(device, basePath, "PositionColor.vert", 0, 0, 0, 0);
+    if (vertexShader == nullptr) {
+        SDL_Log("Failed to create vertex shader!");
+        return false;
+    }
+
+    SDL_GPUShader* solidColorFragmentShader = LoadShader(device, basePath, "SolidColor.frag", 1, 1, 0, 0);
+    if (fragmentShader == nullptr) {
+        SDL_Log("Failed to create fragment shader!");
+        return false;
+    }
+
     SDL_GPUColorTargetDescription ctd[]{
         {.format = SDL_GetGPUSwapchainTextureFormat(device, window),
          .blend_state = {
@@ -128,14 +140,6 @@ bool SDLRenderer::init()
              .color_write_mask = 0,
              .enable_blend = true,
              .enable_color_write_mask = false}}};
-
-    SDL_GPUVertexBufferDescription vbd[]{
-        {
-            .slot = 0,
-            .pitch = sizeof(PositionTextureVertex),
-            .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
-            .instance_step_rate = 0,
-        }};
 
     SDL_GPUVertexAttribute vba[]{
         {
@@ -151,10 +155,47 @@ bool SDLRenderer::init()
             .offset = sizeof(float) * 3,
         }};
 
+    SDL_GPUVertexBufferDescription vbd[]{
+        {
+            .slot = 0,
+            .pitch = sizeof(PositionTextureVertex),
+            .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+            .instance_step_rate = 0,
+        }};
+
     SDL_GPUVertexInputState vertexInputState{
         .vertex_buffer_descriptions = vbd,
         .num_vertex_buffers = 1,
         .vertex_attributes = vba,
+        .num_vertex_attributes = 2,
+    };
+
+    SDL_GPUVertexAttribute positionColourVba[]{
+        {
+            .location = 0,
+            .buffer_slot = 0,
+            .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+            .offset = 0,
+        },
+        {
+            .location = 1,
+            .buffer_slot = 0,
+            .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4,
+            .offset = sizeof(float) * 3,
+        }};
+
+    SDL_GPUVertexBufferDescription positionColourVbd[]{
+        {
+            .slot = 0,
+            .pitch = sizeof(PositionColourVertex),
+            .input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX,
+            .instance_step_rate = 0,
+        }};
+
+    SDL_GPUVertexInputState positionColourVertexInputState{
+        .vertex_buffer_descriptions = positionColourVbd,
+        .num_vertex_buffers = 1,
+        .vertex_attributes = positionColourVba,
         .num_vertex_attributes = 2,
     };
 
@@ -196,29 +237,56 @@ bool SDLRenderer::init()
         .enable_stencil_test = false,
     };
 
-    SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
-        .vertex_shader = vertexShader,
-        .fragment_shader = fragmentShader,
-        .vertex_input_state = vertexInputState,
-        .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
-        .rasterizer_state = rasteriserState,
-        .multisample_state = multisampleState,
-        .depth_stencil_state = depthStencilState,
-        .target_info = {
-            .color_target_descriptions = ctd,
-            .num_color_targets = 1,
+    {
+        SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
+            .vertex_shader = vertexShader,
+            .fragment_shader = fragmentShader,
+            .vertex_input_state = vertexInputState,
+            .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+            .rasterizer_state = rasteriserState,
+            .multisample_state = multisampleState,
+            .depth_stencil_state = depthStencilState,
+            .target_info = {
+                .color_target_descriptions = ctd,
+                .num_color_targets = 1,
 
-        },
-        .props = 0,
-    };
+            },
+            .props = 0,
+        };
 
-    pipeline = SDL_CreateGPUGraphicsPipeline(device, &pipelineCreateInfo);
-    if (pipeline == nullptr) {
-        SDL_Log("Failed to create pipeline!");
-        return false;
+        pipeline = SDL_CreateGPUGraphicsPipeline(device, &pipelineCreateInfo);
+        if (pipeline == nullptr) {
+            SDL_Log("Failed to create pipeline!");
+            return false;
+        }
+    }
+    {
+        SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
+            .vertex_shader = positionColorVertexShader,
+            .fragment_shader = solidColorFragmentShader,
+            .vertex_input_state = positionColourVertexInputState,
+            .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+            .rasterizer_state = rasteriserState,
+            .multisample_state = multisampleState,
+            .depth_stencil_state = depthStencilState,
+            .target_info = {
+                .color_target_descriptions = ctd,
+                .num_color_targets = 1,
+
+            },
+            .props = 0,
+        };
+
+        colourPipeline = SDL_CreateGPUGraphicsPipeline(device, &pipelineCreateInfo);
+        if (colourPipeline == nullptr) {
+            SDL_Log("Failed to create colourPipeline!");
+            return false;
+        }
     }
     SDL_ReleaseGPUShader(device, vertexShader);
     SDL_ReleaseGPUShader(device, fragmentShader);
+    SDL_ReleaseGPUShader(device, positionColorVertexShader);
+    SDL_ReleaseGPUShader(device, solidColorFragmentShader);
 
     SDL_GPUSamplerCreateInfo sci{
         .min_filter = SDL_GPU_FILTER_NEAREST,
@@ -237,6 +305,9 @@ void SDLRenderer::quit()
 {
     SDL_ReleaseGPUGraphicsPipeline(device, pipeline);
     pipeline = nullptr;
+
+    SDL_ReleaseGPUGraphicsPipeline(device, colourPipeline);
+    colourPipeline = nullptr;
 
     for (const auto& [key, value] : gpuTextures) {
         SDL_ReleaseGPUTexture(device, value);
@@ -280,6 +351,7 @@ void SDLRenderer::draw()
 
         SDL_GPURenderPass* renderPass = SDL_BeginGPURenderPass(cmdbuf, &colorTargetInfo, 1, NULL);
 
+        // TODO: switch pipelines
         SDL_BindGPUGraphicsPipeline(renderPass, pipeline);
         for (auto& batch : batches) {
             SDL_GPUBufferBinding bb{.buffer = batch.vertexBuffer, .offset = 0};
@@ -307,9 +379,9 @@ void SDLRenderer::draw()
 
 void SDLRenderer::drawBegin(Primitive prim, int drawFlags)
 {
-    primitive  = prim;
-    this->drawFlags      = drawFlags;
-    is2D       = drawFlags & (DRAW_2D | DRAW_2D_KEEP_Z);
+    primitive = prim;
+    this->drawFlags = drawFlags;
+    is2D = drawFlags & (DRAW_2D | DRAW_2D_KEEP_Z);
     isTextured = drawFlags & DRAW_TEXTURED;
 
     if (prim == Primitive::DRAW_TRIANGLES) {
@@ -329,23 +401,23 @@ void SDLRenderer::drawVertex(float x, float y, float z, float u, float v)
 }
 
 void SDLRenderer::drawSpriteUV(const Vector3& position, // Hot spot (2D Left-Top), (3D Center)
-                  const Vector2& WH,       // (2D pixel W&H), (3D World W&H)
-                  const Vector2& UV0,      // Upper Left   UV  [0.0 - 1.0]
-                  const Vector2& UV1,      // Bottom Right UV  [0.0 - 1.0]
-                  const Colour&  colour)
+                               const Vector2& WH,       // (2D pixel W&H), (3D World W&H)
+                               const Vector2& UV0,      // Upper Left   UV  [0.0 - 1.0]
+                               const Vector2& UV1,      // Bottom Right UV  [0.0 - 1.0]
+                               const Colour&  colour)
 {
-    if (colour != currentColour){
+    if (colour != currentColour) {
         drawEnd();
         currentColour = colour;
         drawBegin(primitive, drawFlags);
     }
 
-    if (is2D){
+    if (is2D) {
         IntRect r(position.x, position.y, position.x + WH.x, position.y + WH.y);
         drawVertex(r.left, r.top, 0.5f, UV0.x, UV0.y);
         drawVertex(r.right, r.top, 0.5f, UV1.x, UV0.y);
-        drawVertex(r.left, r.bottom, 0.5f,UV0.x, UV1.y);
-    
+        drawVertex(r.left, r.bottom, 0.5f, UV0.x, UV1.y);
+
         drawVertex(r.left, r.bottom, 0.5f, UV0.x, UV1.y);
         drawVertex(r.right, r.bottom, 0.5f, UV1.x, UV1.y);
         drawVertex(r.right, r.top, 0.5f, UV1.x, UV0.y);
@@ -353,6 +425,10 @@ void SDLRenderer::drawSpriteUV(const Vector3& position, // Hot spot (2D Left-Top
     } else {
         assert(false);
     }
+}
+
+void SDLRenderer::drawColourRect(const IntRect& pos, const Colour& colour, bool isAdditive)
+{
 }
 
 void SDLRenderer::drawEnd()

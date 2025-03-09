@@ -63,4 +63,5 @@ public:
                           const Vector2& UV0,       // Upper Left   UV  [0.0 - 1.0]
                           const Vector2& UV1,       // Bottom Right UV  [0.0 - 1.0]
                           const Colour &  Color ) = 0;
+    virtual void drawColourRect(const IntRect& pos, const Colour& colour, bool isAdditive) = 0;
 };
