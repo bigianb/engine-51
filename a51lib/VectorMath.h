@@ -163,4 +163,12 @@ public:
         top += dy;
         bottom += dy;
     }
+
+    void set(int l, int t, int r, int b)
+    {
+        left = l;
+        top = t;
+        right = r;
+        bottom = b;
+    }
 };

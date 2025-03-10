@@ -43,6 +43,10 @@ public:
     void drawColourRect(const IntRect& pos, const Colour& colour, bool isAdditive) override;
 
 private:
+    void flushTextureVertices();
+    void flushColourVertices();
+    void drawColourVertex(float x, float y, float z, const Colour& c);
+
     Primitive primitive;
     int       drawFlags;
     bool      is2D;
@@ -62,6 +66,7 @@ private:
 
     struct Batch
     {
+        SDL_GPUGraphicsPipeline* pipeline;
         SDL_GPUTexture* texture;
         SDL_GPUBuffer*  vertexBuffer;
         SDL_GPUBuffer*  indexBuffer;
@@ -74,6 +79,7 @@ private:
     std::vector<Batch> batches;
 
     std::vector<PositionTextureVertex> accumulatedVertices;
+    std::vector<PositionColourVertex> accumulatedColourVertices;
 
     SDL_Window*              window;
     SDL_GPUDevice*           device;

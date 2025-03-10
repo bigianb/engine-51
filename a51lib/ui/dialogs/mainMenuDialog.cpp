@@ -1,6 +1,7 @@
 #include "mainMenuDialog.h"
 #include "../UIButton.h"
 #include "../UIFont.h"
+#include "../../system/Renderer.h"
 
 namespace ui
 {
@@ -85,17 +86,51 @@ namespace ui
 
     void MainMenuDialog::render(Renderer& renderer, int ox, int oy)
     {
+        static int offset = 0;
+        int gap = 9;
+        int width = 4;
 
+        IntRect rb;
+        rb.left = m_CurrPos.left + 22;
+        rb.top = m_CurrPos.top;
+        rb.right = m_CurrPos.right - 23;
+        rb.bottom = m_CurrPos.bottom;
+
+        auto* manager = getUIManger();
+        renderer.drawColourRect(rb, Colour(56, 115, 58, 64), false);
+
+        // render the screen bars
+        int y = rb.top + offset;
+
+        while (y < rb.bottom) {
+            IntRect bar;
+
+            if ((y + width) > rb.bottom) {
+                bar.set(rb.left, y, rb.right, rb.bottom);
+            } else {
+                bar.set(rb.left, y, rb.right, y + width);
+            }
+
+            // draw the bar
+            renderer.drawColourRect(bar, Colour(56, 115, 58, 30), false);
+
+            y += gap;
+        }
+
+        // increment the offset
+        // TODO: should not be static. onUpdate should update this taking deltaTime into account.
+        if (++offset > 9) {
+            offset = 0;
+        }
+        renderer.drawEnd();
         Dialog::render(renderer, ox, oy);
         getUIManger()->renderGlowBar(renderer);
     }
 
     void MainMenuDialog::onUpdate(float deltaTime)
     {
-        if( getUIManger()->isScreenScaling() )
-        {
-            if( !updateScreenScaling( deltaTime, false ) )
-            {
+        if (getUIManger()->isScreenScaling()) {
+            if (!updateScreenScaling(deltaTime, false)) {
                 Control* control = gotoControl(currentControl);
                 if (control) {
                     control->setFlag(WF_HIGHLIGHT);

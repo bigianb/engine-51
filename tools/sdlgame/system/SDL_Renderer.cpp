@@ -350,21 +350,21 @@ void SDLRenderer::draw()
         colorTargetInfo.store_op = SDL_GPU_STOREOP_STORE;
 
         SDL_GPURenderPass* renderPass = SDL_BeginGPURenderPass(cmdbuf, &colorTargetInfo, 1, NULL);
-
-        // TODO: switch pipelines
-        SDL_BindGPUGraphicsPipeline(renderPass, pipeline);
+        
         for (auto& batch : batches) {
+            SDL_BindGPUGraphicsPipeline(renderPass, batch.pipeline);
             SDL_GPUBufferBinding bb{.buffer = batch.vertexBuffer, .offset = 0};
             SDL_BindGPUVertexBuffers(renderPass, 0, &bb, 1);
             SDL_GPUBufferBinding bbi{.buffer = batch.indexBuffer, .offset = 0};
             SDL_BindGPUIndexBuffer(renderPass, &bbi, SDL_GPU_INDEXELEMENTSIZE_16BIT);
-            SDL_GPUTextureSamplerBinding tsb{.texture = batch.texture, .sampler = pointSampler};
-            SDL_BindGPUFragmentSamplers(renderPass, 0, &tsb, 1);
+            if (batch.texture != nullptr){
+                SDL_GPUTextureSamplerBinding tsb{.texture = batch.texture, .sampler = pointSampler};
+                SDL_BindGPUFragmentSamplers(renderPass, 0, &tsb, 1);
 
-            FragMultiplyUniform uni{batch.colour.r / 255.0f, batch.colour.g / 255.0f, batch.colour.b / 255.0f, batch.colour.a / 255.0f};
+                FragMultiplyUniform uni{batch.colour.r / 255.0f, batch.colour.g / 255.0f, batch.colour.b / 255.0f, batch.colour.a / 255.0f};
 
-            SDL_PushGPUFragmentUniformData(cmdbuf, 0, &uni, sizeof(FragMultiplyUniform));
-
+                SDL_PushGPUFragmentUniformData(cmdbuf, 0, &uni, sizeof(FragMultiplyUniform));
+            }
             SDL_DrawGPUIndexedPrimitives(renderPass, batch.numIndices, 1, 0, 0, 0);
 
             SDL_ReleaseGPUBuffer(device, batch.vertexBuffer);
@@ -400,6 +400,13 @@ void SDLRenderer::drawVertex(float x, float y, float z, float u, float v)
     accumulatedVertices.push_back({wx, wy, z, u, v});
 }
 
+void SDLRenderer::drawColourVertex(float x, float y, float z, const Colour& c)
+{
+    float wx = (x - 320.0f) / 320.0f;
+    float wy = (240.0f - y) / 240.0f;
+    accumulatedColourVertices.push_back({wx, wy, z, c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 255.0f});
+}
+
 void SDLRenderer::drawSpriteUV(const Vector3& position, // Hot spot (2D Left-Top), (3D Center)
                                const Vector2& WH,       // (2D pixel W&H), (3D World W&H)
                                const Vector2& UV0,      // Upper Left   UV  [0.0 - 1.0]
@@ -429,9 +436,16 @@ void SDLRenderer::drawSpriteUV(const Vector3& position, // Hot spot (2D Left-Top
 
 void SDLRenderer::drawColourRect(const IntRect& pos, const Colour& colour, bool isAdditive)
 {
+    drawColourVertex(pos.left, pos.top, 0.5f, colour);
+    drawColourVertex(pos.right, pos.top, 0.5f, colour);
+    drawColourVertex(pos.left, pos.bottom, 0.5f, colour);
+
+    drawColourVertex(pos.left, pos.bottom, 0.5f, colour);
+    drawColourVertex(pos.right, pos.bottom, 0.5f, colour);
+    drawColourVertex(pos.right, pos.top, 0.5f, colour);
 }
 
-void SDLRenderer::drawEnd()
+void SDLRenderer::flushTextureVertices()
 {
     if (accumulatedVertices.empty()) {
         return;
@@ -503,9 +517,91 @@ void SDLRenderer::drawEnd()
     SDL_EndGPUCopyPass(copyPass);
     SDL_SubmitGPUCommandBuffer(uploadCmdBuf);
 
-    batches.push_back(Batch{gpuTextures[currentTex], vertexBuffer, indexBuffer, (int)accumulatedVertices.size(), currentColour});
+    batches.push_back(Batch{pipeline, gpuTextures[currentTex], vertexBuffer, indexBuffer, (int)accumulatedVertices.size(), currentColour});
 
     accumulatedVertices.clear();
+}
+
+void SDLRenderer::flushColourVertices()
+{
+    if (accumulatedColourVertices.empty()) {
+        return;
+    }
+
+    SDL_GPUBufferCreateInfo vbci{
+        .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
+        .size = (Uint32)(sizeof(PositionColourVertex) * accumulatedColourVertices.size())};
+    SDL_GPUBuffer* vertexBuffer = SDL_CreateGPUBuffer(
+        device,
+        &vbci);
+
+    SDL_GPUBufferCreateInfo ibci{
+        .usage = SDL_GPU_BUFFERUSAGE_INDEX,
+        .size = (Uint32)(sizeof(Uint16) * accumulatedColourVertices.size())};
+    SDL_GPUBuffer* indexBuffer = SDL_CreateGPUBuffer(
+        device,
+        &ibci);
+
+    SDL_GPUTransferBufferCreateInfo tbci{
+        .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+        .size = (Uint32)((sizeof(PositionColourVertex) + sizeof(Uint16)) * accumulatedColourVertices.size())};
+
+    SDL_GPUTransferBuffer* bufferTransferBuffer = SDL_CreateGPUTransferBuffer(
+        device,
+        &tbci);
+
+        PositionColourVertex* transferData = (PositionColourVertex*)SDL_MapGPUTransferBuffer(
+        device,
+        bufferTransferBuffer,
+        false);
+    Uint16* indexData = (Uint16*)&transferData[accumulatedColourVertices.size()];
+    for (int i = 0; i < accumulatedColourVertices.size(); ++i) {
+        transferData[i] = accumulatedColourVertices[i];
+        indexData[i] = i;
+    }
+
+    SDL_UnmapGPUTransferBuffer(device, bufferTransferBuffer);
+
+    SDL_GPUCommandBuffer* uploadCmdBuf = SDL_AcquireGPUCommandBuffer(device);
+    SDL_GPUCopyPass*      copyPass = SDL_BeginGPUCopyPass(uploadCmdBuf);
+
+    SDL_GPUTransferBufferLocation tbl{
+        .transfer_buffer = bufferTransferBuffer,
+        .offset = 0};
+    SDL_GPUBufferRegion br{
+        .buffer = vertexBuffer,
+        .offset = 0,
+        .size = (Uint32)(sizeof(PositionColourVertex) * accumulatedColourVertices.size())};
+    SDL_UploadToGPUBuffer(
+        copyPass,
+        &tbl,
+        &br,
+        false);
+
+    SDL_GPUTransferBufferLocation ibl{
+        .transfer_buffer = bufferTransferBuffer,
+        .offset = (Uint32)(sizeof(PositionColourVertex) * accumulatedColourVertices.size())};
+    SDL_GPUBufferRegion ibr{
+        .buffer = indexBuffer,
+        .offset = 0,
+        .size = (Uint32)(sizeof(Uint16) * accumulatedColourVertices.size())};
+    SDL_UploadToGPUBuffer(
+        copyPass,
+        &ibl,
+        &ibr,
+        false);
+    SDL_EndGPUCopyPass(copyPass);
+    SDL_SubmitGPUCommandBuffer(uploadCmdBuf);
+
+    batches.push_back(Batch{colourPipeline, nullptr, vertexBuffer, indexBuffer, (int)accumulatedColourVertices.size(), currentColour});
+
+    accumulatedColourVertices.clear();
+}
+
+void SDLRenderer::drawEnd()
+{
+    flushTextureVertices();
+    flushColourVertices();
 }
 
 void SDLRenderer::setTexture(Bitmap* tex)
