@@ -11,7 +11,7 @@ namespace ui
     class Dialog : public Window
     {
     public:
-        virtual void render(Renderer& renderer, int ox = 0, int oy = 0);
+        void render(Renderer& renderer, int ox = 0, int oy = 0) override;
 
         Control* gotoControl(int controlId);
 
@@ -46,6 +46,9 @@ namespace ui
 
         void initScreenScaling(const IntRect& position);
         bool updateScreenScaling(float DeltaTime, bool DoWipe);
+
+        void onPadNavigate(NavigateDir code, int presses, int repeats, bool wrapX = false, bool wrapY = false) override;
+        
 
         int oldCursorX, oldCursorY;
 

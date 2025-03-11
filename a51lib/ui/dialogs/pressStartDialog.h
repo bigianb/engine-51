@@ -32,7 +32,7 @@ namespace ui
 
         void onUpdate(float deltaTime) override;
 
-        void onPadSelect() override;
+        void onPadSelect(Window *) override;
 
     protected:
         Text* text;

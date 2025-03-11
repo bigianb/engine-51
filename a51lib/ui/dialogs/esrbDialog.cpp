@@ -64,7 +64,7 @@ namespace ui
         manager->registerDialogClass("ESRB", &Esrb_Dialog, &dlg_esrb_factory);
     }
 
-    void EsrbDialog::onPadSelect()
+    void EsrbDialog::onPadSelect(Window* )
     {
         if (state == DialogState::Active) {
             waitTime = 0.1f;

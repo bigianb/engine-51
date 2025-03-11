@@ -543,7 +543,7 @@ bool ui::Manager::processInput(Engine* engine, float deltaTime, User* user)
                 windowUnderCursor->onCursorMove(user->cursorX, user->cursorY);
             }
             if (user->buttonLB.nPresses) {
-                windowUnderCursor->onLBDown();
+                windowUnderCursor->onLBDown(windowUnderCursor);
             }
             if (user->buttonLB.nReleases) {
                 windowUnderCursor->onLBUp();
@@ -651,7 +651,7 @@ bool ui::Manager::processInput(Engine* engine, float deltaTime, User* user)
                     // Issue window calls for pad select / back / help
                     if (!iterate && PadSelect && !endDialogCount) {
                         iterate = true;
-                        windowUnderCursor->onPadSelect();
+                        windowUnderCursor->onPadSelect(windowUnderCursor);
                     }
 
                     if (!iterate && PadBack && !endDialogCount) {
@@ -902,6 +902,24 @@ void ui::Manager::renderScreenHighlight(Renderer& renderer)
     renderElement(renderer, m_ScreenHighlightID, m_ScreenHighlightPos, 0, Colour(val, val, val, val), true);
 }
 
+void ui::Manager::renderScreenGlow(Renderer& renderer)
+{
+    if (!m_ScreenHighlightEnabled) {
+        return;
+    }
+
+    if (m_isScaling) {
+        return;
+    }
+
+    // render the highlight glow
+    IntRect pos = m_ScreenHighlightPos;
+    pos.left -= 4;
+    pos.right += 4;
+    int val = 128 + (m_HighlightAlpha * 2);
+    renderElement(renderer, m_ScreenGlowID, pos, 0, Colour(val, val, val, val), true);
+}
+
 void ui::Manager::initGlowBar()
 {
     m_GlowID = findElement("glow");
@@ -975,4 +993,42 @@ void ui::Manager::updateGlowBar(float deltaTime)
         m_GlowTrail[i] = m_GlowTrail[i - 1];
     }
     m_GlowTrail[0] = m_GlowPos;
+}
+
+void ui::Manager::setCursorVisible(User* user, bool state)
+{
+    user->cursorVisible = state;
+}
+
+bool ui::Manager::getCursorVisible(User* user) const
+{
+    return user->cursorVisible;
+}
+
+void ui::Manager::setCursorPos(User* user, int x, int y)
+{
+    user->cursorX = x;
+    user->cursorY = y;
+
+    auto* pWin = getWindowAtXY(user, x, y);
+
+    // Has window under cursor changed?
+    if (pWin != user->lastWindowUnderCursor) {
+        // Call exit function if there was a window under the cursor
+        if (user->lastWindowUnderCursor) {
+            user->lastWindowUnderCursor->onCursorExit();
+        }
+
+        // Set new window under cursor and call enter function
+        user->lastWindowUnderCursor = pWin;
+        if (user->lastWindowUnderCursor) {
+            user->lastWindowUnderCursor->onCursorEnter();
+        }
+    }
+}
+
+void ui::Manager::getCursorPos(User* user, int& x, int& y) const
+{
+    x = user->cursorX;
+    y = user->cursorY;
 }

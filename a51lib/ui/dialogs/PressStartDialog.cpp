@@ -76,7 +76,7 @@ namespace ui
     {
     }
 
-    void PressStartDialog::onPadSelect()
+    void PressStartDialog::onPadSelect(Window* )
     {
         if (state == DialogState::Active) {
             // set state

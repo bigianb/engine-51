@@ -42,6 +42,10 @@ struct Vector3
 {
     float x, y, z, w;
 
+    Vector3() : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
+
+    Vector3(float xx, float yy, float zz) : x(xx), y(yy), z(zz), w(0.0f) {}
+
     void set(float xx, float yy, float zz)
     {
         x = xx;

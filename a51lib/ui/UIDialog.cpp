@@ -64,7 +64,7 @@ bool ui::Dialog::create(User*           user,
             // Configure the control
             pControl->setLabel(manager->lookupString("ui", pControlTem->stringID));
 
-            /*
+            /* TODO
             if( strcmp( pControlTem->clazz, "edit" ) == 0 )
             {
                 ui_edit*    pEdit = (ui_edit*)pControl;
@@ -94,12 +94,12 @@ ui::Control* ui::Dialog::gotoControl(int controlId)
         Window* child = children[controlId];
 
         if (child->enabled() && child->isDynamic()) {
-            /*
+            
             int x = child->getWidth() / 2;
             int y = child->getHeight() / 2;
-            child->LocalToScreen(x, y);
-            m_pManager->SetCursorPos(m_UserID, x, y);
-            */
+            child->localToScreen(x, y);
+            getUIManger()->setCursorPos(user, x, y);
+            
             control = (Control*)child;
             const IntRect& r = control->getNavPos();
             navX = r.left + r.getWidth() / 2;
@@ -127,14 +127,14 @@ bool ui::Dialog::gotoControl(ui::Control* control)
     }
 
     if (!child->isStatic() && !child->disabled()) {
-        /*
+        
         int x = child->getWidth() / 2;
         int y = child->getHeight() / 2;
 
         // Position cursor over Child
         child->localToScreen(x, y);
-        manager->setCursorPos(user, x, y);
-        */
+        getUIManger()->setCursorPos(user, x, y);
+        
         // Set Navigation cursor to center of the control
         const IntRect& r = child->getNavPos();
         navX = r.left + r.getWidth() / 2;
@@ -217,7 +217,7 @@ bool ui::Dialog::updateScreenScaling(float DeltaTime, bool DoWipe)
                 //g_UiMgr->InitScreenWipe();
             }
         } else {
-            m_totalX = m_scaleX + (m_scaleX * cos( DEG_TO_RAD( m_scaleAngle * m_scaleCount ) ) );
+            m_totalX = m_scaleX + (m_scaleX * cos(DEG_TO_RAD(m_scaleAngle * m_scaleCount)));
             m_CurrPos.left = m_StartPos.left + m_totalX;
             m_CurrPos.right = m_StartPos.right - m_totalX;
 
@@ -249,28 +249,21 @@ void ui::Dialog::render(Renderer& renderer, int ox, int oy)
     // manager->RenderScreenWipe();
     // manager->RenderRefreshBar();
 
-    
-    if( flags & WF_BORDER )
-    {
-        IntRect  r( position.left+ox, position.top+oy, position.right+ox, position.bottom+oy );
+    if (flags & WF_BORDER) {
+        IntRect r(position.left + ox, position.top + oy, position.right + ox, position.bottom + oy);
 
         // Render the Frame
-        if( flags & WF_DISABLED )
-        {
+        if (disabled()) {
             // disabled version
-            getUIManger()->renderElement( renderer, frameElementIdx, r, 1 );
-        }
-        else
-        {
+            getUIManger()->renderElement(renderer, frameElementIdx, r, 1);
+        } else {
             // normal frame
-            getUIManger()->renderElement( renderer, frameElementIdx, r, 0 );
+            getUIManger()->renderElement(renderer, frameElementIdx, r, 0);
         }
-
 
         // Render Title
-        if (!getUIManger()->isScreenScaling())
-        {
-            /*
+        if (!getUIManger()->isScreenScaling()) {
+            /* TODO
             rb.Deflate( 0, 5 );
             s32 FontID = g_UiMgr->FindFont("large");
             getUIManger()->renderText( FontID, rb, ui::Font::h_center, m_TextColorShadow, m_Label );
@@ -279,8 +272,126 @@ void ui::Dialog::render(Renderer& renderer, int ox, int oy)
             */
         }
 
-        // render screen glow effect
-       // getUIManger()->renderScreenGlow();
+        getUIManger()->renderScreenGlow(renderer);
+    }
+}
+
+void ui::Dialog::onPadNavigate(ui::Window::NavigateDir code, int presses, int repeats, bool wrapX, bool wrapY)
+{
+    if (!inputEnabled) {
+        return;
+    }
+    int x = navX;
+    int y = navY;
+    int dx = 0;
+    int dy = 0;
+
+    // Which way are we moving
+    switch (code) {
+    case ui::Window::NAV_UP:
+        dy = -1;
+        break;
+    case ui::Window::NAV_DOWN:
+        dy = 1;
+        break;
+    case ui::Window::NAV_LEFT:
+        dx = -1;
+        break;
+    case ui::Window::NAV_RIGHT:
+        dx = 1;
+        break;
     }
 
+    bool        wrapped = false;
+    ui::Window* pCurrentWin = user->lastWindowUnderCursor;
+    while (((x < navW) && (x >= 0)) && ((y < navH) && (y >= 0))) {
+        auto* pWin = navgraph[x + y * navW];
+        if (pWin && (pWin != pCurrentWin)) {
+            bool Found = false;
+
+            if (pWin->disabled()) {
+                if (dy != 0) {
+                    // look to the left and right
+                    int  xleft = x;
+                    int  xright = x;
+                    bool doneLeft = 0;
+                    bool doneRight = 0;
+
+                    while (1) {
+                        // look left
+                        if (xleft > 0) {
+                            xleft--;
+                            pWin = navgraph[xleft + y * navW];
+                            if (pWin && (pWin != pCurrentWin) && pWin->enabled()) {
+                                x = xleft;
+                                Found = true;
+                                break;
+                            }
+                        } else {
+                            doneLeft = true;
+                        }
+
+                        // look right
+                        if (xright < (navW - 1)) {
+                            xright++;
+                            pWin = navgraph[xright + y * navW];
+                            if (pWin && (pWin != pCurrentWin) && pWin->enabled()) {
+                                x = xright;
+                                Found = true;
+                                break;
+                            }
+                        } else {
+                            doneRight = true;
+                        }
+
+                        if (doneLeft && doneRight) {
+                            break;
+                        }
+                    }
+                }
+            } else {
+                Found = true;
+            }
+
+            if (Found) {
+                IntRect r = pWin->getPosition();
+                int   cx = r.getWidth() / 2;
+                int   cy = r.getHeight() / 2;
+                pWin->localToScreen(cx, cy);
+                getUIManger()->setCursorPos(user, cx, cy);
+                navX = x;
+                navY = y;
+                break;
+            }
+        }
+
+        // Advance to next position
+        x += dx;
+        y += dy;
+
+        // Check for wrapping
+        if ((wrapX) && (!wrapped)) {
+            if (x < 0) {
+                x = navW - 1;
+                wrapped = true;
+            }
+
+            if (x == navW) {
+                x = 0;
+                wrapped = true;
+            }
+        }
+
+        if ((wrapY) && (!wrapped)) {
+            if (y < 0) {
+                y = navH - 1;
+                wrapped = true;
+            }
+
+            if (y == navH) {
+                y = 0;
+                wrapped = true;
+            }
+        }
+    }
 }

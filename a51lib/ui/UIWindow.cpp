@@ -1,4 +1,5 @@
 #include "UIWindow.h"
+#include "UIFont.h"
 
 ui::Window::~Window()
 {
@@ -39,18 +40,13 @@ bool ui::Window::create(ui::User*      user,
     createPosition = position;
     this->position = position;
     this->flags = flags;
+    labelFlags = Font::h_center | Font::v_center;
+    labelColor = COLOR_WHITE;
 
     if (parent) {
         parent->addChild(this);
     }
     return true;
-}
-
-void ui::Window::onUpdate(float deltaTime)
-{
-    for (Window* child : children) {
-        child->onUpdate(deltaTime);
-    }
 }
 
 ui::Window* ui::Window::findChildById(int id) const
@@ -69,6 +65,15 @@ void ui::Window::render(Renderer& renderer, int x, int y)
         for (Window* child : children) {
             child->render(renderer, x, y);
         }
+    }
+}
+
+void ui::Window::localToScreen(int& x, int& y) const
+{
+    x += position.left;
+    y += position.top;
+    if (parent) {
+        parent->localToScreen(x, y);
     }
 }
 
@@ -119,12 +124,25 @@ ui::Window* ui::Window::getWindowAtXY(int x, int y)
     return pFound;
 }
 
-void ui::Window::onNotify(ui::Window* sender, int command, void* data)
+void ui::Window::onUpdate(float deltaTime)
 {
+    for (Window* child : children) {
+        child->onUpdate(deltaTime);
+    }
 }
 
-void ui::Window::onLBDown()
+void ui::Window::onNotify(ui::Window* sender, int command, void* data)
 {
+    if (parent){
+        parent->onNotify(sender, command, data);
+    }
+}
+
+void ui::Window::onLBDown(Window* win)
+{
+    if (parent){
+        parent->onPadSelect(win);
+    }
 }
 
 void ui::Window::onLBUp()
@@ -153,51 +171,80 @@ void ui::Window::onCursorMove(int x, int y)
 
 void ui::Window::onCursorEnter()
 {
+    flags |= WF_HIGHLIGHT;
 }
 
 void ui::Window::onCursorExit()
 {
+    flags &= ~WF_HIGHLIGHT;
 }
 
 void ui::Window::onKeyDown(int key)
 {
+    if (parent){
+        parent->onKeyDown(key);
+    }
 }
 
 void ui::Window::onKeyUp(int key)
 {
+    if (parent){
+        parent->onKeyUp(key);
+    }
 }
 
 void ui::Window::onPadNavigate(ui::Window::NavigateDir code, int presses, int repeats, bool wrapX, bool wrapY)
 {
+    if (parent) {
+        parent->onPadNavigate(code, presses, repeats, wrapX, wrapY);
+    }
 }
 
-void ui::Window::onPadSelect()
+void ui::Window::onPadSelect(Window* win)
 {
     if (parent) {
-        parent->onPadSelect();
+        parent->onPadSelect(win);
     }
 }
 
 void ui::Window::onPadBack()
 {
+    if (parent) {
+        parent->onPadBack();
+    }
 }
 
 void ui::Window::onPadDelete()
 {
+    if (parent) {
+        parent->onPadDelete();
+    }
 }
 
 void ui::Window::onPadHelp()
 {
+    if (parent) {
+        parent->onPadHelp();
+    }
 }
 
 void ui::Window::onPadActivate()
 {
+    if (parent) {
+        parent->onPadActivate();
+    }
 }
 
 void ui::Window::onPadShoulder(int direction)
 {
+    if (parent) {
+        parent->onPadShoulder(direction);
+    }
 }
 
 void ui::Window::onPadShoulder2(int direction)
 {
+    if (parent) {
+        parent->onPadShoulder2(direction);
+    }
 }

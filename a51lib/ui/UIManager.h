@@ -200,8 +200,13 @@ namespace ui
         bool processInput(Engine*, float deltaTime, User* user);
         void render(Renderer& renderer);
 
-        User*   createUser(int controllerID, const IntRect& bounds);
-        void    enableUser(User* user, bool state);
+        User* createUser(int controllerID, const IntRect& bounds);
+        void  enableUser(User* user, bool state);
+        void  setCursorVisible(User* user, bool State);
+        bool  getCursorVisible(User* user) const;
+        void  setCursorPos(User* user, int x, int y);
+        void  getCursorPos(User* user, int& x, int& y) const;
+
         Dialog* openDialog(std::string className, IntRect position, Window* parent, int flags);
         void    endDialog(bool resetCursor = false);
         Window* createWin(User* user, const char* ClassName, const IntRect& position, Window* parent, int flags);
@@ -243,6 +248,7 @@ namespace ui
         void initScreenHighlight();
         void setScreenHighlight(const IntRect& pos);
         void renderScreenHighlight(Renderer& renderer);
+        void renderScreenGlow(Renderer& renderer);
 
         // Glow bar
         void initGlowBar();

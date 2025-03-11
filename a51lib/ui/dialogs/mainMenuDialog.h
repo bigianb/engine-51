@@ -4,6 +4,7 @@
 #include "../UIManager.h"
 #include "../UIText.h"
 #include "../UIBitmap.h"
+#include "../UIButton.h"
 
 namespace ui
 {
@@ -27,9 +28,17 @@ namespace ui
 
         void onUpdate(float deltaTime) override;
 
-        void onPadSelect() override;
+        void onPadSelect(Window*) override;
 
     protected:
+            int currentHighlight;
 
+        Button* buttonCampaign;
+        Button* buttonMultiPlayer;
+        Button* buttonOnline;
+        Button* buttonSettings;
+        Button* buttonProfiles;
+        Button* buttonCredits;
+        Text*    navText;
     };
 }

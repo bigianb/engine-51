@@ -78,7 +78,9 @@ namespace ui
         bool isRenderModel() const { return (flags & WF_RENDERMODAL) == WF_RENDERMODAL; }
 
         const IntRect& getPosition() const { return position; }
-        void setPosition(IntRect& r) { position = r; }
+        void           setPosition(IntRect& r) { position = r; }
+        int            getWidth() const { return position.getWidth(); }
+        int            getHeight() const { return position.getHeight(); }
 
         Manager* getUIManger() const { return manager; }
 
@@ -90,20 +92,21 @@ namespace ui
 
         void setLabel(std::wstring newLabel) { label = newLabel; }
 
-        void screenToLocal( int& x, int& y ) const;
+        void    localToScreen(int& x, int& y) const;
+        void    screenToLocal(int& x, int& y) const;
         Window* getWindowAtXY(int x, int y);
 
-        bool isChildOf( Window* parent ) const;
+        bool isChildOf(Window* parent) const;
 
         std::vector<Window*> children;
 
         void          setLabelColour(const Colour& c) { labelColor = c; }
         const Colour& getLabelColour() const { return labelColor; }
-        void setLabelFlags(unsigned int newFlags) { labelFlags = newFlags; }
+        void          setLabelFlags(unsigned int newFlags) { labelFlags = newFlags; }
 
         virtual void onUpdate(float deltaTime);
         virtual void onNotify(Window* sender, int command, void* data);
-        virtual void onLBDown();
+        virtual void onLBDown(Window*);
         virtual void onLBUp();
         virtual void onMBDown();
         virtual void onMBUp();
@@ -124,7 +127,7 @@ namespace ui
         };
 
         virtual void onPadNavigate(NavigateDir code, int presses, int repeats, bool wrapX = false, bool wrapY = false);
-        virtual void onPadSelect();
+        virtual void onPadSelect(Window*);
         virtual void onPadBack();
         virtual void onPadDelete();
         virtual void onPadHelp();
@@ -132,24 +135,19 @@ namespace ui
         virtual void onPadShoulder(int direction);
         virtual void onPadShoulder2(int direction);
 
-
-
-
     protected:
         IntRect position;
 
         std::wstring label;
         unsigned int labelFlags;
         Colour       labelColor;
-        int flags;
-        
+        int          flags;
+        User*        user;
+
     private:
         Manager* manager;
-        User*    user;
 
         Window* parent;
-
-        
 
         int     id;
         IntRect createPosition;
