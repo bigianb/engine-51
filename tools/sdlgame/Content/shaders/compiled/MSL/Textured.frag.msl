@@ -24,3 +24,4 @@ fragment main0_out main0(main0_in in [[stage_in]], constant type_UniformBlock& U
     out.out_var_SV_Target0 = UniformBlock.MultiplyColor * Texture.sample(Sampler, in.in_var_TEXCOORD0);
     return out;
 }
+

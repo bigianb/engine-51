@@ -10,6 +10,7 @@
 StateMachine::StateMachine()
 {
     uiManager = nullptr;
+    currentDialog = nullptr;
     state = State::idle;
 }
 
