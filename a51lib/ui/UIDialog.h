@@ -49,6 +49,7 @@ namespace ui
 
         void onPadNavigate(NavigateDir code, int presses, int repeats, bool wrapX = false, bool wrapY = false) override;
         
+        int getControl() const { return currentControl; }
 
         int oldCursorX, oldCursorY;
 

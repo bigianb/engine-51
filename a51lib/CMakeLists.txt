@@ -44,10 +44,8 @@ set(UI_FILES
         ${UI_SOURCES}
         )
 
-set(STATE_SOURCES
-        state/StateMachine.cpp
-        state/StateMachine.h
-        )
+file(GLOB STATE_INCLUDES state/*.h)
+file(GLOB STATE_SOURCES state/*.cpp)
 
 set(STRING_SOURCES
         strings/StringTable.cpp
@@ -94,6 +92,7 @@ target_sources(a51lib PRIVATE
         ${IO_SOURCES}
         ${RESOURCE_MGR_SOURCES}
         ${UI_FILES}
+        ${STATE_INCLUDES}
         ${STATE_SOURCES}
         ${STRING_SOURCES}
 )

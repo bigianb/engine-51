@@ -9,25 +9,27 @@
 namespace ui
 {
 
-    class MainMenuDialog : public Dialog
+    class ProfileSelectDialog : public Dialog
     {
     public:
-        MainMenuDialog();
-        ~MainMenuDialog();
+        ProfileSelectDialog();
+        ~ProfileSelectDialog();
 
         enum controlIDs
         {
-            IDC_MAIN_MENU_CAMPAIGN,
-            IDC_MAIN_MENU_MULTI,
-            IDC_MAIN_MENU_ONLINE,
-            IDC_MAIN_MENU_SETTINGS,
-            IDC_MAIN_MENU_PROFILES,
-            IDC_MAIN_MENU_CREDITS,
-            IDC_MAIN_MENU_NAV_TEXT,
-            IDC_MAIN_MENU_SIGN_IN,
-            IDC_MAIN_MENU_SILENT_LOGIN_TEXT,
+            IDC_PROFILE_SELECT_LISTBOX,
+            IDC_PROFILE_SELECT_INFOBOX,
+
+            IDC_PROFILE_CARD_SLOT,
+            IDC_PROFILE_CREATE_DATE,
+            IDC_PROFILE_MODIFIED_DATE,
+
+            IDC_PROFILE_INFO_CREATE_DATE,
+            IDC_PROFILE_INFO_MODIFIED_DATE,
+
+            IDC_PROFILE_SELECT_NAV_TEXT,
         };
-        
+
         static void registerDialog(Manager*);
 
         bool create(User*           user,
@@ -44,14 +46,8 @@ namespace ui
         void onPadSelect(Window*) override;
 
     protected:
-            int currentHighlight;
+        int currentHighlight;
 
-        Button* buttonCampaign;
-        Button* buttonMultiPlayer;
-        Button* buttonOnline;
-        Button* buttonSettings;
-        Button* buttonProfiles;
-        Button* buttonCredits;
-        Text*    navText;
+        Text*   navText;
     };
 }
