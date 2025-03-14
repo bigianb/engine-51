@@ -122,7 +122,7 @@ bool SDLRenderer::init()
         return false;
     }
 
-    SDL_GPUShader* solidColorFragmentShader = LoadShader(device, basePath, "SolidColor.frag", 1, 1, 0, 0);
+    SDL_GPUShader* solidColorFragmentShader = LoadShader(device, basePath, "SolidColor.frag", 0, 0, 0, 0);
     if (fragmentShader == nullptr) {
         SDL_Log("Failed to create fragment shader!");
         return false;
@@ -268,7 +268,6 @@ bool SDLRenderer::init()
             .vertex_input_state = positionColourVertexInputState,
             .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
             .rasterizer_state = rasteriserState,
-            .multisample_state = multisampleState,
             .depth_stencil_state = depthStencilState,
             .target_info = {
                 .color_target_descriptions = ctd,
