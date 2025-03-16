@@ -14,6 +14,7 @@
 #include "UIButton.h"
 #include "UIText.h"
 #include "UIFont.h"
+#include "UIListBox.h"
 
 ui::Manager::~Manager()
 {
@@ -33,6 +34,7 @@ void ui::Manager::init(Renderer& renderer, ResourceManager* rm)
     registerWinClass("text", &ui::Text::factory);
     registerWinClass("bitmap", &ui::BitmapControl::factory);
     registerWinClass("button", &ui::Button::factory);
+    registerWinClass("listbox", &ui::ListBox::factory);
 
     EsrbDialog::registerDialog(this);
     PressStartDialog::registerDialog(this);
