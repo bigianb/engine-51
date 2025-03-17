@@ -38,6 +38,65 @@ namespace ui
 
         void render(Renderer& renderer, int ox = 0, int oy = 0);
 
+        void SetLineHeight(int Height);
+
+        void SetExitOnSelect(bool State);
+        void SetExitOnBack(bool State) { m_ExitOnBack = State; }
+
+        int      AddItem(const std::wstring& Item, int Data = 0, int Data2 = 0, bool State = true, uint32_t Flags = 0);
+        int      AddItem(const wchar_t* Item, int Data = 0, int Data2 = 0, bool State = true, uint32_t Flags = 0);
+        void     DeleteAllItems();
+        void     DeleteItem(int iItem);
+        void     DeleteSelectedItem();
+        void     EnableItem(int iItem, bool State);
+        uint32_t GetItemFlags(int iItem);
+
+        void EnableBorders() { m_ShowBorders = true; }
+        void DisableBorders() { m_ShowBorders = false; }
+
+        void EnableFrame() { m_ShowFrame = true; }
+        void DisableFrame() { m_ShowFrame = false; }
+
+        void EnableHeaderBar();
+        void DisableHeaderBar();
+
+        void SetHeaderBarColor(Colour Color) { m_HeaderBarColor = Color; }
+        void SetHeaderColor(Colour Color) { m_HeaderColor = Color; }
+
+        void EnableParentNavigation() { m_AllowParentNavigate = true; }
+        void DisableParentNavigation() { m_AllowParentNavigate = false; }
+
+        void EnableCursor() { m_DisableCursor = false; }
+        void DisableCursor() { m_DisableCursor = true; }
+
+        Item&               GetItem(int Index) { return m_Items[Index]; }
+        int                 GetItemCount() const;
+        const std::wstring& GetItemLabel(int iItem) const;
+        void                SetItemLabel(int iItem, const std::wstring& Label);
+        int                 GetItemData(int iItem, int Index = 0) const;
+        const std::wstring& GetSelectedItemLabel() const;
+        int                 GetSelectedItemData(int Index = 0) const;
+        void                SetItemColor(int iItem, const Colour& Color);
+        Colour              GetItemColor(int iItem) const;
+
+        int FindItemByLabel(const std::wstring& Label);
+        int FindItemByData(int Data, int Index = 0);
+
+        int  GetSelection() const;
+        void SetSelection(int iSelection);
+        void ClearSelection();
+
+        void EnsureVisible(int iItem);
+        int  GetNumEnabledItems();
+
+        int  GetCursorOffset();
+        void SetSelectionWithOffset(int iSelection, int Offset);
+
+        void   SetBackgroundColor(Colour Color);
+        Colour GetBackgroundColor() const;
+
+        void AlphaSortList();
+
     protected:
         bool m_ExitOnSelect;
         bool m_ExitOnBack;

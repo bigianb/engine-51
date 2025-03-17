@@ -2,6 +2,7 @@
 #include "../UIButton.h"
 #include "../UIFont.h"
 #include "../../system/Renderer.h"
+#include "../../state/PlayerProfile.h"
 
 namespace ui
 {
@@ -17,7 +18,7 @@ namespace ui
     static ControlTemplate controls[] =
         {
             {ProfileSelectDialog::IDC_PROFILE_SELECT_LISTBOX, "IDS_PROFILE_PROFILES", "listbox", 45, 40, 240, 206, 0, 0, 1, 1, Window::WF_VISIBLE | Window::WF_SCALE_XPOS | Window::WF_SCALE_XSIZE},
-            {ProfileSelectDialog::IDC_PROFILE_SELECT_INFOBOX, "IDS_PROFILE_INFO", "blankbox", 45, 256, 240, 76, 0, 0, 0, 0, Window::WF_VISIBLE | Window::WF_SCALE_XPOS | Window::WF_SCALE_XSIZE},
+            //   {ProfileSelectDialog::IDC_PROFILE_SELECT_INFOBOX, "IDS_PROFILE_INFO", "blankbox", 45, 256, 240, 76, 0, 0, 0, 0, Window::WF_VISIBLE | Window::WF_SCALE_XPOS | Window::WF_SCALE_XSIZE},
 
             {ProfileSelectDialog::IDC_PROFILE_CARD_SLOT, "IDS_NULL", "text", 53, 278, 120, 16, 0, 0, 0, 0, Window::WF_VISIBLE | Window::WF_SCALE_XPOS | Window::WF_SCALE_XSIZE},
             {ProfileSelectDialog::IDC_PROFILE_CREATE_DATE, "IDS_PROFILE_CREATE_DATE", "text", 53, 294, 120, 16, 0, 0, 0, 0, Window::WF_VISIBLE | Window::WF_SCALE_XPOS | Window::WF_SCALE_XSIZE},
@@ -60,6 +61,7 @@ namespace ui
         bool success = false;
         success = Dialog::create(user, manager, dialogTemplate, position, parent, flags);
 
+        profileList = (ui::ListBox*)findChildById(IDC_PROFILE_SELECT_LISTBOX);
         navText = (ui::Text*)findChildById(IDC_PROFILE_SELECT_NAV_TEXT);
 
         //gotoControl(profileList);
@@ -73,6 +75,16 @@ namespace ui
         navText->setLabel(wNavText);
         navText->setLabelFlags(Font::h_center | Font::v_top | Font::is_help_text);
         navText->setUseSmallText();
+
+        // set up level list
+        profileList->setFlag(Window::WF_SELECTED);
+        profileList->SetBackgroundColor(Colour(39, 117, 28, 128));
+        profileList->DisableFrame();
+        profileList->SetExitOnSelect(false);
+        profileList->SetExitOnBack(true);
+        profileList->EnableHeaderBar();
+        profileList->SetHeaderBarColor(Colour(19, 59, 14, 196));
+        profileList->SetHeaderColor(Colour(255, 252, 204, 255));
 
         initScreenScaling(position);
 
@@ -144,13 +156,15 @@ namespace ui
         }
 
         getUIManger()->updateGlowBar(deltaTime);
-        
     }
 
     void ProfileSelectDialog::onPadSelect(Window* win)
     {
         if (state == DialogState::Active) {
-            
+            if (profileList->GetSelectedItemData(1) != PROFILE_OK) {
+                //g_AudioMgr.Play( "InvalidEntry" );
+                return;
+            }
         }
     }
 }

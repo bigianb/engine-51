@@ -18,8 +18,8 @@ set(DATAUTIL_SOURCES
         dataUtil/Bitstream.h
         )
 
-set(SYSTEM_SOURCES
-        system/Renderer.h
+file(GLOB SYSTEM_SOURCES
+        system/*.h
         )
 
 set(LEVELS_SOURCES
@@ -70,6 +70,7 @@ target_sources(a51lib PRIVATE
         DFSFile.h
         Geom.cpp
         Geom.h
+        Guid.h
         InevFile.cpp
         InevFile.h
         LevelTemplate.cpp

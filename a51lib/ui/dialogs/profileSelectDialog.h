@@ -5,6 +5,7 @@
 #include "../UIText.h"
 #include "../UIBitmap.h"
 #include "../UIButton.h"
+#include "../UIListBox.h"
 
 namespace ui
 {
@@ -48,6 +49,7 @@ namespace ui
     protected:
         int currentHighlight;
 
-        Text*   navText;
+        Text*    navText;
+        ListBox* profileList;
     };
 }

@@ -109,4 +109,72 @@ namespace ui
             r2.top += 22;
         }
     }
+
+    void ListBox::EnableHeaderBar(void)
+    {
+        m_ShowHeaderBar = true;
+        m_nVisibleItems = (position.getHeight() - SPACE_TOP - SPACE_BOTTOM - HEADER_HEIGHT) / m_LineHeight;
+    }
+
+    void ListBox::DisableHeaderBar(void)
+    {
+        m_ShowHeaderBar = false;
+        m_nVisibleItems = (position.getHeight() - SPACE_TOP - SPACE_BOTTOM) / m_LineHeight;
+    }
+
+    int ListBox::GetItemCount() const
+    {
+        return m_Items.size();
+    }
+
+    const std::wstring& ListBox::GetItemLabel(int iItem) const
+    {
+        return m_Items[iItem].Label;
+    }
+
+    void ListBox::SetItemLabel(int iItem, const std::wstring& Label)
+    {
+        m_Items[iItem].Label = Label;
+    }
+
+    int ListBox::GetItemData(int iItem, int Index) const
+    {
+        return m_Items[iItem].Data[Index];
+    }
+
+    const std::wstring& ListBox::GetSelectedItemLabel() const
+    {
+        return m_Items[m_iSelection].Label;
+    }
+
+    int ListBox::GetSelectedItemData(int Index) const
+    {
+        return m_Items[m_iSelection].Data[Index];
+    }
+
+    void ListBox::SetItemColor(int iItem, const Colour& Color)
+    {
+        m_Items[iItem].Color = Color;
+    }
+
+    Colour ListBox::GetItemColor(int iItem) const
+    {
+        return m_Items[iItem].Color;
+    }
+
+    void ListBox::SetBackgroundColor(Colour Color)
+    {
+        m_BackgroundColor = Color;
+    }
+
+    Colour ListBox::GetBackgroundColor() const
+    {
+        return m_BackgroundColor;
+    }
+
+    void ListBox::SetExitOnSelect(bool State)
+    {
+        m_ExitOnSelect = State;
+    }
+
 }
