@@ -44,6 +44,23 @@ namespace ui
             WF_SCALE_YSIZE = 0x00100000, // Scale dialog object Y size
         };
 
+        enum notifications
+        {
+            WN_COMBO_SELCHANGE = 0x00000001, // Combo control selection change
+
+            WN_SLIDER_CHANGE, // Slider value has changed
+
+            WN_CHECK_CHANGE, // Check state change
+
+            WN_LIST_SELCHANGE, // List selection changed
+            WN_LIST_ACCEPTED,  // New selection accepted
+            WN_LIST_CANCELLED, // New selection cancelled
+
+            WN_TAB_CHANGE, // Tabbed dialog changed tab
+
+            WN_USER = 0x40000000, // First User Message
+        };
+
         Window()
             : id(-1)
         {
@@ -143,11 +160,10 @@ namespace ui
         Colour       labelColor;
         int          flags;
         User*        user;
+        Window*      parent;
 
     private:
         Manager* manager;
-
-        Window* parent;
 
         int     id;
         IntRect createPosition;

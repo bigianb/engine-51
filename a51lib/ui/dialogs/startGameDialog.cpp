@@ -29,7 +29,7 @@ namespace ui
             &controls[0],
             0};
 
-    static Dialog* dlg_startgame_factory(User* user, Manager* manager, DialogTemplate* dialogTemplate, const IntRect& position, Window* parent, int flags)
+    static Dialog* dlg_startgame_factory(User* user, Manager* manager, DialogTemplate* dialogTemplate, const IntRect& position, Window* parent, int flags, void* userData)
     {
         StartGameDialog* dialog = new StartGameDialog;
         dialog->create(user, manager, dialogTemplate, position, parent, flags);

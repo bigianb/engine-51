@@ -16,6 +16,8 @@ set(ANIM_SOURCES
 set(DATAUTIL_SOURCES
         dataUtil/Bitstream.cpp
         dataUtil/Bitstream.h
+        dataUtil/Crc.cpp
+        dataUtil/Crc.cpp
         )
 
 file(GLOB SYSTEM_SOURCES

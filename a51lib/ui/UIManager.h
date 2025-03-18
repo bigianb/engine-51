@@ -151,7 +151,7 @@ namespace ui
     };
 
     class Manager;
-    typedef Dialog* (*DialogFactoryFn)(User* user, Manager* manager, DialogTemplate* dialogTemplate, const IntRect& position, Window* parent, int flags);
+    typedef Dialog* (*DialogFactoryFn)(User* user, Manager* manager, DialogTemplate* dialogTemplate, const IntRect& position, Window* parent, int flags, void* userData);
 
     struct DialogClass
     {
@@ -207,7 +207,7 @@ namespace ui
         void  setCursorPos(User* user, int x, int y);
         void  getCursorPos(User* user, int& x, int& y) const;
 
-        Dialog* openDialog(std::string className, IntRect position, Window* parent, int flags);
+        Dialog* openDialog(std::string className, IntRect position, Window* parent, int flags, void* userData = nullptr);
         void    endDialog(bool resetCursor = false);
         Window* createWin(User* user, const char* ClassName, const IntRect& position, Window* parent, int flags);
 

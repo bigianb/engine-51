@@ -7,14 +7,25 @@
 #include "../UIButton.h"
 #include "../UIListBox.h"
 
+#include "../../state/StateMachine.h"
+
 namespace ui
 {
+
+    class Popup;
 
     class ProfileSelectDialog : public Dialog
     {
     public:
         ProfileSelectDialog();
         ~ProfileSelectDialog();
+
+        enum ProfileSelectType
+        {
+            PROFILE_SELECT_MANAGE,
+            PROFILE_SELECT_NORMAL,
+            PROFILE_SELECT_OVERWRITE,
+        };
 
         enum controlIDs
         {
@@ -38,18 +49,51 @@ namespace ui
                     DialogTemplate* dialogTemplate,
                     const IntRect&  position,
                     Window*         parent,
-                    int             flags);
+                    int             flags,
+                    StateMachine*   sm);
 
         void render(Renderer& renderer, int ox = 0, int oy = 0) override;
 
+        void onPadSelect(Window*) override;
         void onUpdate(float deltaTime) override;
 
-        void onPadSelect(Window*) override;
+        void refreshProfileList();
 
     protected:
         int currentHighlight;
 
         Text*    navText;
         ListBox* profileList;
+        //BlankBox*                        m_pProfileDetails;
+
+        Text* m_pProfileName;
+        Text* m_pCardSlot;
+        Text* m_pCreationDate;
+        Text* m_pModifiedDate;
+
+        Text* m_pInfoProfileName;
+        Text* m_pInfoCardSlot;
+        Text* m_pInfoCreationDate;
+        Text* m_pInfoModifiedDate;
+
+        Popup* m_PopUp;
+        int    m_PopUpResult;
+        int    m_PopUpType;
+
+        Popup* m_BackupPopup;
+        int    m_BackupPopupResult;
+
+        std::wstring m_ProfileName;
+        bool         m_ProfileEntered;
+        bool         m_ProfileOk;
+
+        ProfileSelectType m_Type;
+
+        bool m_bEditProfile;
+        bool m_bRenderBlackout;
+
+        int m_BlocksRequired;
+
+        StateMachine* stateMachine;
     };
 }

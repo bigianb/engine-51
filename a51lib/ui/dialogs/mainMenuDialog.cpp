@@ -33,7 +33,7 @@ namespace ui
             &controls[0],
             0};
 
-    static Dialog* dlg_factory(User* user, Manager* manager, DialogTemplate* dialogTemplate, const IntRect& position, Window* parent, int flags)
+    static Dialog* dlg_factory(User* user, Manager* manager, DialogTemplate* dialogTemplate, const IntRect& position, Window* parent, int flags, void* userData)
     {
         MainMenuDialog* dialog = new MainMenuDialog;
         dialog->create(user, manager, dialogTemplate, position, parent, flags);

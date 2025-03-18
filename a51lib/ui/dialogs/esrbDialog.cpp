@@ -29,7 +29,7 @@ namespace ui
             &Esrb_Controls[0],
             0};
 
-    Dialog* dlg_esrb_factory(User* user, Manager* manager, DialogTemplate* dialogTemplate, const IntRect& position, Window* parent, int flags)
+    Dialog* dlg_esrb_factory(User* user, Manager* manager, DialogTemplate* dialogTemplate, const IntRect& position, Window* parent, int flags, void* userData)
     {
         EsrbDialog* dialog = new EsrbDialog;
         dialog->create(user, manager, dialogTemplate, position, parent, flags);

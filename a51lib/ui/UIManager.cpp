@@ -290,7 +290,7 @@ void ui::Manager::enableUser(ui::User* user, bool state)
     user->enabled = state;
 }
 
-ui::Dialog* ui::Manager::openDialog(std::string className, IntRect position, ui::Window* parent, int flags)
+ui::Dialog* ui::Manager::openDialog(std::string className, IntRect position, ui::Window* parent, int flags, void* userData)
 {
     if (!dialogClasses.contains(className)) {
         std::cerr << "*** ERROR: No registration for dialog class " << className << std::endl;
@@ -321,7 +321,7 @@ ui::Dialog* ui::Manager::openDialog(std::string className, IntRect position, ui:
     }
     IntRect createPosition = position;
 
-    Dialog* pDialog = dlgClass->factoryFn(userId, this, dlgClass->dialogTemplate, position, parent, flags);
+    Dialog* pDialog = dlgClass->factoryFn(userId, this, dlgClass->dialogTemplate, position, parent, flags, userData);
 
     pDialog->setCreatePosition(createPosition);
 

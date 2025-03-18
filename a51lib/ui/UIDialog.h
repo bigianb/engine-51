@@ -24,7 +24,7 @@ namespace ui
                     Window*         parent,
                     int             flags);
 
-        enum DialogState
+        enum class DialogState
         {
             Init,
             Active,

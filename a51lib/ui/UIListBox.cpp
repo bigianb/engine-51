@@ -4,6 +4,8 @@
 #include "../Colour.h"
 #include "../system/Renderer.h"
 
+#include <cassert>
+
 namespace ui
 {
 #define SPACE_TOP 4
@@ -110,6 +112,132 @@ namespace ui
         }
     }
 
+    void ListBox::SetExitOnSelect(bool State)
+    {
+        m_ExitOnSelect = State;
+    }
+
+    int ListBox::AddItem(const std::wstring& Label, int Data, int Data2, bool State, uint32_t Flags)
+    {
+        Item item;
+        item.Enabled = State;
+        item.Label = Label;
+        item.Data[0] = Data;
+        item.Data[1] = Data2;
+        item.Color = Colour(255, 252, 204, 255);
+        item.Flags = Flags;
+        m_Items.push_back(item);
+        return m_Items.size() - 1;
+    }
+
+    int ListBox::AddItem(const wchar_t* Label, int Data, int Data2, bool State, uint32_t Flags)
+    {
+        return AddItem(std::wstring(Label), Data, Data2, State, Flags);
+    }
+
+#define INT2VOIDP(i) (void*)(uintptr_t)(i)
+
+    void ListBox::DeleteAllItems(void)
+    {
+        m_iSelection = -1;
+        m_iFirstVisibleItem = 0;
+
+        m_Items.clear();
+
+        if (parent) {
+            parent->onNotify(this, WN_LIST_SELCHANGE, INT2VOIDP(m_iSelection));
+        }
+    }
+
+    void ListBox::DeleteItem(int iItem)
+    {
+        int OldSelection = m_iSelection;
+
+        m_Items.erase(m_Items.begin() + iItem);
+
+        if (iItem < m_iSelection) {
+            m_iSelection--;
+        }
+        if (m_iSelection < 0) {
+            m_iSelection = 0;
+        }
+        if (m_iSelection >= m_Items.size()) {
+            m_iSelection = m_Items.size() - 1;
+        }
+        if (m_Items.size() == 0) {
+            m_iSelection = -1;
+        }
+
+        EnsureVisible(m_iSelection);
+
+        if ((m_iSelection != OldSelection) && parent) {
+            parent->onNotify(this, WN_LIST_SELCHANGE, INT2VOIDP(m_iSelection));
+        }
+    }
+
+    void ListBox::DeleteSelectedItem()
+    {
+        // ensure that we have something to delete!
+        if (m_iSelection < 0) {
+            return;
+        }
+        m_Items.erase(m_Items.begin() + m_iSelection);
+
+        if (m_iSelection >= m_Items.size()) {
+            m_iSelection = m_Items.size() - 1;
+        }
+        if (m_Items.size() == 0) {
+            m_iSelection = -1;
+        }
+
+        EnsureVisible(m_iSelection);
+
+        if (parent) {
+            parent->onNotify(this, WN_LIST_SELCHANGE, INT2VOIDP(m_iSelection));
+        }
+    }
+
+    uint32_t ListBox::GetItemFlags(int iItem)
+    {
+        return m_Items[iItem].Flags;
+    }
+
+    void ListBox::EnableItem(int iItem, bool State)
+    {
+        int OldSelection = m_iSelection;
+        m_Items[iItem].Enabled = State;
+
+        // If the selected item was just disabled then search for new item to select
+        if ((iItem == m_iSelection) && !State) {
+            int iFound = -1;
+            int i1 = iItem - 1;
+            int i2 = iItem + 1;
+
+            while ((i1 >= 0) && (i2 < m_Items.size())) {
+                if (i1 >= 0) {
+                    if (m_Items[i1].Enabled) {
+                        iFound = i1;
+                        break;
+                    }
+                    i1--;
+                }
+                if (i2 < m_Items.size()) {
+                    if (m_Items[i2].Enabled) {
+                        iFound = i2;
+                        break;
+                    }
+                    i2++;
+                }
+            }
+            m_iSelection = iFound;
+            EnsureVisible(m_iSelection);
+
+            if ((m_iSelection != OldSelection) && parent) {
+                parent->onNotify(this, WN_LIST_SELCHANGE, INT2VOIDP(m_iSelection));
+            }
+        }
+    }
+
     void ListBox::EnableHeaderBar(void)
     {
         m_ShowHeaderBar = true;
@@ -149,6 +277,10 @@ namespace ui
 
     int ListBox::GetSelectedItemData(int Index) const
     {
+        if (m_iSelection < 0){
+            assert(false);
+            return 0;
+        }
         return m_Items[m_iSelection].Data[Index];
     }
 
@@ -162,6 +294,123 @@ namespace ui
         return m_Items[iItem].Color;
     }
 
+    int ListBox::FindItemByLabel(const std::wstring& Label)
+    {
+        int i;
+        int iFound = -1;
+
+        for (i = 0; i < m_Items.size(); i++) {
+            if (m_Items[i].Label == Label) {
+                iFound = i;
+                break;
+            }
+        }
+
+        return iFound;
+    }
+
+    int ListBox::FindItemByData(int Data, int Index)
+    {
+        int i;
+        int iFound = -1;
+
+        for (i = 0; i < m_Items.size(); i++) {
+            if (m_Items[i].Data[Index] == Data) {
+                iFound = i;
+                break;
+            }
+        }
+
+        return iFound;
+    }
+
+    int ListBox::GetSelection() const
+    {
+        return m_iSelection;
+    }
+
+    void ListBox::SetSelection(int iSelection)
+    {
+        if (iSelection < -1) {
+            iSelection = -1;
+        }
+        if (iSelection > (m_Items.size() - 1)) {
+            iSelection = m_Items.size() - 1;
+        }
+
+        if ((iSelection == -1) || m_Items[iSelection].Enabled) {
+            m_iSelection = iSelection;
+            EnsureVisible(m_iSelection);
+
+            if (parent) {
+                parent->onNotify(this, WN_LIST_SELCHANGE, INT2VOIDP(m_iSelection));
+            }
+        }
+    }
+
+    void ListBox::ClearSelection()
+    {
+        m_iSelection = -1;
+    }
+
+    void ListBox::EnsureVisible(int iItem)
+    {
+        if (iItem != -1) {
+            if (iItem < m_iFirstVisibleItem) {
+                m_iFirstVisibleItem = iItem;
+            }
+            if (iItem >= (m_iFirstVisibleItem + m_nVisibleItems)) {
+                m_iFirstVisibleItem = iItem - (m_nVisibleItems - 1);
+            }
+        }
+    }
+
+    int ListBox::GetNumEnabledItems()
+    {
+        int Count = 0;
+        for (int i = 0; i < m_Items.size(); i++) {
+            if (m_Items[i].Enabled) {
+                Count++;
+            }
+        }
+        return Count;
+    }
+
+    int ListBox::GetCursorOffset()
+    {
+        int Offset = m_iSelection - m_iFirstVisibleItem;
+        if (Offset >= m_nVisibleItems) {
+            Offset = m_nVisibleItems - 1;
+        }
+        if (Offset < 0) {
+            Offset = 0;
+        }
+        return Offset;
+    }
+
+    void ListBox::SetSelectionWithOffset(int iSelection, int Offset)
+    {
+        if ((iSelection == -1) || m_Items[iSelection].Enabled) {
+            m_iSelection = iSelection;
+
+            if (m_iSelection != -1) {
+                m_iFirstVisibleItem = m_iSelection - Offset;
+
+                if (m_iFirstVisibleItem >= (m_Items.size() - m_nVisibleItems)) {
+                    m_iFirstVisibleItem = m_Items.size() - (m_nVisibleItems);
+                }
+
+                if (m_iFirstVisibleItem < 0) {
+                    m_iFirstVisibleItem = 0;
+                }
+            }
+
+            if (parent) {
+                parent->onNotify(this, WN_LIST_SELCHANGE, INT2VOIDP(m_iSelection));
+            }
+        }
+    }
+
     void ListBox::SetBackgroundColor(Colour Color)
     {
         m_BackgroundColor = Color;
@@ -170,11 +419,6 @@ namespace ui
     Colour ListBox::GetBackgroundColor() const
     {
         return m_BackgroundColor;
-    }
-
-    void ListBox::SetExitOnSelect(bool State)
-    {
-        m_ExitOnSelect = State;
     }
 
 }

@@ -210,8 +210,9 @@ void StateMachine::enterProfileSelect()
     uiManager->endDialog(true);
 
     IntRect mainarea(91, DIALOG_TOP, 421, DIALOG_BOTTOM);
-    currentDialog = uiManager->openDialog("profile select", mainarea, nullptr, ui::Window::WF_VISIBLE | ui::Window::WF_BORDER);
+    currentDialog = uiManager->openDialog("profile select", mainarea, nullptr, ui::Window::WF_VISIBLE | ui::Window::WF_BORDER, this);
     // If playing movie, don't set the background.
+
     uiManager->setUserBackground("background1");
 }
 
