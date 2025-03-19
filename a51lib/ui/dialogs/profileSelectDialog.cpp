@@ -4,6 +4,8 @@
 #include "../../system/Renderer.h"
 #include "../../state/PlayerProfile.h"
 
+#include <ctime>
+
 namespace ui
 {
     ProfileSelectDialog::ProfileSelectDialog()
@@ -158,85 +160,83 @@ namespace ui
         // clear the list
         profileList->DeleteAllItems();
 
+        auto* manager = getUIManger();
+
         // get the current list from the memcard manager
         //g_UIMemCardMgr.GetProfileNames(ProfileNames);
-/*
-        // fill it with the profile information
-        for (int i = 0; i < ProfileNames.GetCount(); i++) {
-            if (ProfileNames[i]->bDamaged) {
+        /*
+                // fill it with the profile information
+                for (int i = 0; i < ProfileNames.GetCount(); i++) {
+                    if (ProfileNames[i]->bDamaged) {
 
-                // add the profile to the list
-                profileList->AddItem(g_StringTableMgr("ui", "IDS_CORRUPT"), i, PROFILE_CORRUPT);
-                profileList->SetItemColor(i, XCOLOR_RED);
+                        // add the profile to the list
+                        profileList->AddItem(g_StringTableMgr("ui", "IDS_CORRUPT"), i, PROFILE_CORRUPT);
+                        profileList->SetItemColor(i, XCOLOR_RED);
 
-            } else if (ProfileNames[i]->Ver != PROFILE_VERSION_NUMBER) {
+                    } else if (ProfileNames[i]->Ver != PROFILE_VERSION_NUMBER) {
 
-                // add the profile to the list
-                //m_pProfileList->AddItem( g_StringTableMgr( "ui", "IDS_BAD_VERSION" ), i, PROFILE_EXPIRED ); // not for retail
-                profileList->AddItem(g_StringTableMgr("ui", "IDS_CORRUPT"), i, PROFILE_CORRUPT);
-                profileList->SetItemColor(i, XCOLOR_RED);
+                        // add the profile to the list
+                        //m_pProfileList->AddItem( g_StringTableMgr( "ui", "IDS_BAD_VERSION" ), i, PROFILE_EXPIRED ); // not for retail
+                        profileList->AddItem(g_StringTableMgr("ui", "IDS_CORRUPT"), i, PROFILE_CORRUPT);
+                        profileList->SetItemColor(i, XCOLOR_RED);
 
-            } else {
-                // add the profile to the list
-                profileList->AddItem(ProfileNames[i]->Name, i, PROFILE_OK);
-            }
-
-            // look for a match for the selected profile
-            if (Profile1 != 0) {
-                if (ProfileNames[i]->Hash == Profile1) {
-                    if (CurrentSelection == -1) {
-                        CurrentSelection = i;
+                    } else {
+                        // add the profile to the list
+                        profileList->AddItem(ProfileNames[i]->Name, i, PROFILE_OK);
                     }
-                    Found = true;
+
+                    // look for a match for the selected profile
+                    if (Profile1 != 0) {
+                        if (ProfileNames[i]->Hash == Profile1) {
+                            if (CurrentSelection == -1) {
+                                CurrentSelection = i;
+                            }
+                            Found = true;
+                        }
+                    }
                 }
-            }
-        }
-
+        */
         // add a create option
-        m_CreateIndex = ProfileNames.GetCount();
-        profileList->AddItem(g_StringTableMgr("ui", "IDS_PROFILE_CREATE_NEW"), m_CreateIndex);
+        m_CreateIndex = ProfileNames.size();
+        profileList->AddItem(manager->lookupString("ui", "IDS_PROFILE_CREATE_NEW"), m_CreateIndex);
 
-        {
-            if ((profileList->GetItemCount() > CurrentSelection) && (CurrentSelection >= 0)) {
-                profileList->SetSelection(CurrentSelection);
-            } else {
-                profileList->SetSelection(0);
-            }
+        if ((profileList->GetItemCount() > CurrentSelection) && (CurrentSelection >= 0)) {
+            profileList->SetSelection(CurrentSelection);
+        } else {
+            profileList->SetSelection(0);
         }
 
         // populate profile info
         int SelIndex = profileList->GetSelection();
         if (SelIndex == m_CreateIndex) {
             // new profile, blank fields
-            m_pCardSlot->setLabel(g_StringTableMgr("ui", "IDS_NULL"));
-            m_pInfoCreationDate->setLabel(std::wstring(L"---"));
-            m_pInfoModifiedDate->setLabel(std::wstring(L"---"));
-
+            m_pCardSlot->setLabel(manager->lookupString("ui", "IDS_NULL"));
+            m_pInfoCreationDate->setLabel(L"---");
+            m_pInfoModifiedDate->setLabel(L"---");
         } else {
             // set the profile info
             if (ProfileNames[SelIndex]->CardID == 0) {
-                m_pCardSlot->setLabel(g_StringTableMgr("ui", "IDS_PROFILE_CARD_SLOT_1"));
+                m_pCardSlot->setLabel(manager->lookupString("ui", "IDS_PROFILE_CARD_SLOT_1"));
             } else {
-                m_pCardSlot->setLabel(g_StringTableMgr("ui", "IDS_PROFILE_CARD_SLOT_2"));
+                m_pCardSlot->setLabel(manager->lookupString("ui", "IDS_PROFILE_CARD_SLOT_2"));
             }
 
-            split_date TimeStamp = eng_SplitDate(ProfileNames[SelIndex]->CreationDate);
+            auto* cd = localtime(&ProfileNames[SelIndex]->CreationDate);
+            char buf[64];
+            snprintf(buf, 63, "IDS_MONTH%d", cd->tm_mon);
+            std::wstring Month = manager->lookupString("ui", buf);
 
-            const xwchar* Month = g_StringTableMgr("ui", (const char*)xfs("IDS_MONTH%d", TimeStamp.Month));
-            xwstring      CreateStamp(xfs("%02i:%02i:%02i ", TimeStamp.Hour, TimeStamp.Minute, TimeStamp.Second));
-            CreateStamp += Month;
-            CreateStamp += (const char*)xfs("%02i", TimeStamp.Day);
-            m_pInfoCreationDate->SetLabel(CreateStamp);
+            wchar_t buf2[128];
+            swprintf ( buf2, 127, L"%02i:%02i:%02i %s %02i", cd->tm_hour, cd->tm_min, cd->tm_sec, Month.c_str(), cd->tm_mday );
+            m_pInfoCreationDate->setLabel(buf2);
 
-            TimeStamp = eng_SplitDate(ProfileNames[SelIndex]->ModifiedDate);
-
-            Month = g_StringTableMgr("ui", (const char*)xfs("IDS_MONTH%d", TimeStamp.Month));
-            xwstring ModStamp(xfs("%02i:%02i:%02i ", TimeStamp.Hour, TimeStamp.Minute, TimeStamp.Second));
-            ModStamp += Month;
-            ModStamp += (const char*)xfs("%02i", TimeStamp.Day);
-            m_pInfoModifiedDate->SetLabel(ModStamp);
+            cd = localtime(&ProfileNames[SelIndex]->ModifiedDate);
+            
+            snprintf(buf, 63, "IDS_MONTH%d", cd->tm_mon);
+            Month = manager->lookupString("ui", buf);
+            swprintf ( buf2, 127, L"%02i:%02i:%02i %s %02i", cd->tm_hour, cd->tm_min, cd->tm_sec, Month.c_str(), cd->tm_mday );
+            m_pInfoModifiedDate->setLabel(buf2);
         }
-            */
     }
 
     void ProfileSelectDialog::render(Renderer& renderer, int ox, int oy)

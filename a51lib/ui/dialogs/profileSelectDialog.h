@@ -87,6 +87,9 @@ namespace ui
         bool         m_ProfileEntered;
         bool         m_ProfileOk;
 
+        int m_CreateIndex;
+        int m_iCard;
+
         ProfileSelectType m_Type;
 
         bool m_bEditProfile;
