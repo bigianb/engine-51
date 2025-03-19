@@ -67,11 +67,11 @@ private:
     struct Batch
     {
         SDL_GPUGraphicsPipeline* pipeline;
-        SDL_GPUTexture* texture;
-        SDL_GPUBuffer*  vertexBuffer;
-        SDL_GPUBuffer*  indexBuffer;
-        int             numIndices;
-        Colour          colour;
+        SDL_GPUTexture*          texture;
+        SDL_GPUBuffer*           vertexBuffer;
+        SDL_GPUBuffer*           indexBuffer;
+        int                      numIndices;
+        Colour                   colour;
     };
 
     Colour currentColour;
@@ -79,12 +79,14 @@ private:
     std::vector<Batch> batches;
 
     std::vector<PositionTextureVertex> accumulatedVertices;
-    std::vector<PositionColourVertex> accumulatedColourVertices;
+    std::vector<PositionColourVertex>  accumulatedColourVertices;
 
     SDL_Window*              window;
     SDL_GPUDevice*           device;
     SDL_GPUGraphicsPipeline* pipeline;
+    SDL_GPUGraphicsPipeline* pipeline_tex_alpha;
     SDL_GPUGraphicsPipeline* colourPipeline;
+    SDL_GPUGraphicsPipeline* colourPipeline_alpha;
     SDL_GPUSampler*          pointSampler;
 
     std::map<Bitmap*, SDL_GPUTexture*> gpuTextures;

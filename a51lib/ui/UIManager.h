@@ -249,6 +249,9 @@ namespace ui
         void setScreenHighlight(const IntRect& pos);
         void renderScreenHighlight(Renderer& renderer);
         void renderScreenGlow(Renderer& renderer);
+        void enableScreenHighlight() { m_ScreenHighlightEnabled = true; }
+        void disableScreenHighlight() { m_ScreenHighlightEnabled = false; }
+        int  getHighlightAlpha(int cycle);
 
         // Glow bar
         void initGlowBar();

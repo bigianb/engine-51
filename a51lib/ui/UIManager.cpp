@@ -80,8 +80,8 @@ void ui::Manager::init(Renderer& renderer, ResourceManager* rm)
     Button::setTextColorDisabled(COLOR_GREY);
     Button::setTextColorShadow(Colour(0, 0, 0, 0));
 
-    //Dialog::setTextColorNormal       (Colour(255,252,204,255));
-    //Dialog::setTextColorShadow       (COLOR_BLACK);
+    Dialog::setTextColorNormal(Colour(255, 252, 204, 255));
+    Dialog::setTextColorShadow(COLOR_BLACK);
 
     enableUserInput = true;
     enableBackground = false;
@@ -717,22 +717,15 @@ bool ui::Manager::processInput(Engine* engine, float deltaTime, User* user)
 
 void ui::Manager::update(float deltaTime)
 {
-    /*
-    if( highlightFadeUp )
-    {
-        if( ++highlightAlpha == 32)
-        {
-            highlightFadeUp = false;
+    if (m_HighlightFadeUp) {
+        if (++m_HighlightAlpha == 32) {
+            m_HighlightFadeUp = false;
+        }
+    } else {
+        if (--m_HighlightAlpha == 0) {
+            m_HighlightFadeUp = true;
         }
     }
-    else
-    {
-        if( --highlightAlpha == 0 )
-        {
-            highlightFadeUp = true;
-        }
-    }
-    */
     //UpdateScreenWipe(deltaTime);
     //UpdateRefreshBar(deltaTime);
 
@@ -902,8 +895,40 @@ void ui::Manager::setScreenHighlight(const IntRect& pos)
 
 void ui::Manager::renderScreenHighlight(Renderer& renderer)
 {
+    if (!m_ScreenHighlightEnabled) {
+        return;
+    }
+
+    if (m_isScaling) {
+        return;
+    }
+
     int val = 64 + (m_HighlightAlpha * 1);
     renderElement(renderer, m_ScreenHighlightID, m_ScreenHighlightPos, 0, Colour(val, val, val, val), true);
+}
+
+int ui::Manager::getHighlightAlpha(int cycle)
+{
+    int val;
+    int returnVal;
+
+    if (m_HighlightFadeUp) {
+        val = m_HighlightAlpha % cycle;
+    } else {
+        val = (32 - m_HighlightAlpha) % cycle;
+    }
+
+    if (m_CycleFadeUp) {
+        returnVal = val;
+    } else {
+        returnVal = (cycle - val);
+    }
+
+    if (val == (cycle - 1)) {
+        m_CycleFadeUp = !m_CycleFadeUp;
+    }
+
+    return returnVal;
 }
 
 void ui::Manager::renderScreenGlow(Renderer& renderer)
@@ -947,6 +972,10 @@ void ui::Manager::initGlowBar()
 
 void ui::Manager::renderGlowBar(Renderer& renderer)
 {
+    if (!m_ScreenIsOn) {
+        return;
+    }
+
     for (int i = 0; i < 8; i++) {
         if (m_GlowTrail[i].left != -1) {
             uint8_t val = 255 - (i * 32);
@@ -957,7 +986,9 @@ void ui::Manager::renderGlowBar(Renderer& renderer)
 
 void ui::Manager::updateGlowBar(float deltaTime)
 {
-    deltaTime = deltaTime;
+    if (!m_ScreenIsOn) {
+        return;
+    }
 
     if (m_GlowOnTop) {
         m_GlowPos.left += (int)((m_GlowSpeed * deltaTime) + 0.5f);

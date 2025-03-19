@@ -97,6 +97,9 @@ namespace ui
 
         void AlphaSortList();
 
+    private:
+        void renderItem(Renderer& renderer, IntRect r, const Item& item, const Colour& c1, const Colour& c2);
+
     protected:
         bool m_ExitOnSelect;
         bool m_ExitOnBack;

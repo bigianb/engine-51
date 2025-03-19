@@ -127,9 +127,7 @@ bool SDLRenderer::init()
         SDL_Log("Failed to create fragment shader!");
         return false;
     }
-
-    // Probably need multiple of these.
-    SDL_GPUColorTargetDescription ctd[]{
+    SDL_GPUColorTargetDescription ctd_add[]{
         {.format = SDL_GetGPUSwapchainTextureFormat(device, window),
          .blend_state = {
              .src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
@@ -141,6 +139,19 @@ bool SDLRenderer::init()
              .color_write_mask = 0,
              .enable_blend = true,
              .enable_color_write_mask = false}}};
+
+    SDL_GPUColorTargetDescription ctd_alpha[]{
+    {.format = SDL_GetGPUSwapchainTextureFormat(device, window),
+        .blend_state = {
+            .src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+            .dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+            .color_blend_op = SDL_GPU_BLENDOP_ADD,
+            .src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+            .dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+            .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
+            .color_write_mask = 0,
+            .enable_blend = true,
+            .enable_color_write_mask = false}}};
 
     SDL_GPUVertexAttribute vba[]{
         {
@@ -248,7 +259,7 @@ bool SDLRenderer::init()
             .multisample_state = multisampleState,
             .depth_stencil_state = depthStencilState,
             .target_info = {
-                .color_target_descriptions = ctd,
+                .color_target_descriptions = ctd_add,
                 .num_color_targets = 1,
 
             },
@@ -263,6 +274,29 @@ bool SDLRenderer::init()
     }
     {
         SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
+            .vertex_shader = vertexShader,
+            .fragment_shader = fragmentShader,
+            .vertex_input_state = vertexInputState,
+            .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+            .rasterizer_state = rasteriserState,
+            .multisample_state = multisampleState,
+            .depth_stencil_state = depthStencilState,
+            .target_info = {
+                .color_target_descriptions = ctd_alpha,
+                .num_color_targets = 1,
+
+            },
+            .props = 0,
+        };
+
+        pipeline_tex_alpha = SDL_CreateGPUGraphicsPipeline(device, &pipelineCreateInfo);
+        if (pipeline_tex_alpha == nullptr) {
+            SDL_Log("Failed to create pipeline_tex_alpha!");
+            return false;
+        }
+    }
+    {
+        SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
             .vertex_shader = positionColorVertexShader,
             .fragment_shader = solidColorFragmentShader,
             .vertex_input_state = positionColourVertexInputState,
@@ -270,7 +304,7 @@ bool SDLRenderer::init()
             .rasterizer_state = rasteriserState,
             .depth_stencil_state = depthStencilState,
             .target_info = {
-                .color_target_descriptions = ctd,
+                .color_target_descriptions = ctd_add,
                 .num_color_targets = 1,
 
             },
@@ -280,6 +314,28 @@ bool SDLRenderer::init()
         colourPipeline = SDL_CreateGPUGraphicsPipeline(device, &pipelineCreateInfo);
         if (colourPipeline == nullptr) {
             SDL_Log("Failed to create colourPipeline!");
+            return false;
+        }
+    }
+    {
+        SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
+            .vertex_shader = positionColorVertexShader,
+            .fragment_shader = solidColorFragmentShader,
+            .vertex_input_state = positionColourVertexInputState,
+            .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+            .rasterizer_state = rasteriserState,
+            .depth_stencil_state = depthStencilState,
+            .target_info = {
+                .color_target_descriptions = ctd_alpha,
+                .num_color_targets = 1,
+
+            },
+            .props = 0,
+        };
+
+        colourPipeline_alpha = SDL_CreateGPUGraphicsPipeline(device, &pipelineCreateInfo);
+        if (colourPipeline_alpha == nullptr) {
+            SDL_Log("Failed to create colourPipeline_alpha!");
             return false;
         }
     }
@@ -485,7 +541,6 @@ void SDLRenderer::flushTextureVertices()
 
     SDL_UnmapGPUTransferBuffer(device, bufferTransferBuffer);
 
-    // TODO: delay upload until render time?
     SDL_GPUCommandBuffer* uploadCmdBuf = SDL_AcquireGPUCommandBuffer(device);
     SDL_GPUCopyPass*      copyPass = SDL_BeginGPUCopyPass(uploadCmdBuf);
 
@@ -517,7 +572,17 @@ void SDLRenderer::flushTextureVertices()
     SDL_EndGPUCopyPass(copyPass);
     SDL_SubmitGPUCommandBuffer(uploadCmdBuf);
 
-    batches.push_back(Batch{pipeline, gpuTextures[currentTex], vertexBuffer, indexBuffer, (int)accumulatedVertices.size(), currentColour});
+    // DRAW_BLEND_ADD takes precedence
+    SDL_GPUGraphicsPipeline* pl = pipeline;
+    if ((drawFlags & DRAW_BLEND_ADD)){
+        pl = pipeline;
+    } else if ((drawFlags & DRAW_BLEND_SUB)){
+        assert(false);
+    } else if ((drawFlags & DRAW_USE_ALPHA)){
+        pl = pipeline_tex_alpha;
+    }
+
+    batches.push_back(Batch{pl, gpuTextures[currentTex], vertexBuffer, indexBuffer, (int)accumulatedVertices.size(), currentColour});
 
     accumulatedVertices.clear();
 }

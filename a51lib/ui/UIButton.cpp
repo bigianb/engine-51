@@ -66,7 +66,7 @@ namespace ui
                 TextColor1 = Colour(0, 0, 0, 255);
                 TextColor2 = Colour(0, 0, 0, 0);
 
-                int alpha = 128; // + (getUIManger()->getHighlightAlpha(8) * 8); // 64<->192
+                int alpha = (getUIManger()->getHighlightAlpha(8) * 8); // 64<->192
                 renderer.renderRect(r, Colour(79, 214, 60, alpha), false);
             }
         } else {

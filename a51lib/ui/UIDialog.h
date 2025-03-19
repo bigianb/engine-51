@@ -48,8 +48,11 @@ namespace ui
         bool updateScreenScaling(float DeltaTime, bool DoWipe);
 
         void onPadNavigate(NavigateDir code, int presses, int repeats, bool wrapX = false, bool wrapY = false) override;
-        
+
         int getControl() const { return currentControl; }
+
+        static void setTextColorNormal(Colour color) { m_TextColorNormal = color; }
+        static void setTextColorShadow(Colour color) { m_TextColorShadow = color; }
 
         int oldCursorX, oldCursorY;
 
@@ -73,6 +76,10 @@ namespace ui
         float   m_totalX;
         float   m_scaleCount;
         float   m_scaleAngle;
+
+        // set once for all dialogs
+        static Colour m_TextColorNormal;
+        static Colour m_TextColorShadow;
     };
 
 };

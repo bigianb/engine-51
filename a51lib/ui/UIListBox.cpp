@@ -47,7 +47,6 @@ namespace ui
         m_AllowParentNavigate = false;
         m_DisableCursor = false;
         m_nVisibleItems = (position.getHeight() - SPACE_TOP - SPACE_BOTTOM) / m_LineHeight;
-        //m_Font = g_UiMgr->FindFont("small");
 
         m_MouseDown = false;
         m_ScrollDown = false;
@@ -87,9 +86,6 @@ namespace ui
         }
 
         auto* mgr = getUIManger();
-        if (flags & WF_HIGHLIGHT) {
-            //mgr->addHighlight(user, r);
-        }
 
         IntRect rb = r;
         if (m_ShowFrame) {
@@ -110,6 +106,63 @@ namespace ui
             rb.top += 22;
             r2.top += 22;
         }
+
+        renderer.renderRect(rb, m_BackgroundColor, false);
+        IntRect rl = rb;
+        rl.setHeight(m_LineHeight);
+        rl.deflate(2, 0);
+        rl.right -= 2;
+        rl.translate(0, SPACE_TOP);
+
+        // check for empty list
+        if (m_Items.empty()) {
+            if (flags & WF_SELECTED) {
+                // render cursor bar
+                int alpha = 128 + (mgr->getHighlightAlpha(8) * 8); // 64<->192
+                renderer.renderRect(rl, Colour(79, 214, 60, alpha), false);
+            }
+        } else {
+            for (int i = 0; i < m_nVisibleItems; i++) {
+                int iItem = m_iFirstVisibleItem + i;
+
+                if ((iItem >= 0) && (iItem < m_Items.size())) {
+                    // Render Selection Rectangle
+                    if ((iItem == m_iSelection) && (m_ShowBorders) && (m_DisableCursor == false)) {
+                        if (flags & (WF_SELECTED)) {
+                            int alpha = 128 + (mgr->getHighlightAlpha(8) * 8); // 64<->192
+                            renderer.renderRect(rl, Colour(79, 214, 60, alpha), false);
+                        }
+                    }
+
+                    // Render Text
+                    Colour c1 = m_Items[iItem].Color;
+                    Colour c2 = TextColor2;
+                    if (!m_Items[iItem].Enabled) {
+                        c1 = COLOR_GREY;
+                        c2 = Colour(0, 0, 0, 0);
+                    } else if ((iItem == m_iSelection) && (m_DisableCursor == false)) {
+                        if (flags & WF_SELECTED) {
+                            c1 = COLOR_BLACK;
+                            c2 = Colour(0, 0, 0, 0);
+                        }
+                    }
+                    IntRect rl2 = rl;
+                    renderItem(renderer, rl2, m_Items[iItem], c1, c2);
+                }
+                rl.translate(0, m_LineHeight);
+            }
+        }
+    }
+
+    void ListBox::renderItem(Renderer& renderer, IntRect r, const ListBox::Item& item, const Colour& c1, const Colour& c2 )
+    {
+        auto* mgr = getUIManger();
+
+        r.deflate( 4, 0 );
+        r.translate( 1, -2 );
+        mgr->renderText(renderer, "small", r, labelFlags, c2, item.Label);
+        r.translate( -1, -1 );
+        mgr->renderText(renderer, "small", r, labelFlags, c1, item.Label);
     }
 
     void ListBox::SetExitOnSelect(bool State)
@@ -277,7 +330,7 @@ namespace ui
 
     int ListBox::GetSelectedItemData(int Index) const
     {
-        if (m_iSelection < 0){
+        if (m_iSelection < 0) {
             assert(false);
             return 0;
         }

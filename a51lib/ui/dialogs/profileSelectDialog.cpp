@@ -67,6 +67,7 @@ namespace ui
         profileList = (ui::ListBox*)findChildById(IDC_PROFILE_SELECT_LISTBOX);
         navText = (ui::Text*)findChildById(IDC_PROFILE_SELECT_NAV_TEXT);
 
+        profileList->clearFlag(Window::WF_VISIBLE);
         navText->clearFlag(Window::WF_VISIBLE);
 
         std::wstring wNavText = manager->lookupString("ui", "IDS_NAV_SELECT");
@@ -222,19 +223,19 @@ namespace ui
             }
 
             auto* cd = localtime(&ProfileNames[SelIndex]->CreationDate);
-            char buf[64];
+            char  buf[64];
             snprintf(buf, 63, "IDS_MONTH%d", cd->tm_mon);
             std::wstring Month = manager->lookupString("ui", buf);
 
             wchar_t buf2[128];
-            swprintf ( buf2, 127, L"%02i:%02i:%02i %s %02i", cd->tm_hour, cd->tm_min, cd->tm_sec, Month.c_str(), cd->tm_mday );
+            swprintf(buf2, 127, L"%02i:%02i:%02i %s %02i", cd->tm_hour, cd->tm_min, cd->tm_sec, Month.c_str(), cd->tm_mday);
             m_pInfoCreationDate->setLabel(buf2);
 
             cd = localtime(&ProfileNames[SelIndex]->ModifiedDate);
-            
+
             snprintf(buf, 63, "IDS_MONTH%d", cd->tm_mon);
             Month = manager->lookupString("ui", buf);
-            swprintf ( buf2, 127, L"%02i:%02i:%02i %s %02i", cd->tm_hour, cd->tm_min, cd->tm_sec, Month.c_str(), cd->tm_mday );
+            swprintf(buf2, 127, L"%02i:%02i:%02i %s %02i", cd->tm_hour, cd->tm_min, cd->tm_sec, Month.c_str(), cd->tm_mday);
             m_pInfoModifiedDate->setLabel(buf2);
         }
     }
@@ -288,17 +289,17 @@ namespace ui
         int highlight = -1;
         if (getUIManger()->isScreenScaling()) {
             if (!updateScreenScaling(deltaTime, false)) {
+                profileList->setFlag(Window::WF_VISIBLE);
+                // m_pProfileDetails   ->setFlag(Window::WF_VISIBLE);
+                m_pCardSlot->setFlag(Window::WF_VISIBLE);
+                m_pCreationDate->setFlag(Window::WF_VISIBLE);
+                m_pModifiedDate->setFlag(Window::WF_VISIBLE);
+                m_pInfoCreationDate->setFlag(Window::WF_VISIBLE);
+                m_pInfoModifiedDate->setFlag(Window::WF_VISIBLE);
                 navText->setFlag(Window::WF_VISIBLE);
 
                 gotoControl(profileList);
                 getUIManger()->setScreenHighlight(profileList->getPosition());
-
-                auto* manager = getUIManger();
-                if (!manager->isScreenOn()) {
-                    // enable the frame
-                    clearFlag(WF_DISABLED);
-                    manager->setScreenOn(true);
-                }
             }
         }
 

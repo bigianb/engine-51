@@ -3,6 +3,9 @@
 #include "UIFont.h"
 #include <cmath>
 
+Colour ui::Dialog::m_TextColorNormal;
+Colour ui::Dialog::m_TextColorShadow;
+
 bool ui::Dialog::create(User*           user,
                         Manager*        manager,
                         DialogTemplate* dialogTemplate,
@@ -263,13 +266,11 @@ void ui::Dialog::render(Renderer& renderer, int ox, int oy)
 
         // Render Title
         if (!getUIManger()->isScreenScaling()) {
-            /* TODO
-            rb.Deflate( 0, 5 );
-            s32 FontID = g_UiMgr->FindFont("large");
-            getUIManger()->renderText( FontID, rb, ui::Font::h_center, m_TextColorShadow, m_Label );
-            rb.Translate( -1, -1 );
-            getUIManger()->renderText( FontID, rb, ui_font::h_center, m_TextColorNormal, m_Label );
-            */
+
+            r.deflate( 0, 5 );
+            getUIManger()->renderText( renderer, "large", r, ui::Font::h_center, m_TextColorShadow, label );
+            r.translate( -1, -1 );
+            getUIManger()->renderText( renderer, "large", r, ui::Font::h_center, m_TextColorNormal, label );
         }
 
         getUIManger()->renderScreenGlow(renderer);

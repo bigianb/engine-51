@@ -311,7 +311,7 @@ void ui::Font::renderText(Renderer& renderer, const IntRect& pos, int flags, Col
     }
 
     // Prepare to draw characters.
-    int drawFlags = DRAW_USE_ALPHA | DRAW_TEXTURED | DRAW_2D | DRAW_NO_ZBUFFER | DRAW_NO_ZWRITE | DRAW_XBOX_WRITE_A | DRAW_UV_CLAMP | DRAW_CULL_NONE;
+    int drawFlags = DRAW_USE_ALPHA | DRAW_TEXTURED | DRAW_2D | DRAW_NO_ZBUFFER | DRAW_NO_ZWRITE | DRAW_UV_CLAMP | DRAW_CULL_NONE;
     if (flags & blend_additive) {
         drawFlags |= DRAW_BLEND_ADD;
     }
