@@ -22,7 +22,6 @@ namespace ui
             {ProfileSelectDialog::IDC_PROFILE_SELECT_LISTBOX, "IDS_PROFILE_PROFILES", "listbox", 45, 40, 240, 206, 0, 0, 1, 1, Window::WF_VISIBLE | Window::WF_SCALE_XPOS | Window::WF_SCALE_XSIZE},
             //   {ProfileSelectDialog::IDC_PROFILE_SELECT_INFOBOX, "IDS_PROFILE_INFO", "blankbox", 45, 256, 240, 76, 0, 0, 0, 0, Window::WF_VISIBLE | Window::WF_SCALE_XPOS | Window::WF_SCALE_XSIZE},
 
-            {ProfileSelectDialog::IDC_PROFILE_CARD_SLOT, "IDS_NULL", "text", 53, 278, 120, 16, 0, 0, 0, 0, Window::WF_VISIBLE | Window::WF_SCALE_XPOS | Window::WF_SCALE_XSIZE},
             {ProfileSelectDialog::IDC_PROFILE_CREATE_DATE, "IDS_PROFILE_CREATE_DATE", "text", 53, 294, 120, 16, 0, 0, 0, 0, Window::WF_VISIBLE | Window::WF_SCALE_XPOS | Window::WF_SCALE_XSIZE},
             {ProfileSelectDialog::IDC_PROFILE_MODIFIED_DATE, "IDS_PROFILE_MODIFIED_DATE", "text", 53, 310, 120, 16, 0, 0, 0, 0, Window::WF_VISIBLE | Window::WF_SCALE_XPOS | Window::WF_SCALE_XSIZE},
 
@@ -87,31 +86,26 @@ namespace ui
         profileList->SetHeaderBarColor(Colour(19, 59, 14, 196));
         profileList->SetHeaderColor(Colour(255, 252, 204, 255));
 
-        m_pCardSlot = (Text*)findChildById(IDC_PROFILE_CARD_SLOT);
         m_pCreationDate = (Text*)findChildById(IDC_PROFILE_CREATE_DATE);
         m_pModifiedDate = (Text*)findChildById(IDC_PROFILE_MODIFIED_DATE);
         m_pInfoCreationDate = (Text*)findChildById(IDC_PROFILE_INFO_CREATE_DATE);
         m_pInfoModifiedDate = (Text*)findChildById(IDC_PROFILE_INFO_MODIFIED_DATE);
 
-        m_pCardSlot->setUseSmallText();
         m_pCreationDate->setUseSmallText();
         m_pModifiedDate->setUseSmallText();
         m_pInfoCreationDate->setUseSmallText();
         m_pInfoModifiedDate->setUseSmallText();
 
-        m_pCardSlot->setLabelFlags(Font::h_left | Font::v_center);
         m_pCreationDate->setLabelFlags(Font::h_left | Font::v_center);
         m_pModifiedDate->setLabelFlags(Font::h_left | Font::v_center);
         m_pInfoCreationDate->setLabelFlags(Font::h_left | Font::v_center);
         m_pInfoModifiedDate->setLabelFlags(Font::h_left | Font::v_center);
 
-        m_pCardSlot->clearFlag(Window::WF_VISIBLE);
         m_pCreationDate->clearFlag(Window::WF_VISIBLE);
         m_pModifiedDate->clearFlag(Window::WF_VISIBLE);
         m_pInfoCreationDate->clearFlag(Window::WF_VISIBLE);
         m_pInfoModifiedDate->clearFlag(Window::WF_VISIBLE);
 
-        m_pCardSlot->setLabelColour(Colour(255, 252, 204, 255));
         m_pCreationDate->setLabelColour(Colour(255, 252, 204, 255));
         m_pModifiedDate->setLabelColour(Colour(255, 252, 204, 255));
         m_pInfoCreationDate->setLabelColour(Colour(255, 252, 204, 255));
@@ -152,9 +146,6 @@ namespace ui
             Profile1 = stateMachine->getSelectedProfile(0);
         }
 
-        // get the profile list
-        std::vector<profile_info*>& ProfileNames = stateMachine->getProfileList();
-
         // store the current selection
         int CurrentSelection = profileList->GetSelection();
 
@@ -163,42 +154,31 @@ namespace ui
 
         auto* manager = getUIManger();
 
-        // get the current list from the memcard manager
-        //g_UIMemCardMgr.GetProfileNames(ProfileNames);
-        /*
-                // fill it with the profile information
-                for (int i = 0; i < ProfileNames.GetCount(); i++) {
-                    if (ProfileNames[i]->bDamaged) {
+        stateMachine->readProfiles();
 
-                        // add the profile to the list
-                        profileList->AddItem(g_StringTableMgr("ui", "IDS_CORRUPT"), i, PROFILE_CORRUPT);
-                        profileList->SetItemColor(i, XCOLOR_RED);
+        // fill it with the profile information
+        int i=0;
+        for (auto& profileInfo : stateMachine->getProfileList()) {
+            if (profileInfo.bDamaged || profileInfo.Ver != PROFILE_VERSION_NUMBER) {
+                profileList->AddItem(manager->lookupString("ui", "IDS_CORRUPT"), i, PROFILE_CORRUPT);
+                profileList->SetItemColor(i, COLOR_RED);
+            } else {
+                profileList->AddItem(profileInfo.Name, i, PROFILE_OK);
+            }
 
-                    } else if (ProfileNames[i]->Ver != PROFILE_VERSION_NUMBER) {
-
-                        // add the profile to the list
-                        //m_pProfileList->AddItem( g_StringTableMgr( "ui", "IDS_BAD_VERSION" ), i, PROFILE_EXPIRED ); // not for retail
-                        profileList->AddItem(g_StringTableMgr("ui", "IDS_CORRUPT"), i, PROFILE_CORRUPT);
-                        profileList->SetItemColor(i, XCOLOR_RED);
-
-                    } else {
-                        // add the profile to the list
-                        profileList->AddItem(ProfileNames[i]->Name, i, PROFILE_OK);
+            // look for a match for the selected profile
+            if (Profile1 != 0) {
+                if (profileInfo.Hash == Profile1) {
+                    if (CurrentSelection == -1) {
+                        CurrentSelection = i;
                     }
-
-                    // look for a match for the selected profile
-                    if (Profile1 != 0) {
-                        if (ProfileNames[i]->Hash == Profile1) {
-                            if (CurrentSelection == -1) {
-                                CurrentSelection = i;
-                            }
-                            Found = true;
-                        }
-                    }
+                    Found = true;
                 }
-        */
+            }
+            ++i;
+        }
         // add a create option
-        m_CreateIndex = ProfileNames.size();
+        m_CreateIndex = stateMachine->getProfileList().size();
         profileList->AddItem(manager->lookupString("ui", "IDS_PROFILE_CREATE_NEW"), m_CreateIndex);
 
         if ((profileList->GetItemCount() > CurrentSelection) && (CurrentSelection >= 0)) {
@@ -211,31 +191,24 @@ namespace ui
         int SelIndex = profileList->GetSelection();
         if (SelIndex == m_CreateIndex) {
             // new profile, blank fields
-            m_pCardSlot->setLabel(manager->lookupString("ui", "IDS_NULL"));
             m_pInfoCreationDate->setLabel(L"---");
             m_pInfoModifiedDate->setLabel(L"---");
         } else {
-            // set the profile info
-            if (ProfileNames[SelIndex]->CardID == 0) {
-                m_pCardSlot->setLabel(manager->lookupString("ui", "IDS_PROFILE_CARD_SLOT_1"));
-            } else {
-                m_pCardSlot->setLabel(manager->lookupString("ui", "IDS_PROFILE_CARD_SLOT_2"));
-            }
-
-            auto* cd = localtime(&ProfileNames[SelIndex]->CreationDate);
+            auto& profileItem = stateMachine->getProfileList()[SelIndex];
+            auto* cd = localtime(&profileItem.CreationDate);
             char  buf[64];
-            snprintf(buf, 63, "IDS_MONTH%d", cd->tm_mon);
+            snprintf(buf, 63, "IDS_MONTH%d", cd->tm_mon + 1);
             std::wstring Month = manager->lookupString("ui", buf);
 
             wchar_t buf2[128];
-            swprintf(buf2, 127, L"%02i:%02i:%02i %s %02i", cd->tm_hour, cd->tm_min, cd->tm_sec, Month.c_str(), cd->tm_mday);
+            swprintf(buf2, 127, L"%02i:%02i:%02i %ls %02i", cd->tm_hour, cd->tm_min, cd->tm_sec, Month.c_str(), cd->tm_mday);
             m_pInfoCreationDate->setLabel(buf2);
 
-            cd = localtime(&ProfileNames[SelIndex]->ModifiedDate);
+            cd = localtime(&profileItem.ModifiedDate);
 
-            snprintf(buf, 63, "IDS_MONTH%d", cd->tm_mon);
+            snprintf(buf, 63, "IDS_MONTH%d", cd->tm_mon + 1);
             Month = manager->lookupString("ui", buf);
-            swprintf(buf2, 127, L"%02i:%02i:%02i %s %02i", cd->tm_hour, cd->tm_min, cd->tm_sec, Month.c_str(), cd->tm_mday);
+            swprintf(buf2, 127, L"%02i:%02i:%02i %ls %02i", cd->tm_hour, cd->tm_min, cd->tm_sec, Month.c_str(), cd->tm_mday);
             m_pInfoModifiedDate->setLabel(buf2);
         }
     }
@@ -291,7 +264,6 @@ namespace ui
             if (!updateScreenScaling(deltaTime, false)) {
                 profileList->setFlag(Window::WF_VISIBLE);
                 // m_pProfileDetails   ->setFlag(Window::WF_VISIBLE);
-                m_pCardSlot->setFlag(Window::WF_VISIBLE);
                 m_pCreationDate->setFlag(Window::WF_VISIBLE);
                 m_pModifiedDate->setFlag(Window::WF_VISIBLE);
                 m_pInfoCreationDate->setFlag(Window::WF_VISIBLE);

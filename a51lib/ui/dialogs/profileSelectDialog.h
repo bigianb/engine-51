@@ -67,7 +67,6 @@ namespace ui
         //BlankBox*                        m_pProfileDetails;
 
         Text* m_pProfileName;
-        Text* m_pCardSlot;
         Text* m_pCreationDate;
         Text* m_pModifiedDate;
 

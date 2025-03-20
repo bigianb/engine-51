@@ -4,6 +4,8 @@
 #include "../VectorMath.h"
 #include "../ui/dialogs/mainMenuDialog.h"
 
+#include <ctime>
+
 #define DIALOG_TOP 24
 #define DIALOG_BOTTOM 448 - 72
 
@@ -219,4 +221,22 @@ void StateMachine::enterProfileSelect()
 void StateMachine::updateProfileSelect()
 {
 
+}
+
+void StateMachine::readProfiles()
+{
+    m_ProfileNames.clear();
+    // hardcoded for now
+    profile_info info;
+
+    info.bDamaged = false;
+    info.Name = L"Fred";
+    info.Ver = PROFILE_VERSION_NUMBER;
+    info.CreationDate = time(nullptr);
+    info.ModifiedDate = time(nullptr);
+
+    m_ProfileNames.push_back(info);
+
+    info.Name = L"Jim";
+    m_ProfileNames.push_back(info);
 }

@@ -56,6 +56,7 @@ public:
     void resetProfileListIndex(void);
     void setupProfileListIndex(void);
     int  getProfileListIndex(int index) { return profileListIndex[index]; }
+    void readProfiles();
 
     // pending profile functions
     void           initPendingProfile(int index);
@@ -63,7 +64,7 @@ public:
     PlayerProfile& getPendingProfile() { return m_PendingProfile; }
     int            getPendingProfileIndex() { return m_PendingProfileIndex; }
 
-    std::vector<profile_info*>& getProfileList() { return m_ProfileNames; }
+    std::vector<profile_info>& getProfileList() { return m_ProfileNames; }
 
 private:
     void enterState();
@@ -81,18 +82,18 @@ private:
 #define SM_PROFILE_COUNT 4
 
     // profiles
-    PlayerProfile              m_Profiles[SM_PROFILE_COUNT];        // profile array - one for each player
-    int                        profileListIndex[SM_PROFILE_COUNT];  // index in the list of profiles read from the card
-    uint32_t                   selectedProfile[SM_PROFILE_COUNT];   // hash of the selected profile
-    bool                       m_ProfileNotSaved[SM_PROFILE_COUNT]; // is the selected profile on card or only in memory
-    std::vector<profile_info*> m_ProfileNames;                      // xarray of profile names read from the memory cards
-    PlayerProfile              m_PendingProfile;                    // pending profile changes
-    int                        m_PendingProfileIndex;               // pending profile index
-    bool                       m_bCreatingProfile;                  // we are creating a new profile
-    bool                       m_bAutosaveProfile;                  // Autosave profile is enabled.
-    bool                       m_bAutosaveInProgress;               // Autosave is currently in progress
-    bool                       m_bDisableMemcardDialogs;            // Should we display memcard dialogs
-    bool                       m_bFollowBuddy;                      // Following your buddy in to a game, SessionID in g_Pending
+    PlayerProfile             m_Profiles[SM_PROFILE_COUNT];        // profile array - one for each player
+    int                       profileListIndex[SM_PROFILE_COUNT];  // index in the list of profiles read from the card
+    uint32_t                  selectedProfile[SM_PROFILE_COUNT];   // hash of the selected profile
+    bool                      m_ProfileNotSaved[SM_PROFILE_COUNT]; // is the selected profile on card or only in memory
+    std::vector<profile_info> m_ProfileNames;                      // xarray of profile names read from the memory cards
+    PlayerProfile             m_PendingProfile;                    // pending profile changes
+    int                       m_PendingProfileIndex;               // pending profile index
+    bool                      m_bCreatingProfile;                  // we are creating a new profile
+    bool                      m_bAutosaveProfile;                  // Autosave profile is enabled.
+    bool                      m_bAutosaveInProgress;               // Autosave is currently in progress
+    bool                      m_bDisableMemcardDialogs;            // Should we display memcard dialogs
+    bool                      m_bFollowBuddy;                      // Following your buddy in to a game, SessionID in g_Pending
     //login_source            m_LoginFailureDestination;
     bool m_bSilentSigninStarted;
     int  m_iCard; // Card slot in use for current operation
