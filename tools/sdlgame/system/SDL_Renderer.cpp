@@ -110,7 +110,7 @@ bool SDLRenderer::init()
         return false;
     }
 
-    SDL_GPUShader* fragmentShader = LoadShader(device, basePath, "Textured.frag", 1, 1, 0, 0);
+    SDL_GPUShader* fragmentShader = LoadShader(device, basePath, "Textured.frag", 1, 0, 0, 0);
     if (fragmentShader == nullptr) {
         SDL_Log("Failed to create fragment shader!");
         return false;
@@ -165,6 +165,12 @@ bool SDLRenderer::init()
             .buffer_slot = 0,
             .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
             .offset = sizeof(float) * 3,
+        },
+        {
+            .location = 2,
+            .buffer_slot = 0,
+            .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4,
+            .offset = sizeof(float) * 5,
         }};
 
     SDL_GPUVertexBufferDescription vbd[]{
@@ -179,7 +185,7 @@ bool SDLRenderer::init()
         .vertex_buffer_descriptions = vbd,
         .num_vertex_buffers = 1,
         .vertex_attributes = vba,
-        .num_vertex_attributes = 2,
+        .num_vertex_attributes = 3,
     };
 
     SDL_GPUVertexAttribute positionColourVba[]{
@@ -261,7 +267,6 @@ bool SDLRenderer::init()
             .target_info = {
                 .color_target_descriptions = ctd_add,
                 .num_color_targets = 1,
-
             },
             .props = 0,
         };
@@ -284,7 +289,6 @@ bool SDLRenderer::init()
             .target_info = {
                 .color_target_descriptions = ctd_alpha,
                 .num_color_targets = 1,
-
             },
             .props = 0,
         };
@@ -306,7 +310,6 @@ bool SDLRenderer::init()
             .target_info = {
                 .color_target_descriptions = ctd_add,
                 .num_color_targets = 1,
-
             },
             .props = 0,
         };
@@ -378,11 +381,6 @@ void SDLRenderer::quit()
     SDL_DestroyGPUDevice(device);
 }
 
-struct FragMultiplyUniform
-{
-    float r, g, b, a;
-};
-
 void SDLRenderer::draw()
 {
     SDL_GPUCommandBuffer* cmdbuf = SDL_AcquireGPUCommandBuffer(device);
@@ -416,10 +414,6 @@ void SDLRenderer::draw()
             if (batch.texture != nullptr){
                 SDL_GPUTextureSamplerBinding tsb{.texture = batch.texture, .sampler = pointSampler};
                 SDL_BindGPUFragmentSamplers(renderPass, 0, &tsb, 1);
-
-                FragMultiplyUniform uni{batch.colour.r / 255.0f, batch.colour.g / 255.0f, batch.colour.b / 255.0f, batch.colour.a / 255.0f};
-
-                SDL_PushGPUFragmentUniformData(cmdbuf, 0, &uni, sizeof(FragMultiplyUniform));
             }
             SDL_DrawGPUIndexedPrimitives(renderPass, batch.numIndices, 1, 0, 0, 0);
 
@@ -453,7 +447,8 @@ void SDLRenderer::drawVertex(float x, float y, float z, float u, float v)
 {
     float wx = (x - 320.0f) / 320.0f;
     float wy = (240.0f - y) / 240.0f;
-    accumulatedVertices.push_back({wx, wy, z, u, v});
+    Colour& c = currentColour;
+    accumulatedVertices.push_back({wx, wy, z, u, v, c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 255.0f});
 }
 
 void SDLRenderer::drawColourVertex(float x, float y, float z, const Colour& c)
