@@ -64,5 +64,7 @@ namespace ui
         int m_CurrHL;
 
         bool m_bCheckKeySequence;
+
+        StateMachine* stateMachine;
     };
 }

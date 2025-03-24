@@ -103,6 +103,7 @@ namespace ui
 
         int  getFlags() const { return flags; }
         void setFlag(int flag) { flags |= flag; }
+        void setFlag(int flag, bool doSet) { doSet ? setFlag(flag) : clearFlag(flag); }
         void clearFlag(int flag) { flags &= ~flag; }
 
         void setCreatePosition(IntRect p) { createPosition = p; }
