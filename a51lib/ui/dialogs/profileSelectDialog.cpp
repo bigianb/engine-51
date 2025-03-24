@@ -5,6 +5,7 @@
 #include "../../state/PlayerProfile.h"
 
 #include <ctime>
+#include <cassert>
 
 namespace ui
 {
@@ -344,6 +345,35 @@ namespace ui
             if (profileList->GetSelectedItemData(1) != PROFILE_OK) {
                 //g_AudioMgr.Play( "InvalidEntry" );
                 return;
+            }
+            int index = profileList->GetSelectedItemData();
+            if( index < m_CreateIndex ){
+                if( m_Type == PROFILE_SELECT_OVERWRITE )
+                {
+                    assert(false); // TODO
+                } else {
+                    // init the pending profile
+                    stateMachine->initPendingProfile( 0 ); // always player 0 in campaign
+
+                    // get the profile list
+                    auto& ProfileNames = stateMachine->getProfileList();
+
+                    // store the id of the selected profile
+                    stateMachine->setSelectedProfile( 0, ProfileNames[index].Hash );
+
+                    // attempt to load the selected profile
+                    //m_iCard = ProfileNames[index].CardID;
+                    //g_UIMemCardMgr.LoadProfile( *ProfileNames[index], 0, this, &dlg_profile_select::OnLoadProfileCB );
+
+                    // change the dialog state to wait for the memcard
+                    //state = DIALOG_STATE_WAIT_FOR_MEMCARD;
+
+                    // hack to bypass memcard
+                    stateMachine->setProfileNotSaved( stateMachine->getPendingProfileIndex(), false );
+                    stateMachine->activatePendingProfile();
+
+                    state = DialogState::Select;
+                }
             }
         }
     }

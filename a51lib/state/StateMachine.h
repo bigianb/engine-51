@@ -43,7 +43,7 @@ public:
     {
         selectedProfile[playerID] = 0;
     }
-    void setProfileNotSaved(int playerID, bool bNotSaved);
+    void setProfileNotSaved(int playerID, bool bNotSaved) {m_ProfileNotSaved[playerID] = bNotSaved;}
     bool getProfileNotSaved(int playerID) { return m_ProfileNotSaved[playerID]; }
 
     PlayerProfile& getActiveProfile(int playerID) { return m_Profiles[playerID]; }

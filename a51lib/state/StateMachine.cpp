@@ -14,6 +14,11 @@ StateMachine::StateMachine()
     uiManager = nullptr;
     currentDialog = nullptr;
     state = State::idle;
+    for (int i = 0; i < SM_PROFILE_COUNT; ++i) {
+        profileListIndex[i] = 0;
+        selectedProfile[i] = 0;
+        m_ProfileNotSaved[i] = false;
+    }
 }
 
 void StateMachine::init(ui::Manager* ui)
@@ -207,6 +212,30 @@ void StateMachine::updateMainMenu()
     }
 }
 
+void StateMachine::initPendingProfile(int index)
+{
+    m_PendingProfile = m_Profiles[index];
+    m_PendingProfileIndex = index;
+}
+
+void StateMachine::activatePendingProfile(bool MarkDirty)
+{
+    m_Profiles[m_PendingProfileIndex] = m_PendingProfile;
+    m_Profiles[m_PendingProfileIndex].Checksum();
+
+    if (MarkDirty) {
+        m_Profiles[m_PendingProfileIndex].MarkDirty();
+    }
+    // set difficulty
+    // TODO: g_Difficulty = m_PendingProfile.GetDifficultyLevel();
+
+    // set autosave flag
+    m_bAutosaveProfile = m_PendingProfile.m_bAutosaveOn;
+
+    // finally clear the pending profile index
+    m_PendingProfileIndex = -1;
+}
+
 void StateMachine::enterProfileSelect()
 {
     uiManager->endDialog(true);
@@ -220,7 +249,6 @@ void StateMachine::enterProfileSelect()
 
 void StateMachine::updateProfileSelect()
 {
-
 }
 
 void StateMachine::readProfiles()
