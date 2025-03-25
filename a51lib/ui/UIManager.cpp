@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <algorithm>
+#include <cassert>
 
 #include "../system/Engine.h"
 #include "../system/Renderer.h"
@@ -299,6 +300,7 @@ ui::Dialog* ui::Manager::openDialog(std::string className, IntRect position, ui:
     const DialogClass* dlgClass = dialogClasses[className];
 
     if (flags & Window::WF_DLG_CENTER) {
+        assert(false);
         /* TODO: Implement
         IntRect b = GetUserBounds( UserID );
 

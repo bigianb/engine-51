@@ -170,6 +170,17 @@ void ResourceManager::registerLoader(ResourceLoader* loader)
     loaders[loader->getExtension()] = loader;
 }
 
+void* ResourceManager::getResourceData(std::string resourceName)
+{
+    load(resourceName);
+    Resource& res = resources.at(resourceIdxByName[resourceName]);
+    if (res.state == State::LOADED){
+        return res.data;
+    }
+    std::cout << "Failed to read file " << resourceName << std::endl;
+    return nullptr;
+}
+
 void ResourceManager::loadStringTable(std::string tableName, std::string stringbinName)
 {
     load(stringbinName);

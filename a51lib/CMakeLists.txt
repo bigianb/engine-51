@@ -18,6 +18,10 @@ set(DATAUTIL_SOURCES
         dataUtil/Bitstream.h
         dataUtil/Crc.cpp
         dataUtil/Crc.cpp
+        dataUtil/TextIn.cpp
+        dataUtil/TextIn.h
+        dataUtil/Tokenizer.cpp
+        dataUtil/Tokenizer.h
         )
 
 file(GLOB SYSTEM_SOURCES

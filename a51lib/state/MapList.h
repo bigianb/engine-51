@@ -31,6 +31,8 @@
 #include <string>
 #include <vector>
 
+class ResourceManager;
+
 #define MAP_TABLE_SIZE 256
 #define MAX_GAME_TYPES 16
 #define MAX_MAPS 80
@@ -157,7 +159,7 @@ public:
     map_list();
     ~map_list();
     void                  Init();
-    void                  LoadDefault();
+    void                  LoadDefault(ResourceManager* rm);
     void                  Kill();
     void                  Clear();
     void                  Parse(const char* pMapFile, map_flags Flags, int Location);

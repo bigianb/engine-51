@@ -3,6 +3,7 @@
 #include "../ui/UIManager.h"
 #include "../VectorMath.h"
 #include "../ui/dialogs/mainMenuDialog.h"
+#include "../resourceManager/ResourceManager.h"
 
 #include <ctime>
 
@@ -19,14 +20,31 @@ StateMachine::StateMachine()
         selectedProfile[i] = 0;
         m_ProfileNotSaved[i] = false;
     }
+    mapList = new map_list();
 }
 
-void StateMachine::init(ui::Manager* ui)
+StateMachine::~StateMachine()
+{
+    delete mapList;
+}
+
+void StateMachine::init(ui::Manager* ui, ResourceManager* rm)
 {
     uiManager = ui;
+    resourceManager = rm;
 
     state = State::idle;
     previousState = state;
+    currentDialog = nullptr;
+    m_PendingProfileIndex = -1;
+
+    mapList->Init();
+    mapList->LoadDefault(rm);
+
+    //loreList.Init();
+
+    //secretList.Init();
+
     setState(State::ersb_notice);
 
     ui->enableUser(ui->getUserId(), true);

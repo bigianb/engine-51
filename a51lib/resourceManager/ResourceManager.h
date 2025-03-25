@@ -112,6 +112,8 @@ public:
 
     void load(std::string resourceName);
 
+    void* getResourceData(std::string resourceName);
+
     void loadStringTable(std::string tableName, std::string stringbinName);
 
     std::wstring lookupString(std::string tablename, int id);

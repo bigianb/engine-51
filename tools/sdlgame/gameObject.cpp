@@ -100,7 +100,7 @@ bool GameObject::init()
     resourceManager->loadStringTable( "Inventory", "ENG_Inventory_strings.STRINGBIN" );
 
     stateMachine = new StateMachine();
-    stateMachine->init(uiManager);
+    stateMachine->init(uiManager, resourceManager);
 
     //g_RscMgr.TagResources();
 

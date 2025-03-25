@@ -92,6 +92,29 @@ public:
     }
 };
 
+class TxtResourceLoader : public ResourceLoader
+{
+public:
+    TxtResourceLoader()
+        : ResourceLoader("Text String", ".TXT")
+    {
+    }
+
+    void* resolve(uint8_t* data, int len, std::string name) const
+    {
+        char* txt = new char[len+1];
+        memcpy(txt, data, len);
+        data[len] = 0;
+        return txt;
+    }
+
+    void unload(void* data) const
+    {
+        char* obj = (char*)data;
+        delete[] obj;
+    }
+};
+
 ResourceLoaders::~ResourceLoaders()
 {
     for (ResourceLoader* loader : loaders) {
@@ -111,6 +134,7 @@ void ResourceLoaders::registerLoaders(ResourceManager* rm)
     loaders.push_back(new RGEOMResourceLoader());
     loaders.push_back(new StringResourceLoader());
     loaders.push_back(new FontResourceLoader());
+    loaders.push_back(new TxtResourceLoader());
 
     for (ResourceLoader* loader : loaders) {
         rm->registerLoader(loader);

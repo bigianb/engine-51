@@ -1,6 +1,10 @@
 #include "MapList.h"
 
+#include "../resourceManager/ResourceManager.h"
+
+#include <iostream>
 #include <cassert>
+#include <string.h>
 
 map_list::map_list()
 {
@@ -20,16 +24,14 @@ void map_list::Init()
 }
 
 //=========================================================================
-void map_list::LoadDefault()
+void map_list::LoadDefault(ResourceManager* rm)
 {
-    std::string Manifest;
-
     Clear();
     // These are in the root directory of preload.dfs
-/*
-    Manifest.LoadFile( xfs("%s\\%s_DiskMaps.txt", g_RscMgr.GetRootDirectory(), x_GetLocaleString()) );
-    Parse( (const char*)Manifest, MF_NOT_PRESENT, -1 );
-    
+    const char* diskMapData = (const char*)rm->getResourceData("ENG_DiskMaps.TXT");
+    Parse(diskMapData, MF_NOT_PRESENT, -1);
+
+    /*
     // Now append all those maps that appear in the MapList.txt file. Just in case they
     // are not already present.
 
@@ -67,7 +69,7 @@ void map_list::LoadDefault()
             //
             // Allocate some space for the auto defined maps.
 
-            // 
+            //
             // Add this map to the list of maps.
             //
             map_info& MapInfo = m_Maps.Append();
@@ -91,7 +93,7 @@ void map_list::LoadDefault()
             Deathmatch.m_MapID          = 8000+i;
             Deathmatch.m_MinPlayers     = 1;
             Deathmatch.m_MaxPlayers     = 16;
-            
+
             #endif
         }
         else
@@ -131,7 +133,7 @@ void map_list::Clear()
 // This will append an entry from one maplist to another. If the game type info is not
 // within the new maplist, then all required fields will be copied. This will make the
 // current manifest totally self-contained.
-bool map_list::Append( const map_entry& Entry, const map_list* pSourceMapList )
+bool map_list::Append(const map_entry& Entry, const map_list* pSourceMapList)
 {
     /*
     if( m_MapList.Find( Entry ) != -1 )
@@ -193,13 +195,12 @@ bool map_list::Append( const map_entry& Entry, const map_list* pSourceMapList )
 
 //=========================================================================
 
-const char* map_list::GetDisplayName( int MapID )
+const char* map_list::GetDisplayName(int MapID)
 {
     const map_entry* pEntry;
 
-    pEntry = Find( MapID );
-    if( pEntry==nullptr )
-    {
+    pEntry = Find(MapID);
+    if (pEntry == nullptr) {
         return nullptr;
     }
     return pEntry->GetDisplayName();
@@ -207,13 +208,12 @@ const char* map_list::GetDisplayName( int MapID )
 
 //=========================================================================
 
-const char* map_list::GetFileName( int MapID )
+const char* map_list::GetFileName(int MapID)
 {
     const map_entry* pEntry;
 
-    pEntry = Find( MapID );
-    if( pEntry==nullptr )
-    {
+    pEntry = Find(MapID);
+    if (pEntry == nullptr) {
         return nullptr;
     }
     return pEntry->GetFilename();
@@ -221,22 +221,16 @@ const char* map_list::GetFileName( int MapID )
 
 //=========================================================================
 
-const map_entry* map_list::Find( int MapID, int GameType )
+const map_entry* map_list::Find(int MapID, int GameType)
 {
     int i;
-    for( i=0; i<m_MapList.size(); i++ )
-    {
-        if( MapID == -1 )
-        {
-            if( (m_MapList[i].GetGameType() == GameType) && m_MapList[i].IsAvailable() )
-            {
+    for (i = 0; i < m_MapList.size(); i++) {
+        if (MapID == -1) {
+            if ((m_MapList[i].GetGameType() == GameType) && m_MapList[i].IsAvailable()) {
                 return &m_MapList[i];
             }
-        }
-        else if( m_MapList[i].GetMapID() == MapID )
-        {
-            if( (GameType == -1) || (m_MapList[i].GetGameType() == GameType) )
-            {
+        } else if (m_MapList[i].GetMapID() == MapID) {
+            if ((GameType == -1) || (m_MapList[i].GetGameType() == GameType)) {
                 return &m_MapList[i];
             }
         }
@@ -246,7 +240,7 @@ const map_entry* map_list::Find( int MapID, int GameType )
 
 //=========================================================================
 
-map_entry* map_list::GetByIndex( int MapIndex )
+map_entry* map_list::GetByIndex(int MapIndex)
 {
     return &m_MapList[MapIndex];
 }
@@ -255,14 +249,12 @@ map_entry* map_list::GetByIndex( int MapIndex )
 // Search for a specific entry using filename and gametype as the search
 // parameters.
 
-bool map_list::IsPresent( const char* pFilename )
+bool map_list::IsPresent(const char* pFilename)
 {
     int i;
 
-    for( i=0; i< m_MapList.size(); i++ )
-    {
-        if( stricmp( pFilename, m_MapList[i].GetFilename() )==0 )
-        {
+    for (i = 0; i < m_MapList.size(); i++) {
+        if (strcmp(pFilename, m_MapList[i].GetFilename()) == 0) {
             return true;
         }
     }
@@ -271,7 +263,7 @@ bool map_list::IsPresent( const char* pFilename )
 
 //=========================================================================
 
-map_entry* map_list::GetNextMap( const map_entry* pCurr )
+map_entry* map_list::GetNextMap(const map_entry* pCurr)
 {
     return nullptr;
     /*
@@ -338,132 +330,132 @@ map_entry* map_list::GetNextMap( const map_entry* pCurr )
 
 //=========================================================================
 
-void map_list::RemoveByFlags( map_flags Flags )
+void map_list::RemoveByFlags(map_flags Flags)
 {
-    int i,j;
-/*
-    //
-    // Go through this maplist, remove any bindings that were added with the download flag set
-    //
-    for( i=0; i<m_MapList.size(); i++ )
-    {
-        if( (m_MapList[i].GetFlags() & Flags) == Flags )
+    int i, j;
+    /*
+        //
+        // Go through this maplist, remove any bindings that were added with the download flag set
+        //
+        for( i=0; i<m_MapList.size(); i++ )
         {
-            m_MapList.Delete(i);
-            i--;
-        }
-    }
-
-    // 
-    // All flags have been removed. Now go through the gametype list and remove
-    // any entries that have no references to them.
-    //
-    for( i=0; i<m_GameTypes.size(); i++ )
-    {
-        // For each game type, search map bindings for a reference to it.
-        bool Found = false;
-        for( j=0; j<m_MapList.size(); j++ )
-        {
-            if( m_MapList[j].GetGameType() == m_GameTypes[i].Type )
+            if( (m_MapList[i].GetFlags() & Flags) == Flags )
             {
-                Found = true;
-                break;
+                m_MapList.Delete(i);
+                i--;
             }
         }
-        if( !Found )
-        {
-            m_GameTypes.Delete(i);
-            i--;
-        }
-    }
 
-    //
-    // Now go through the maps list and remove any no longer referenced maps
-    //
-    for( i=0; i<m_Maps.size(); i++ )
-    {
-        // For each game type, search map bindings for a reference to it.
-        bool Found = false;
-        for( j=0; j<m_MapList.size(); j++ )
+        //
+        // All flags have been removed. Now go through the gametype list and remove
+        // any entries that have no references to them.
+        //
+        for( i=0; i<m_GameTypes.size(); i++ )
         {
-            if( m_MapList[j].GetMapID() == m_Maps[i].MapID )
+            // For each game type, search map bindings for a reference to it.
+            bool Found = false;
+            for( j=0; j<m_MapList.size(); j++ )
             {
-                Found = true;
-                break;
+                if( m_MapList[j].GetGameType() == m_GameTypes[i].Type )
+                {
+                    Found = true;
+                    break;
+                }
+            }
+            if( !Found )
+            {
+                m_GameTypes.Delete(i);
+                i--;
             }
         }
-        if( !Found )
+
+        //
+        // Now go through the maps list and remove any no longer referenced maps
+        //
+        for( i=0; i<m_Maps.size(); i++ )
         {
-            m_Maps.Delete(i);
-            i--;
+            // For each game type, search map bindings for a reference to it.
+            bool Found = false;
+            for( j=0; j<m_MapList.size(); j++ )
+            {
+                if( m_MapList[j].GetMapID() == m_Maps[i].MapID )
+                {
+                    Found = true;
+                    break;
+                }
+            }
+            if( !Found )
+            {
+                m_Maps.Delete(i);
+                i--;
+            }
         }
-    }
-        */
+            */
 }
 
 //=========================================================================
 
-void map_list::RemoveByMapID( int MapID )
+void map_list::RemoveByMapID(int MapID)
 {
-    int i,j;
-/*
-    //
-    // Go through this maplist, remove any bindings for this specific mapid.
-    //
-    for( i=0; i<m_MapList.size(); i++ )
-    {
-        if( m_MapList[i].GetMapID() == MapID )
+    int i, j;
+    /*
+        //
+        // Go through this maplist, remove any bindings for this specific mapid.
+        //
+        for( i=0; i<m_MapList.size(); i++ )
         {
-            m_MapList.Delete(i);
-            i--;
-        }
-    }
-
-    // 
-    // All flags have been removed. Now go through the gametype list and remove
-    // any entries that have no references to them.
-    //
-    for( i=0; i<m_GameTypes.size(); i++ )
-    {
-        // For each game type, search map bindings for a reference to it.
-        bool Found = false;
-        for( j=0; j<m_MapList.size(); j++ )
-        {
-            if( m_MapList[j].GetGameType() == m_GameTypes[i].Type )
+            if( m_MapList[i].GetMapID() == MapID )
             {
-                Found = true;
-                break;
+                m_MapList.Delete(i);
+                i--;
             }
         }
-        if( !Found )
-        {
-            m_GameTypes.Delete(i);
-            i--;
-        }
-    }
 
-    //
-    // Now go through the maps list and remove any no longer referenced maps
-    //
-    for( i=0; i<m_Maps.size(); i++ )
-    {
-        // For each game type, search map bindings for a reference to it.
-        bool Found = false;
-        for( j=0; j<m_MapList.size(); j++ )
+        //
+        // All flags have been removed. Now go through the gametype list and remove
+        // any entries that have no references to them.
+        //
+        for( i=0; i<m_GameTypes.size(); i++ )
         {
-            if( m_MapList[j].GetMapID() == m_Maps[i].MapID )
+            // For each game type, search map bindings for a reference to it.
+            bool Found = false;
+            for( j=0; j<m_MapList.size(); j++ )
             {
-                Found = true;
-                break;
+                if( m_MapList[j].GetGameType() == m_GameTypes[i].Type )
+                {
+                    Found = true;
+                    break;
+                }
+            }
+            if( !Found )
+            {
+                m_GameTypes.Delete(i);
+                i--;
             }
         }
-        if( !Found )
+
+        //
+        // Now go through the maps list and remove any no longer referenced maps
+        //
+        for( i=0; i<m_Maps.size(); i++ )
         {
-            m_Maps.Delete(i);
-            i--;
+            // For each game type, search map bindings for a reference to it.
+            bool Found = false;
+            for( j=0; j<m_MapList.size(); j++ )
+            {
+                if( m_MapList[j].GetMapID() == m_Maps[i].MapID )
+                {
+                    Found = true;
+                    break;
+                }
+            }
+            if( !Found )
+            {
+                m_Maps.Delete(i);
+                i--;
+            }
         }
-    }
-        */
+            */
 }
 
 enum file_section
@@ -475,8 +467,12 @@ enum file_section
     SECTION_PLAY,
 };
 
-void map_list::Parse( const char* pMapFile, map_flags Flags, int Location )
+void map_list::Parse(const char* pMapFile, map_flags Flags, int Location)
 {
+    if (pMapFile == nullptr){
+        return;
+    }
+    std::cout << pMapFile << std::endl;
     /*
     token_stream    Stream;
     file_section    FileSection = SECTION_UNDEFINED;
@@ -530,7 +526,7 @@ void map_list::Parse( const char* pMapFile, map_flags Flags, int Location )
             TypeEntry.Type          = (game_type)Stream.ReadInt();  Stream.Read();  assert( x_strcmp( Stream.String(), ",")==0 );
             TypeEntry.ShortTypeName = Stream.ReadString();          Stream.Read();  assert( x_strcmp( Stream.String(), ",")==0 );
             TypeEntry.TypeName      = Stream.ReadString();          Stream.Read();  assert( x_strcmp( Stream.String(), ",")==0 );
-            TypeEntry.Rules         = Stream.ReadString();          Stream.Read();  
+            TypeEntry.Rules         = Stream.ReadString();          Stream.Read();
             while( x_strcmp( Stream.String(), ";")!=0 )
             {
                 //ASSERTS( Stream.Type() == token_stream::TOKEN_STRING, "Expected quoted string or ;" );
@@ -566,13 +562,13 @@ void map_list::Parse( const char* pMapFile, map_flags Flags, int Location )
             }
 
             MapInfo.DisplayName = Stream.String();      Stream.Read();  assert( x_strcmp( Stream.String(), ",")==0 );
-            MapInfo.Description = Stream.ReadString();  Stream.Read();  
+            MapInfo.Description = Stream.ReadString();  Stream.Read();
             MapInfo.Flags       = Flags;
             while( x_strcmp( Stream.String(), ";")!=0 )
             {
                 ASSERTS( Stream.Type() == token_stream::TOKEN_STRING, "Expected quoted string or ;" );
                 MapInfo.Description += "\n";
-                MapInfo.Description += Stream.String(); 
+                MapInfo.Description += Stream.String();
                 Stream.Read();
             };
 
@@ -630,7 +626,7 @@ void map_list::Parse( const char* pMapFile, map_flags Flags, int Location )
 
 //=========================================================================
 
-void map_list::SetVersion( int Version )
+void map_list::SetVersion(int Version)
 {
     m_Version = Version;
 }
@@ -647,93 +643,93 @@ int map_list::GetVersion()
 std::string map_list::Serialize() const
 {
     std::string Manifest;
-    int     i;
-/*
-    //
-    // Start off with version information
-    //
-    Manifest = xfs( "[Version]\n%d;\n\n", m_Version );
+    int         i;
+    /*
+        //
+        // Start off with version information
+        //
+        Manifest = xfs( "[Version]\n%d;\n\n", m_Version );
 
-    // 
-    // Now build the GAMETYPE section
-    //
-    if( m_GameTypes.GetCount() )
-    {
-        Manifest += "\n//========\n[GameType]\n";
-        for( i=0; i<m_GameTypes.GetCount(); i++ )
+        //
+        // Now build the GAMETYPE section
+        //
+        if( m_GameTypes.GetCount() )
         {
-            const game_type_info& GameInfo = m_GameTypes[i];
-
-            Manifest += xfs( "%d, \"%s\", \"%s\", ", GameInfo.Type, (const char*)GameInfo.ShortTypeName, (const char*)GameInfo.TypeName );
-            // Each rule line is seperated by a '\n' character, so we need to pad that out to a quoted string as in the original format.
-            const char* pString = (const char*)GameInfo.Rules;
-
-            while( x_strlen( pString ) )
+            Manifest += "\n//========\n[GameType]\n";
+            for( i=0; i<m_GameTypes.GetCount(); i++ )
             {
-                std::string TempString;
-                while( *pString == '\n' )
+                const game_type_info& GameInfo = m_GameTypes[i];
+
+                Manifest += xfs( "%d, \"%s\", \"%s\", ", GameInfo.Type, (const char*)GameInfo.ShortTypeName, (const char*)GameInfo.TypeName );
+                // Each rule line is seperated by a '\n' character, so we need to pad that out to a quoted string as in the original format.
+                const char* pString = (const char*)GameInfo.Rules;
+
+                while( x_strlen( pString ) )
                 {
-                    pString++;
+                    std::string TempString;
+                    while( *pString == '\n' )
+                    {
+                        pString++;
+                    }
+                    while( *pString && (*pString!='\n') )
+                    {
+                        TempString += *pString++;
+                    }
+                    Manifest += xfs( "\n%20c\"%s\"", ' ', (const char*)TempString );
                 }
-                while( *pString && (*pString!='\n') )
-                {
-                    TempString += *pString++;
-                }
-                Manifest += xfs( "\n%20c\"%s\"", ' ', (const char*)TempString );
+                Manifest += ";\n";
+
             }
-            Manifest += ";\n";
-
         }
-    }
 
-    if( m_Maps.GetCount() )
-    {
-        Manifest += "\n//========\n[Map]\n";
-        for( i=0; i<m_Maps.GetCount(); i++ )
+        if( m_Maps.GetCount() )
         {
-            const map_info& MapInfo = m_Maps[i];
-
-            Manifest += xfs( "%d, \"%s\", %d, \"%s\", ", MapInfo.MapID, (const char*)MapInfo.Filename, MapInfo.Length, (const char*)MapInfo.DisplayName );
-
-            const char* pString = (const char*)MapInfo.Description;
-
-            while( x_strlen( pString ) )
+            Manifest += "\n//========\n[Map]\n";
+            for( i=0; i<m_Maps.GetCount(); i++ )
             {
-                std::string TempString;
-                while( *pString == '\n' )
+                const map_info& MapInfo = m_Maps[i];
+
+                Manifest += xfs( "%d, \"%s\", %d, \"%s\", ", MapInfo.MapID, (const char*)MapInfo.Filename, MapInfo.Length, (const char*)MapInfo.DisplayName );
+
+                const char* pString = (const char*)MapInfo.Description;
+
+                while( x_strlen( pString ) )
                 {
-                    pString++;
+                    std::string TempString;
+                    while( *pString == '\n' )
+                    {
+                        pString++;
+                    }
+                    while( *pString && (*pString!='\n') )
+                    {
+                        TempString += *pString++;
+                    }
+                    Manifest += xfs( "\n%20c\"%s\"", ' ', (const char*)TempString );
                 }
-                while( *pString && (*pString!='\n') )
-                {
-                    TempString += *pString++;
-                }
-                Manifest += xfs( "\n%20c\"%s\"", ' ', (const char*)TempString );
+                Manifest += ";\n";
             }
-            Manifest += ";\n";
         }
-    }
 
-    if( m_MapList.GetCount() )
-    {
-        Manifest += "\n//========\n[Play]\n";
-        for( i=0; i<m_MapList.GetCount(); i++ )
+        if( m_MapList.GetCount() )
         {
-            const map_entry& MapEntry = m_MapList[i];
+            Manifest += "\n//========\n[Play]\n";
+            for( i=0; i<m_MapList.GetCount(); i++ )
+            {
+                const map_entry& MapEntry = m_MapList[i];
 
-            Manifest += xfs( "%d, %d, %d, %d;\n", MapEntry.m_GameTypeID, MapEntry.m_MapID, MapEntry.m_MinPlayers, MapEntry.m_MaxPlayers );
+                Manifest += xfs( "%d, %d, %d, %d;\n", MapEntry.m_GameTypeID, MapEntry.m_MapID, MapEntry.m_MinPlayers, MapEntry.m_MaxPlayers );
+            }
         }
-    }
 
-    x_DebugMsg( "%s", (const char*)Manifest );
-    Manifest.SaveFile( "c:\\temp\\manifest.txt" );
-    */
+        x_DebugMsg( "%s", (const char*)Manifest );
+        Manifest.SaveFile( "c:\\temp\\manifest.txt" );
+        */
     return Manifest;
 }
 
 //=========================================================================
 
-const game_type_info* map_list::GetGameTypeInfo( int TypeID ) const
+const game_type_info* map_list::GetGameTypeInfo(int TypeID) const
 {
     /*
     int i;
@@ -755,7 +751,7 @@ const game_type_info* map_list::GetGameTypeInfo( int TypeID ) const
 }
 
 //=========================================================================
-const map_info* map_list::GetMapInfo( int MapID ) const
+const map_info* map_list::GetMapInfo(int MapID) const
 {
     /*
     int i;
@@ -777,83 +773,83 @@ const map_info* map_list::GetMapInfo( int MapID ) const
 }
 
 //=========================================================================
-int map_entry::GetMapID () const
-{ 
+int map_entry::GetMapID() const
+{
     return m_MapID;
 }
 
 //=========================================================================
-const char* map_entry::GetFilename () const 
-{ 
-    return nullptr; //g_MapList.GetMapInfo( m_MapID )->Filename; 
+const char* map_entry::GetFilename() const
+{
+    return nullptr; //g_MapList.GetMapInfo( m_MapID )->Filename;
 }
 
 //=========================================================================
-const char* map_entry::GetDisplayName () const 
-{ 
-    return nullptr; //g_MapList.GetMapInfo( m_MapID )->DisplayName; 
+const char* map_entry::GetDisplayName() const
+{
+    return nullptr; //g_MapList.GetMapInfo( m_MapID )->DisplayName;
 }
 
 //=========================================================================
-const char* map_entry::GetDescription () const 
-{ 
-    return nullptr; //g_MapList.GetMapInfo( m_MapID )->Description; 
+const char* map_entry::GetDescription() const
+{
+    return nullptr; //g_MapList.GetMapInfo( m_MapID )->Description;
 }
 
 //=========================================================================
-map_flags map_entry::GetFlags () const 
-{ 
-    return map_flags::MF_DVD_MAP; //g_MapList.GetMapInfo( m_MapID )->Flags; 
+map_flags map_entry::GetFlags() const
+{
+    return map_flags::MF_DVD_MAP; //g_MapList.GetMapInfo( m_MapID )->Flags;
 }
 
 //=========================================================================
-game_type map_entry::GetGameType () const 
-{ 
+game_type map_entry::GetGameType() const
+{
     return m_GameTypeID;
 }
 
 //=========================================================================
-const char* map_entry::GetShortGameTypeName() const 
-{ 
+const char* map_entry::GetShortGameTypeName() const
+{
 
-    return nullptr; //g_MapList.GetGameTypeInfo( m_GameTypeID )->ShortTypeName; 
+    return nullptr; //g_MapList.GetGameTypeInfo( m_GameTypeID )->ShortTypeName;
 }
 
 //=========================================================================
-const char* map_entry::GetGameTypeName () const 
-{ 
-    return nullptr; //g_MapList.GetGameTypeInfo( m_GameTypeID )->TypeName; 
+const char* map_entry::GetGameTypeName() const
+{
+    return nullptr; //g_MapList.GetGameTypeInfo( m_GameTypeID )->TypeName;
 }
 
 //=========================================================================
-const char* map_entry::GetGameRules() const 
-{ 
-    return nullptr; //g_MapList.GetGameTypeInfo( m_GameTypeID )->Rules; 
+const char* map_entry::GetGameRules() const
+{
+    return nullptr; //g_MapList.GetGameTypeInfo( m_GameTypeID )->Rules;
 }
 
 //=========================================================================
-bool map_entry::IsAvailable () const 
-{ 
+bool map_entry::IsAvailable() const
+{
     return GetFlags() != MF_NOT_PRESENT;
 }
 
 //=========================================================================
-bool map_entry::operator== ( const map_entry& MapEntry ) const
+bool map_entry::operator==(const map_entry& MapEntry) const
 {
-    return (m_GameTypeID==MapEntry.m_GameTypeID) && (m_MapID==MapEntry.m_MapID);
+    return (m_GameTypeID == MapEntry.m_GameTypeID) && (m_MapID == MapEntry.m_MapID);
 }
 
 //=========================================================================
-bool map_entry::operator!= ( const map_entry& MapEntry ) const
+bool map_entry::operator!=(const map_entry& MapEntry) const
 {
-    return (m_GameTypeID!=MapEntry.m_GameTypeID) || (m_MapID!=MapEntry.m_MapID);
+    return (m_GameTypeID != MapEntry.m_GameTypeID) || (m_MapID != MapEntry.m_MapID);
 }
 
 //=========================================================================
 map_info::map_info()
 {
-    MapID           = -1;
-    Flags           = MF_NOT_PRESENT;
+    MapID = -1;
+    Flags = MF_NOT_PRESENT;
 }
 
 //=========================================================================
@@ -862,7 +858,7 @@ map_info::~map_info()
 }
 
 //=========================================================================
-bool map_info::operator == ( const map_info& Right ) const
+bool map_info::operator==(const map_info& Right) const
 {
     return (Right.MapID == MapID);
 }
@@ -870,7 +866,7 @@ bool map_info::operator == ( const map_info& Right ) const
 //=========================================================================
 game_type_info::game_type_info()
 {
-    Type            = GAME_DM;
+    Type = GAME_DM;
 }
 
 //=========================================================================
@@ -879,7 +875,7 @@ game_type_info::~game_type_info()
 }
 
 //=========================================================================
-bool game_type_info::operator==( const game_type_info& Right ) const
+bool game_type_info::operator==(const game_type_info& Right) const
 {
     return (Right.Type == Type);
 }
@@ -887,5 +883,5 @@ bool game_type_info::operator==( const game_type_info& Right ) const
 //=========================================================================
 bool map_info::IsAvailable()
 {
-    return (Flags != MF_NOT_PRESENT );
+    return (Flags != MF_NOT_PRESENT);
 }

@@ -3,6 +3,9 @@
 #include "../ui/UIManager.h"
 #include "GameConfig.h"
 #include "PlayerProfile.h"
+#include "MapList.h"
+
+class ResourceManager;
 
 class StateMachine
 {
@@ -22,8 +25,9 @@ public:
     };
 
     StateMachine();
+    ~StateMachine();
 
-    void init(ui::Manager*);
+    void init(ui::Manager*, ResourceManager*);
 
     void update(float deltaTime);
 
@@ -43,7 +47,7 @@ public:
     {
         selectedProfile[playerID] = 0;
     }
-    void setProfileNotSaved(int playerID, bool bNotSaved) {m_ProfileNotSaved[playerID] = bNotSaved;}
+    void setProfileNotSaved(int playerID, bool bNotSaved) { m_ProfileNotSaved[playerID] = bNotSaved; }
     bool getProfileNotSaved(int playerID) { return m_ProfileNotSaved[playerID]; }
 
     PlayerProfile& getActiveProfile(int playerID) { return m_Profiles[playerID]; }
@@ -74,10 +78,13 @@ private:
     GameConfig pendingConfig;
     GameConfig activeConfig;
 
-    State        state;
-    State        previousState;
-    ui::Manager* uiManager;
-    ui::Dialog*  currentDialog;
+    State            state;
+    State            previousState;
+    ui::Manager*     uiManager;
+    ResourceManager* resourceManager;
+    ui::Dialog*      currentDialog;
+
+    map_list* mapList;
 
 #define SM_PROFILE_COUNT 4
 
