@@ -47,6 +47,10 @@ void StateMachine::init(ui::Manager* ui, ResourceManager* rm)
 
     setState(State::ersb_notice);
 
+    for (int c = 0; c < static_cast<int>(State::SM_NUM_STATES); c++) {
+        currentControls[c] = -1;
+    }
+
     ui->enableUser(ui->getUserId(), true);
 }
 
@@ -61,9 +65,7 @@ void StateMachine::setState(State targetState)
 
         if (currentDialog) {
             currentDialog->setState(ui::Dialog::DialogState::Active);
-
-            // store the current control id
-            //m_CurrentControl[m_State] = m_CurrentDialog->GetControl();
+            currentControls[static_cast<int>(state)] = currentDialog->getControl();
         }
 
         // Do clean up for current state
@@ -94,7 +96,11 @@ void StateMachine::enterState()
     case State::profile_select:
         enterProfileSelect();
         break;
+    case State::campaign_menu:
+        enterCampaignMenu();
+        break;
     default:
+        std::cout << "Attempted to enter unknown state " << static_cast<int>(state) << std::endl;
         break;
     }
 }
@@ -113,6 +119,9 @@ void StateMachine::updateState()
         break;
     case State::profile_select:
         updateProfileSelect();
+        break;
+    case State::campaign_menu:
+        updateCampaignMenu();
         break;
     default:
         break;
@@ -186,6 +195,7 @@ void StateMachine::updateMainMenu()
             int selected = currentDialog->getControl();
             switch (selected) {
             case ui::MainMenuDialog::IDC_MAIN_MENU_CAMPAIGN:
+                // no multi-player
                 //pendingConfig.setGameTypeID(GAME_CAMPAIGN);
                 //pendingConfig.setPlayerCount(1);
 
@@ -267,6 +277,43 @@ void StateMachine::enterProfileSelect()
 
 void StateMachine::updateProfileSelect()
 {
+    if (currentDialog != nullptr) {
+        auto dialogState = currentDialog->getState();
+        switch (dialogState) {
+        case ui::Dialog::DialogState::Select:
+        {
+            setState(State::campaign_menu);
+        } break;
+
+        case ui::Dialog::DialogState::Back:
+        {
+            setState(State::main_menu);
+        } break;
+
+        case ui::Dialog::DialogState::Activate:
+        {
+            setState(State::profile_options);
+        } break;
+        default:
+            break;
+        }
+    }
+}
+
+void StateMachine::enterCampaignMenu()
+{
+    uiManager->endDialog(true);
+
+    IntRect mainarea(116, DIALOG_TOP, 396, DIALOG_BOTTOM);
+    currentDialog = uiManager->openDialog("campaign menu", mainarea, nullptr, ui::Window::WF_VISIBLE | ui::Window::WF_BORDER, this);
+    // If playing movie, don't set the background.
+
+    uiManager->setUserBackground("background1");
+}
+
+void StateMachine::updateCampaignMenu()
+{
+
 }
 
 void StateMachine::readProfiles()

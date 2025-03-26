@@ -12,16 +12,20 @@ class StateMachine
 public:
     enum class State
     {
-        idle,
+        idle = 0,
         ersb_notice,
         inevitable_intro,
         press_start_screen,
         main_menu,
         campaign_menu,
         profile_select,
+        profile_options,
+
         start_game,
         playing_game,
-        exit_game
+        exit_game,
+
+        SM_NUM_STATES
     };
 
     StateMachine();
@@ -70,6 +74,10 @@ public:
 
     std::vector<profile_info>& getProfileList() { return m_ProfileNames; }
 
+    int getCurrentControl() { return currentControls[static_cast<int>(state)];}
+
+    map_list* getMapList() { return mapList; }
+
 private:
     void enterState();
     void updateState();
@@ -85,6 +93,8 @@ private:
     ui::Dialog*      currentDialog;
 
     map_list* mapList;
+
+    int currentControls[(int)State::SM_NUM_STATES];
 
 #define SM_PROFILE_COUNT 4
 
@@ -117,4 +127,7 @@ private:
 
     void enterProfileSelect();
     void updateProfileSelect();
+
+    void enterCampaignMenu();
+    void updateCampaignMenu();
 };

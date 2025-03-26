@@ -12,6 +12,7 @@
 #include "dialogs/pressStartDialog.h"
 #include "dialogs/startGameDialog.h"
 #include "dialogs/profileSelectDialog.h"
+#include "dialogs/campaignMenuDialog.h"
 #include "UIButton.h"
 #include "UIText.h"
 #include "UIFont.h"
@@ -42,6 +43,7 @@ void ui::Manager::init(Renderer& renderer, ResourceManager* rm)
     StartGameDialog::registerDialog(this);
     MainMenuDialog::registerDialog(this);
     ProfileSelectDialog::registerDialog(this);
+    CampaignMenuDialog::registerDialog(this);
 
     loadElement(rm, "frame", "UI_frame1.XBMP", 2, 3, 3);
     loadElement(rm, "frame2", "UI_frame2.XBMP", 1, 3, 3);
