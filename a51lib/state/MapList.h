@@ -179,7 +179,6 @@ public:
     void                  RemoveByMapID(int MapID);
     int                   GetCount() const { return m_MapList.size(); }
     //int                   Find(const map_entry& Entry) const { return m_MapList.Find(Entry); }
-    std::string               Serialize() const;
     const map_entry&            operator[](int Index) const { return m_MapList[Index]; }
 
 private:
