@@ -3,6 +3,7 @@
 #include "../ui/UIManager.h"
 #include "../VectorMath.h"
 #include "../ui/dialogs/mainMenuDialog.h"
+#include "../ui/dialogs/campaignMenuDialog.h"
 #include "../resourceManager/ResourceManager.h"
 
 #include <ctime>
@@ -99,6 +100,9 @@ void StateMachine::enterState()
     case State::campaign_menu:
         enterCampaignMenu();
         break;
+    case State::start_game:
+        enterStartGame();
+        break;
     default:
         std::cout << "Attempted to enter unknown state " << static_cast<int>(state) << std::endl;
         break;
@@ -122,6 +126,9 @@ void StateMachine::updateState()
         break;
     case State::campaign_menu:
         updateCampaignMenu();
+        break;
+    case State::start_game:
+        updateStartGame();
         break;
     default:
         break;
@@ -300,6 +307,39 @@ void StateMachine::updateProfileSelect()
     }
 }
 
+void StateMachine::enterStartGame()
+{
+    // prepare for loading the level
+    //m_bShowingScores = false;
+    uiManager->endDialog(true);
+    currentDialog = nullptr;
+    uiManager->setUserBackground( "" );
+    //g_RscMgr.Unload( "DX_FrontEnd.audiopkg"    );
+    //g_RscMgr.Unload( "SFX_FrontEnd.audiopkg"   );
+    //g_RscMgr.Unload( "MUSIC_FrontEnd.audiopkg" );
+    uiManager->unloadBackground( "titlescreen" );
+
+    IntRect mainarea(-75, DIALOG_TOP, 640+75, DIALOG_BOTTOM);
+    currentDialog = uiManager->openDialog("start game", mainarea, nullptr, ui::Window::WF_VISIBLE | ui::Window::WF_BORDER, this);
+}
+
+void StateMachine::updateStartGame()
+{
+    if (currentDialog != nullptr) {
+        auto dialogState = currentDialog->getState();
+        if (dialogState == ui::Dialog::DialogState::Select) {
+            // Calculate checksum for profile prior to starting game. This will mark the profile
+            // as having not been modified.
+            PlayerProfile& ActiveProfile = getActiveProfile( getProfileListIndex(0) );
+            ActiveProfile.Checksum();
+
+            m_bStartSaveGame = false;
+
+            setState(State::single_player_load_mission);
+        }
+    }
+}
+
 void StateMachine::enterCampaignMenu()
 {
     uiManager->endDialog(true);
@@ -313,7 +353,82 @@ void StateMachine::enterCampaignMenu()
 
 void StateMachine::updateCampaignMenu()
 {
+    if (currentDialog != nullptr) {
+        auto dialogState = currentDialog->getState();
+        if (dialogState == ui::Dialog::DialogState::Select) {
+            int control = currentDialog->getControl();
 
+            switch (control) {
+            case ui::CampaignMenuDialog::IDC_CAMPAIGN_MENU_NEW_CAMPAIGN:
+            {
+                // start new campaign
+                PlayerProfile& ActiveProfile = getActiveProfile(0);
+                // flag difficulty as unchanged
+                //ActiveProfile.m_bDifficultyChanged = false;
+
+                // set initial level
+                const map_entry* pMapEntry = mapList->Find(-1, GAME_CAMPAIGN);
+                //g_PendingConfig.SetLevelID( pMapEntry->GetMapID() );
+                //g_PendingConfig.SetMaxPlayerCount( 1 );
+                //setLevelIndex( 0 );
+
+                //g_NetworkMgr.BecomeServer();
+
+                // set campaign game type
+                //m_CampaignType = SM_NEW_CAMPAIGN_GAME;
+
+                setState(State::start_game);
+            } break;
+
+            case ui::CampaignMenuDialog::IDC_CAMPAIGN_MENU_RESUME_CAMPAIGN:
+            {
+                // set campaign game type
+                //m_CampaignType = SM_LOAD_CAMPAIGN_GAME;
+                //setState( SM_RESUME_CAMPAIGN );
+            } break;
+
+            case ui::CampaignMenuDialog::IDC_CAMPAIGN_MENU_EDIT_PROFILE:
+            {
+                // edit the currently active profile
+                //setState( SM_CAMPAIGN_PROFILE_OPTIONS );
+            } break;
+
+            case ui::CampaignMenuDialog::IDC_CAMPAIGN_MENU_LORE:
+            {
+                // go to the lore menu
+                //setState( SM_LORE_MAIN_MENU );
+            } break;
+
+            case ui::CampaignMenuDialog::IDC_CAMPAIGN_MENU_SECRETS:
+            {
+                // go to the secrets menu
+                //setState( SM_SECRETS_MENU );
+            } break;
+
+            case ui::CampaignMenuDialog::IDC_CAMPAIGN_MENU_EXTRAS:
+            {
+                // go to the extras menu
+                //setState( SM_EXTRAS_MENU );
+            } break;
+
+            case ui::CampaignMenuDialog::IDC_CAMPAIGN_MENU_LEVEL_SELECT:
+            {
+                // set campaign game type
+                //m_CampaignType = SM_DEBUG_SELECT_GAME;
+                // debug only - select from the available levels
+                //setState( SM_LEVEL_SELECT );
+            } break;
+            }
+        }
+
+        if (dialogState == ui::Dialog::DialogState::Back) {
+            if (getSelectedProfile(0) != 0) {
+                setState(State::main_menu);
+            } else {
+                setState(State::profile_select);
+            }
+        }
+    }
 }
 
 void StateMachine::readProfiles()

@@ -14,113 +14,27 @@ map_list::map_list()
     m_Version = 0;
 }
 
-//=========================================================================
 map_list::~map_list()
 {
 }
 
-//=========================================================================
 void map_list::Init()
 {
     Clear();
 }
 
-//=========================================================================
 void map_list::LoadDefault(ResourceManager* rm)
 {
     Clear();
     // These are in the root directory of preload.dfs
     const char* diskMapData = (const char*)rm->getResourceData("ENG_DiskMaps.TXT");
     Parse(diskMapData, MF_NOT_PRESENT, -1);
-
-    // Now append all those maps that appear in the MapList.txt file. Just in case they
-    // are not already present.
-    /*
-        // determine what levels we can load
-        text_in     TextIn;
-
-        if( TextIn.OpenFile( xfs("%s\\%s", g_RscMgr.GetRootDirectory(), "MapList.txt") ) == false )
-        {
-            //ASSERTS( false, "Could not open MapList.txt file\n" );
-            return;
-        }
-
-        TextIn.ReadHeader();
-
-        int             i;
-        int             nLevel = TextIn.GetHeaderCount();
-        char            Filename[128];
-
-        for( i=0; i < nLevel; i++ )
-        {
-            if( TextIn.ReadFields() == false )
-            {
-                //ASSERTS( false, "The MapList.txt file seems to be malformed.");
-                break;
-            }
-            TextIn.GetString( "Level", Filename );
-            assert( strlen(Filename) < sizeof(Filename)-1 );
-
-            // If this particular map is not currently in the maplist, add it to the end. It's
-            // a test level or a level that hasn't yet been put in the ENG_DiskMaps.txt
-            if( IsPresent( Filename ) == false )
-            {
-                #ifndef X_RETAIL
-                //
-                // Allocate some space for the auto defined maps.
-
-                //
-                // Add this map to the list of maps.
-                //
-                map_info& MapInfo = m_Maps.Append();
-
-                MapInfo.Filename    = Filename;
-                MapInfo.DisplayName = Filename;
-                MapInfo.Flags       = MF_DVD_MAP;
-                MapInfo.MapID       = 8000+i;
-                // Add a map_entry for deathmatch and campaign types for this map
-
-                map_entry& Campaign = m_MapList.Append();
-
-                Campaign.m_GameTypeID       = GAME_CAMPAIGN;
-                Campaign.m_MapID            = 8000+i;
-                Campaign.m_MinPlayers       = 1;
-                Campaign.m_MaxPlayers       = 16;
-
-                map_entry& Deathmatch = m_MapList.Append();
-
-                Deathmatch.m_GameTypeID     = GAME_DM;
-                Deathmatch.m_MapID          = 8000+i;
-                Deathmatch.m_MinPlayers     = 1;
-                Deathmatch.m_MaxPlayers     = 16;
-
-                #endif
-            }
-            else
-            {
-                int j;
-                for( j=0; j<m_Maps.size(); j++ )
-                {
-                    if( stricmp( Filename, m_Maps[j].Filename ) == 0 )
-                    {
-                        // Mark this map as existing
-                        m_Maps[j].Flags = MF_DVD_MAP;
-                    }
-                }
-            }
-        }
-        TextIn.CloseFile();
-        */
 }
-
-//=========================================================================
 
 void map_list::Kill()
 {
     Clear();
 }
-
-//=========================================================================
 
 void map_list::Clear()
 {
@@ -135,6 +49,7 @@ void map_list::Clear()
 // current manifest totally self-contained.
 bool map_list::Append(const map_entry& Entry, const map_list* pSourceMapList)
 {
+    assert(false);
     /*
     if( m_MapList.Find( Entry ) != -1 )
     {
@@ -193,8 +108,6 @@ bool map_list::Append(const map_entry& Entry, const map_list* pSourceMapList)
     return true;
 }
 
-//=========================================================================
-
 const char* map_list::GetDisplayName(int MapID)
 {
     const map_entry* pEntry;
@@ -206,8 +119,6 @@ const char* map_list::GetDisplayName(int MapID)
     return pEntry->GetDisplayName();
 }
 
-//=========================================================================
-
 const char* map_list::GetFileName(int MapID)
 {
     const map_entry* pEntry;
@@ -218,8 +129,6 @@ const char* map_list::GetFileName(int MapID)
     }
     return pEntry->GetFilename();
 }
-
-//=========================================================================
 
 const map_entry* map_list::Find(int MapID, int GameType)
 {
@@ -238,16 +147,10 @@ const map_entry* map_list::Find(int MapID, int GameType)
     return nullptr;
 }
 
-//=========================================================================
-
 map_entry* map_list::GetByIndex(int MapIndex)
 {
     return &m_MapList[MapIndex];
 }
-
-//=========================================================================
-// Search for a specific entry using filename and gametype as the search
-// parameters.
 
 bool map_list::IsPresent(const char* pFilename)
 {
@@ -261,10 +164,10 @@ bool map_list::IsPresent(const char* pFilename)
     return false;
 }
 
-//=========================================================================
-
 map_entry* map_list::GetNextMap(const map_entry* pCurr)
 {
+    assert(false);
+
     return nullptr;
     /*
     game_type   GameType = pCurr->GetGameType();
@@ -678,115 +581,96 @@ const map_info* map_list::GetMapInfo(int MapID) const
     return nullptr;
 }
 
-//=========================================================================
 int map_entry::GetMapID() const
 {
     return m_MapID;
 }
 
-//=========================================================================
 const char* map_entry::GetFilename() const
 {
     return nullptr; //g_MapList.GetMapInfo( m_MapID )->Filename;
 }
 
-//=========================================================================
 const char* map_entry::GetDisplayName() const
 {
     return nullptr; //g_MapList.GetMapInfo( m_MapID )->DisplayName;
 }
 
-//=========================================================================
 const char* map_entry::GetDescription() const
 {
     return nullptr; //g_MapList.GetMapInfo( m_MapID )->Description;
 }
 
-//=========================================================================
 map_flags map_entry::GetFlags() const
 {
     return map_flags::MF_DVD_MAP; //g_MapList.GetMapInfo( m_MapID )->Flags;
 }
 
-//=========================================================================
 game_type map_entry::GetGameType() const
 {
     return m_GameTypeID;
 }
 
-//=========================================================================
 const char* map_entry::GetShortGameTypeName() const
 {
 
     return nullptr; //g_MapList.GetGameTypeInfo( m_GameTypeID )->ShortTypeName;
 }
 
-//=========================================================================
 const char* map_entry::GetGameTypeName() const
 {
     return nullptr; //g_MapList.GetGameTypeInfo( m_GameTypeID )->TypeName;
 }
 
-//=========================================================================
 const char* map_entry::GetGameRules() const
 {
     return nullptr; //g_MapList.GetGameTypeInfo( m_GameTypeID )->Rules;
 }
 
-//=========================================================================
 bool map_entry::IsAvailable() const
 {
     return GetFlags() != MF_NOT_PRESENT;
 }
 
-//=========================================================================
 bool map_entry::operator==(const map_entry& MapEntry) const
 {
     return (m_GameTypeID == MapEntry.m_GameTypeID) && (m_MapID == MapEntry.m_MapID);
 }
 
-//=========================================================================
 bool map_entry::operator!=(const map_entry& MapEntry) const
 {
     return (m_GameTypeID != MapEntry.m_GameTypeID) || (m_MapID != MapEntry.m_MapID);
 }
 
-//=========================================================================
 map_info::map_info()
 {
     MapID = -1;
     Flags = MF_NOT_PRESENT;
 }
 
-//=========================================================================
 map_info::~map_info()
 {
 }
 
-//=========================================================================
 bool map_info::operator==(const map_info& Right) const
 {
     return (Right.MapID == MapID);
 }
 
-//=========================================================================
 game_type_info::game_type_info()
 {
     Type = GAME_DM;
 }
 
-//=========================================================================
 game_type_info::~game_type_info()
 {
 }
 
-//=========================================================================
 bool game_type_info::operator==(const game_type_info& Right) const
 {
     return (Right.Type == Type);
 }
 
-//=========================================================================
 bool map_info::IsAvailable()
 {
     return (Flags != MF_NOT_PRESENT);

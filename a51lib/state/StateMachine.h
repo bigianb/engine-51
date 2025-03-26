@@ -21,6 +21,8 @@ public:
         profile_select,
         profile_options,
 
+        single_player_load_mission,
+
         start_game,
         playing_game,
         exit_game,
@@ -115,6 +117,17 @@ private:
     bool m_bSilentSigninStarted;
     int  m_iCard; // Card slot in use for current operation
 
+    bool                   m_bInited;
+    bool                   m_bIsPaused;
+    bool                   m_bWasPaused;
+    bool                   m_bDoSystemError;
+    bool                   m_bIsDuplicateLogin;
+    bool                   m_bRetrySilentAutoSave;
+    bool                   m_bRetryAutoSaveMenu;
+    bool                   m_bPlayMovie;
+    bool                   m_bStartSaveGame;
+    bool                   m_bShowingScores;
+
     void enterESRBNotice();
     void updateESRBNotice();
     void exitESRBNotice();
@@ -130,4 +143,7 @@ private:
 
     void enterCampaignMenu();
     void updateCampaignMenu();
+
+    void enterStartGame();
+    void updateStartGame();
 };

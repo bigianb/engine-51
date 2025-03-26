@@ -144,26 +144,26 @@ namespace ui
                 //m_pButtonSecrets->enablePulse();
             }
         }
-/*
-        int iControl = stateMachine->getCurrentControl();
-        if( (iControl == -1) || (gotoControl( iControl )==nullptr) )
-        {
-            if( DisableCheckpoints )
-            {
-                gotoControl( (ui_control*)m_pButtonNewCampaign );
-                m_CurrentControl =  IDC_CAMPAIGN_MENU_NEW_CAMPAIGN;
-            }
-            else
-            {
-                gotoControl( (ui_control*)m_pButtonResumeCampaign );
-                m_CurrentControl =  IDC_CAMPAIGN_MENU_RESUME_CAMPAIGN;
-            }
-        }
-        else
-        {
-            m_CurrentControl = iControl;
-        }*/
-        initScreenScaling( position );
+        /*
+                int iControl = stateMachine->getCurrentControl();
+                if( (iControl == -1) || (gotoControl( iControl )==nullptr) )
+                {
+                    if( DisableCheckpoints )
+                    {
+                        gotoControl( (ui_control*)m_pButtonNewCampaign );
+                        m_CurrentControl =  IDC_CAMPAIGN_MENU_NEW_CAMPAIGN;
+                    }
+                    else
+                    {
+                        gotoControl( (ui_control*)m_pButtonResumeCampaign );
+                        m_CurrentControl =  IDC_CAMPAIGN_MENU_RESUME_CAMPAIGN;
+                    }
+                }
+                else
+                {
+                    m_CurrentControl = iControl;
+                }*/
+        initScreenScaling(position);
         state = DialogState::Active;
         return success;
     }
@@ -327,7 +327,44 @@ namespace ui
 
     void CampaignMenuDialog::onPadSelect(Window* win)
     {
-        if (state == DialogState::Active) {
+        if (getUIManger()->isScreenScaling()) {
+            return;
         }
+        if (state == DialogState::Active) {
+            if (win == m_pButtonNewCampaign) {
+                //stateMachine->SetActiveControllerID( g_UiMgr->GetActiveController() );
+                //stateMachine->SetControllerRequested( g_UiMgr->GetActiveController(), true );
+
+                PlayerProfile& profile = stateMachine->getActiveProfile(0);
+
+                // check if we beat the campaign on hard (or we have no checkpoints)
+                if ((profile.m_bAlienAvatarsOn) || (m_pButtonResumeCampaign->disabled())) {
+                    currentControl = IDC_CAMPAIGN_MENU_NEW_CAMPAIGN;
+                } else {
+                    /*
+                    // warn the player that their checkpoint are about to be reset!
+                    irect r = g_UiMgr->GetUserBounds( g_UiUserID );
+                    m_PopUp = (dlg_popup*)g_UiMgr->OpenDialog(  m_UserID, "popup", r, NULL, ui_win::WF_VISIBLE|ui_win::WF_BORDER|ui_win::WF_DLG_CENTER|WF_INPUTMODAL|ui_win::WF_USE_ABSOLUTE );
+
+                    // set nav text
+                    xwstring navText(g_StringTableMgr( "ui", "IDS_NAV_YES" ));
+                    navText += g_StringTableMgr( "ui", "IDS_NAV_NO" );
+                    m_pNavText->SetFlag(ui_win::WF_VISIBLE, FALSE);
+
+                    // configure message
+                    m_PopUp->Configure( g_StringTableMgr( "ui", "IDS_CAMPAIGN_MENU_NEW_CAMPAIGN" ),
+                        TRUE,
+                        TRUE,
+                        FALSE,
+                        g_StringTableMgr( "ui", "IDS_RESET_CHECKPOINTS_MSG" ),
+                        navText,
+                        &m_PopUpResult );
+                    return;
+
+                        */
+                }
+            }
+        }
+        state = DialogState::Select;
     }
 }

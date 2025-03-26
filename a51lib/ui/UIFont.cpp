@@ -217,7 +217,21 @@ int ui::Font::textWidth(const wchar_t* text, int count) const
 
 int ui::Font::textHeight(const wchar_t* text, int count) const
 {
-    return 1;
+    int height = lineHeight;
+
+    while (*text && (count > 0)) {
+        int c = *text++;
+        if ((c & 0xFF00) == 0xFF00) {
+            // Embedded color code.
+            text++;
+            count--;
+        } else if (c == '\n') {
+            height += lineHeight;
+        }
+        count--;
+    }
+
+    return height;
 }
 
 int ui::Font::lookUpCharacter(int c) const
