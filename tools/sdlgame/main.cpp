@@ -3,6 +3,7 @@
 
 #include "gameObject.h"
 #include "../../a51lib/state/StateMachine.h"
+#include "../../a51lib/levels/LevelLoader.h"
 #include "system/SDL_Renderer.h"
 
 struct Context
@@ -33,6 +34,7 @@ int main(int argc, char** argv)
         return 1;
     }
 
+    bool bFullLevelLoad = true;
     while (!gameObject.engine->isQuitRequested()) {
         gameObject.engine->processEventQueue();
         if (gameObject.engine->isQuitRequested()) {
@@ -47,6 +49,11 @@ int main(int argc, char** argv)
             gameObject.uiManager->processInput(gameObject.engine, context.DeltaTime );
         }
         gameObject.stateMachine->update(context.DeltaTime);
+
+        if (gameObject.stateMachine->getState() == StateMachine::State::single_player_load_mission) {
+            // kick off the load if we are not already loading
+            //gameObject.levelLoader->LoadLevel( bFullLevelLoad );
+        }
         if (gameObject.stateMachine->getState() != StateMachine::State::playing_game) {
             gameObject.uiManager->update(context.DeltaTime);
             gameObject.uiManager->render(*gameObject.renderer);

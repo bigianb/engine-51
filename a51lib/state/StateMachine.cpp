@@ -103,6 +103,9 @@ void StateMachine::enterState()
     case State::start_game:
         enterStartGame();
         break;
+    case State::single_player_load_mission:
+        enterSinglePlayerStartMission();
+        break;
     default:
         std::cout << "Attempted to enter unknown state " << static_cast<int>(state) << std::endl;
         break;
@@ -130,6 +133,9 @@ void StateMachine::updateState()
     case State::start_game:
         updateStartGame();
         break;
+    case State::single_player_load_mission:
+        updateSinglePlayerStartMission();
+        break;
     default:
         break;
     }
@@ -137,6 +143,13 @@ void StateMachine::updateState()
 
 void StateMachine::exitState()
 {
+    switch (state) {
+    case State::single_player_load_mission:
+        exitSinglePlayerStartMission();
+        break;
+    default:
+        break;
+    }
 }
 
 void StateMachine::enterESRBNotice()
@@ -313,13 +326,13 @@ void StateMachine::enterStartGame()
     //m_bShowingScores = false;
     uiManager->endDialog(true);
     currentDialog = nullptr;
-    uiManager->setUserBackground( "" );
+    uiManager->setUserBackground("");
     //g_RscMgr.Unload( "DX_FrontEnd.audiopkg"    );
     //g_RscMgr.Unload( "SFX_FrontEnd.audiopkg"   );
     //g_RscMgr.Unload( "MUSIC_FrontEnd.audiopkg" );
-    uiManager->unloadBackground( "titlescreen" );
+    uiManager->unloadBackground("titlescreen");
 
-    IntRect mainarea(-75, DIALOG_TOP, 640+75, DIALOG_BOTTOM);
+    IntRect mainarea(-75, DIALOG_TOP, 640 + 75, DIALOG_BOTTOM);
     currentDialog = uiManager->openDialog("start game", mainarea, nullptr, ui::Window::WF_VISIBLE | ui::Window::WF_BORDER, this);
 }
 
@@ -330,7 +343,7 @@ void StateMachine::updateStartGame()
         if (dialogState == ui::Dialog::DialogState::Select) {
             // Calculate checksum for profile prior to starting game. This will mark the profile
             // as having not been modified.
-            PlayerProfile& ActiveProfile = getActiveProfile( getProfileListIndex(0) );
+            PlayerProfile& ActiveProfile = getActiveProfile(getProfileListIndex(0));
             ActiveProfile.Checksum();
 
             m_bStartSaveGame = false;
@@ -429,6 +442,45 @@ void StateMachine::updateCampaignMenu()
             }
         }
     }
+}
+
+void StateMachine::enterSinglePlayerStartMission()
+{
+    m_bShowingScores = false;
+    uiManager->endDialog(true);
+    currentDialog = nullptr;
+    uiManager->setUserBackground("");
+    //g_RscMgr.Unload( "DX_FrontEnd.audiopkg"    );
+    //g_RscMgr.Unload( "SFX_FrontEnd.audiopkg"   );
+    //g_RscMgr.Unload( "MUSIC_FrontEnd.audiopkg" );
+    uiManager->unloadBackground("titlescreen");
+
+    //if( pendingConfig.GetGameTypeID() ==  GAME_CAMPAIGN )
+    {
+        // choose a move to play
+    }
+    IntRect mainarea(116, DIALOG_TOP, 396, DIALOG_BOTTOM);
+
+    currentDialog = uiManager->openDialog("load game", mainarea, nullptr, ui::Window::WF_VISIBLE | ui::Window::WF_BORDER, this);
+}
+
+void StateMachine::exitSinglePlayerStartMission()
+{
+    // end the load game dialog
+    uiManager->endDialog(true);
+}
+
+void StateMachine::updateSinglePlayerStartMission()
+{
+    //if (isBackgroundThreadRunning()) {
+    //    return;
+   // }
+
+    if (currentDialog->getState() == ui::Dialog::DialogState::Exit)
+    {
+
+    }
+
 }
 
 void StateMachine::readProfiles()

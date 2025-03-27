@@ -21,6 +21,8 @@
 #define R_359 RADIAN(359)
 #define R_360 RADIAN(360)
 
+typedef float Radian;
+
 struct Vector2
 {
     Vector2() {}

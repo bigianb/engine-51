@@ -1,4 +1,5 @@
 #include "startGameDialog.h"
+#include "../../system/Renderer.h"
 
 namespace ui
 {
@@ -51,6 +52,13 @@ namespace ui
         text->clearFlag(Window::WF_VISIBLE);
         text->setLabelColour(Colour(126, 220, 60, 255));
 
+        getUIManger()->setScreenOn(false);
+        setFlag(Window::WF_DISABLED);
+
+        initScreenScaling(position);
+
+        getUIManger()->disableScreenHighlight();
+
         setFlag(Window::WF_DISABLED);
         startLoading = false;
         state = DialogState::Active;
@@ -64,8 +72,11 @@ namespace ui
 
     void StartGameDialog::onUpdate(float deltaTime)
     {
-        startLoading = true;
-        state = DialogState::Select;
+        if (getUIManger()->isScreenScaling()) {
+            if (!updateScreenScaling(deltaTime, false)) {
+                state = DialogState::Select;
+            }
+        }
     }
 
     void StartGameDialog::render(Renderer& renderer, int ox, int oy)
@@ -77,12 +88,7 @@ namespace ui
             int YRes = 480;
 
             IntRect rb(0, 0, XRes, YRes);
-            /* TODO:
-            renderer->renderGouraudRect(rb, Colour(0, 0, 0, 180),
-                                        Colour(0, 0, 0, 180),
-                                        Colour(0, 0, 0, 180),
-                                        Colour(0, 0, 0, 180), false);
-                                        */
+            renderer.drawColourRect(rb, Colour(0, 0, 0, 180), false);
         }
 
         Dialog::render(renderer, ox, oy);

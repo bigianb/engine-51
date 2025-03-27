@@ -146,4 +146,8 @@ private:
 
     void enterStartGame();
     void updateStartGame();
+
+    void enterSinglePlayerStartMission();
+    void updateSinglePlayerStartMission();
+    void exitSinglePlayerStartMission();
 };
