@@ -475,7 +475,9 @@ void StateMachine::updateSinglePlayerStartMission()
     //if (isBackgroundThreadRunning()) {
     //    return;
    // }
-
+    if (currentDialog == nullptr) {
+        return;
+    }
     if (currentDialog->getState() == ui::Dialog::DialogState::Exit)
     {
 

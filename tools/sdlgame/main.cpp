@@ -8,16 +8,15 @@
 
 struct Context
 {
-    const char*    ExampleName;
-    const char*    BasePath;
+    const char* ExampleName;
+    const char* BasePath;
 
-    bool           LeftPressed;
-    bool           RightPressed;
-    bool           DownPressed;
-    bool           UpPressed;
-    float          DeltaTime;
+    bool  LeftPressed;
+    bool  RightPressed;
+    bool  DownPressed;
+    bool  UpPressed;
+    float DeltaTime;
 };
-
 
 int main(int argc, char** argv)
 {
@@ -25,12 +24,11 @@ int main(int argc, char** argv)
         SDL_Log("Failed to initialize SDL: %s", SDL_GetError());
         return 1;
     }
-    Context      context;
-    float        lastTime = 0;
-
+    Context context;
+    float   lastTime = 0;
 
     GameObject gameObject;
-    if (!gameObject.init()){
+    if (!gameObject.init()) {
         return 1;
     }
 
@@ -46,13 +44,24 @@ int main(int argc, char** argv)
 
         float deltaTime = 1.0 / 30.0;
         if (gameObject.stateMachine->getState() != StateMachine::State::playing_game) {
-            gameObject.uiManager->processInput(gameObject.engine, context.DeltaTime );
+            gameObject.uiManager->processInput(gameObject.engine, context.DeltaTime);
         }
         gameObject.stateMachine->update(context.DeltaTime);
 
         if (gameObject.stateMachine->getState() == StateMachine::State::single_player_load_mission) {
             // kick off the load if we are not already loading
-            //gameObject.levelLoader->LoadLevel( bFullLevelLoad );
+            if (!gameObject.levelLoader->isLoading()) {
+                gameObject.levelLoader->loadLevel(bFullLevelLoad);
+            } else {
+                // check if the level is loaded
+                if (gameObject.levelLoader->isLevelLoaded()) {
+                    gameObject.levelLoader->finishLoading();
+                    gameObject.stateMachine->setState(StateMachine::State::playing_game);
+                    
+                }
+            }
+           
+            
         }
         if (gameObject.stateMachine->getState() != StateMachine::State::playing_game) {
             gameObject.uiManager->update(context.DeltaTime);

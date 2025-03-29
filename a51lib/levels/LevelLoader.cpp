@@ -2,6 +2,7 @@
 
 #include <set>
 #include <iostream>
+#include <cassert>
 
 #include "../io/FileSystem.h"
 #include "../DFSFile.h"
@@ -50,4 +51,28 @@ void LevelLoader::loadDFS(FileSystem& fs, ResourceManager* rm, std::string dfsNa
             handle.getPointer();
         }
     }
+}
+
+void LevelLoader::loadLevel(bool fullLoad)
+{
+    levelLoaded = false;
+    loadRequested = true;
+    this->fullLoad = fullLoad;
+
+    assert(loadThread == nullptr);
+    loadThread = new std::thread(&LevelLoader::loadLevelThreadFunction, this);
+}
+
+void LevelLoader::finishLoading()
+{
+    assert(loadThread != nullptr);
+    loadThread->join();
+    delete loadThread;
+    loadThread = nullptr;
+    loadRequested = false;
+}
+
+void LevelLoader::loadLevelThreadFunction()
+{
+    std::cout << "Loading level..." << std::endl;
 }
