@@ -53,8 +53,7 @@ namespace ui
                                 Window*         parent,
                                 int             flags)
     {
-        bool success = false;
-        success = Dialog::create(user, manager, dialogTemplate, position, parent, flags);
+        bool success = Dialog::create(user, manager, dialogTemplate, position, parent, flags);
 
         buttonCampaign = (ui::Button*)findChildById(IDC_MAIN_MENU_CAMPAIGN);
         buttonMultiPlayer = (ui::Button*)findChildById(IDC_MAIN_MENU_MULTI);

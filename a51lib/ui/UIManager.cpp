@@ -8,6 +8,7 @@
 #include "../system/Renderer.h"
 #include "../VectorMath.h"
 #include "dialogs/esrbDialog.h"
+#include "dialogs/loadGameDialog.h"
 #include "dialogs/mainMenuDialog.h"
 #include "dialogs/pressStartDialog.h"
 #include "dialogs/startGameDialog.h"
@@ -44,6 +45,7 @@ void ui::Manager::init(Renderer& renderer, ResourceManager* rm)
     MainMenuDialog::registerDialog(this);
     ProfileSelectDialog::registerDialog(this);
     CampaignMenuDialog::registerDialog(this);
+    LoadGameDialog::registerDialog(this);
 
     loadElement(rm, "frame", "UI_frame1.XBMP", 2, 3, 3);
     loadElement(rm, "frame2", "UI_frame2.XBMP", 1, 3, 3);
@@ -824,15 +826,14 @@ void ui::Manager::renderElement(Renderer& renderer, int iElement, const IntRect&
         return;
     }
 
-    /*
+    int flags = DRAW_2D | DRAW_TEXTURED | DRAW_USE_ALPHA | DRAW_NO_ZBUFFER;
+    
     if( IsAdditive )
     {
-        renderer.SetRenderState( D3DRS_SRCBLEND, D3DBLEND_SRCALPHA );
-        renderer.SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );
+        flags |= DRAW_BLEND_ADD;
     }
-    */
-
-    renderer.drawBegin(Renderer::Primitive::DRAW_TRIANGLES, DRAW_2D | DRAW_TEXTURED | DRAW_USE_ALPHA | DRAW_NO_ZBUFFER);
+    
+    renderer.drawBegin(Renderer::Primitive::DRAW_TRIANGLES, flags);
     renderer.setTexture(bitmap);
     int     ie = State * (element->cx * element->cy);
     Vector2 p(0.0, Position.top);

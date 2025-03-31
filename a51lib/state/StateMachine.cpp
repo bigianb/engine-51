@@ -381,10 +381,11 @@ void StateMachine::updateCampaignMenu()
 
                 // set initial level
                 const map_entry* pMapEntry = mapList->Find(-1, GAME_CAMPAIGN);
-                //g_PendingConfig.SetLevelID( pMapEntry->GetMapID() );
-                //g_PendingConfig.SetMaxPlayerCount( 1 );
+                //pendingConfig.SetLevelID( pMapEntry->GetMapID() );
+                //pendingConfig.SetMaxPlayerCount( 1 );
                 //setLevelIndex( 0 );
 
+                // commit pending config to active.
                 //g_NetworkMgr.BecomeServer();
 
                 // set campaign game type

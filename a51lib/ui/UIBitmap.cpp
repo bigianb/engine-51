@@ -1,6 +1,7 @@
 #include "UIBitmap.h"
 
 #include <iostream>
+#include <cassert>
 
 #include "../Colour.h"
 #include "../system/Renderer.h"
@@ -40,7 +41,8 @@ void ui::BitmapControl::render(Renderer& renderer, int ox, int oy)
 
     if (bitmap != nullptr) {
         if (isElement) {
-            //g_UiMgr->renderElement(bitmapID, r, renderState, getLabelColour());
+            assert(false);
+ //           getUIManger()>renderElement(renderer, bitmapID, r, renderState, getLabelColour());
         } else {
             renderer.drawBegin( Renderer::Primitive::DRAW_TRIANGLES, DRAW_2D|DRAW_TEXTURED|DRAW_USE_ALPHA|DRAW_NO_ZBUFFER|DRAW_UV_CLAMP );
             renderer.setTexture(bitmap); 
