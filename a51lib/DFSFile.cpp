@@ -179,6 +179,29 @@ uint8_t* DFSFile::getFileData(int entryNo)
     return subFileData[subFileIdx] + subOffset;
 }
 
+void DFSFile::logHeader()
+{
+    if (header != nullptr && header->isValid()) {
+        std::cout << "DFS Header:" << std::endl;
+        std::cout << "  Magic: " << header->magic << std::endl;
+        std::cout << "  Version: " << header->version << std::endl;
+        std::cout << "  Checksum: " << header->checksum << std::endl;
+        std::cout << "  Sector Size: " << header->sectorSize << std::endl;
+        std::cout << "  Split Size: " << header->splitSize << std::endl;
+        std::cout << "  Number of Files: " << header->numFiles << std::endl;
+        std::cout << "  Number of Subfiles: " << header->numSubFiles << std::endl;
+
+        for (int i = 0; i < header->numFiles; ++i) {
+            DFSFileEntry& file = header->files[i];
+            std::cout << "  File " << i << ": " << file.fileNameOffset1 << std::endl;
+            std::cout << "  File Name 1: " << header->strings +  file.fileNameOffset1 << std::endl;
+            std::cout << "  File Name 2: " << header->strings +  file.fileNameOffset2 << std::endl;
+            std::cout << "  Path Name: " << header->strings + file.pathNameOffset << std::endl;
+            std::cout << "  Extension: " << header->strings + file.extNameOffset << std::endl;
+        }
+    }
+}
+
 std::string DFSFile::getFilename(int entryNo) const
 {
     if (entryNo < 0 || entryNo >= numFiles() || header == nullptr || !header->isValid()) {

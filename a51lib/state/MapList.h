@@ -126,14 +126,12 @@ class map_entry
 {
 public:
     int         GetMapID() const;
-    const char* GetFilename() const;
-    const char* GetDisplayName() const;
-    const char* GetDescription() const;
+    std::string GetFilename() const;
+    std::string GetDisplayName() const;
+    std::string GetDescription() const;
     map_flags   GetFlags() const;
     game_type   GetGameType() const;
-    const char* GetShortGameTypeName() const;
-    const char* GetGameTypeName() const;
-    const char* GetGameRules() const;
+
     int         GetMaxPlayers() const { return m_MaxPlayers; }
     int         GetMinPlayers() const { return m_MinPlayers; }
     bool        IsAvailable() const;
@@ -149,6 +147,8 @@ private:
     int       m_MinPlayers; // min players for mode/zoning
     int       m_MaxPlayers; // max players for map in mode
     int       m_Location;
+
+    const map_info* mapInfo = nullptr;
 
     friend class map_list;
 };
@@ -166,11 +166,11 @@ public:
     const map_entry*      Find(int MapID, int GameType = -1);
     int                   GetVersion();
     void                  SetVersion(int Version);
-    const char*           GetDisplayName(int MapID);
-    const char*           GetFileName(int MapID);
+    std::string           GetDisplayName(int MapID);
+    std::string           GetFileName(int MapID);
     map_entry*            GetByIndex(int MapIndex);
     map_entry*            GetNextMap(const map_entry* pCurrent);
-    bool                  Append(const map_entry& Entry, const map_list* pSourceMapList = nullptr);
+
     int                   GetGameTypeCount() const { return m_GameTypes.size(); }
     const game_type_info* GetGameTypeInfo(int GameTypeID) const;
     int                   GetMapCount() const { return m_Maps.size(); }
@@ -178,7 +178,7 @@ public:
     void                  RemoveByFlags(map_flags Flags);
     void                  RemoveByMapID(int MapID);
     int                   GetCount() const { return m_MapList.size(); }
-    //int                   Find(const map_entry& Entry) const { return m_MapList.Find(Entry); }
+
     const map_entry&            operator[](int Index) const { return m_MapList[Index]; }
 
 private:

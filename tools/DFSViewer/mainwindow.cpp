@@ -520,6 +520,7 @@ void MainWindow::dropEvent(QDropEvent* event)
         ui->treeView->setSortingEnabled(false);
         dfsTreeModel->doBeginResetModel();
         dfsFile->read(filename.toStdString());
+        dfsFile->logHeader();
         dfsTreeModel->doEndResetModel();
         ui->treeView->setSortingEnabled(true);
         event->acceptProposedAction();

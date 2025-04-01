@@ -30,6 +30,8 @@ public:
     text_in();
     ~text_in(); // do not virtualise
 
+    void OpenText(const char* pText);
+
     bool ReadHeader();
     bool SkipToNextHeader();
 

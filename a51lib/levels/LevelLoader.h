@@ -2,6 +2,7 @@
 
 #include <string>
 #include <thread>
+#include <cassert>
 
 #include "../state/MapList.h"
 
@@ -12,8 +13,20 @@ class map_entry;
 class LevelLoader
 {
 public:
-    void mountDefaultFilesystems(FileSystem& fs);
-    void loadDFS(FileSystem& fs,  ResourceManager* rm, std::string name);
+    LevelLoader(FileSystem* fs, ResourceManager* rm)
+        : fs(fs), resourceManager(rm)
+    {
+        assert(fs != nullptr);
+    }
+    ~LevelLoader()
+    {
+        if (loadThread != nullptr) {
+            loadThread->join();
+            delete loadThread;
+        }
+    }
+    void mountDefaultFilesystems();
+    void loadDFS(std::string name);
 
     /* If a level isn't already loading, start a thread to load the level. */
     void loadLevel(bool fullLoad, const map_entry* pMapEntry);
@@ -30,8 +43,13 @@ public:
         return levelLoaded;
     }
 
+    void InitSlideShow(const char* pSlideShowScriptFile);
+
 private:
-    std::thread* loadThread = nullptr;;
+    FileSystem*  fs;
+    ResourceManager* resourceManager;
+
+    std::thread* loadThread = nullptr;
 
     void loadLevelThreadFunction();
 

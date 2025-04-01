@@ -39,7 +39,6 @@ bool GameObject::init()
         return false;
     }
 
-    levelLoader = new LevelLoader();
     fs = new FileSystem();
     resourceManager = new ResourceManager();
     resourceManager->setFilesystem(fs);
@@ -54,7 +53,8 @@ bool GameObject::init()
         g_IoMgr.Init();
         */
 
-    levelLoader->mountDefaultFilesystems(*fs);
+    levelLoader = new LevelLoader(fs, resourceManager);
+    levelLoader->mountDefaultFilesystems();
 
     /*
      g_ObjMgr.Init();
@@ -82,8 +82,8 @@ bool GameObject::init()
     resourceManager->setOnDemandLoading(false);
     resourceLoaders->registerLoaders(resourceManager);
 
-    levelLoader->loadDFS(*fs, resourceManager, "BOOT");
-    levelLoader->loadDFS(*fs, resourceManager, "PRELOAD");
+    levelLoader->loadDFS("BOOT");
+    levelLoader->loadDFS("PRELOAD");
     /*
         render::Init();
 

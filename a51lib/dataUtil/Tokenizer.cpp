@@ -66,7 +66,7 @@ char* token_stream::GetDelimeter()
 
 //==============================================================================
 
-void token_stream::SetDelimeter(char* pStr)
+void token_stream::SetDelimeter(const char* pStr)
 {
     assert(strlen(pStr) >= 2);
     strcpy(m_DelimiterStr, pStr);
@@ -603,8 +603,6 @@ char* token_stream::ReadLine()
     return m_String;
 }
 
-//==============================================================================
-
 char* token_stream::ReadToSymbol(char Sym)
 {
     int i = 0;
@@ -623,8 +621,6 @@ char* token_stream::ReadToSymbol(char Sym)
     m_Type = TOKEN_STRING;
     return m_String;
 }
-
-//==============================================================================
 
 void token_stream::OpenText(const char* pTextString)
 {
@@ -647,8 +643,6 @@ void token_stream::OpenText(const char* pTextString)
 
     m_StartPosition = 0;
 }
-
-//==============================================================================
 
 void token_stream::CloseText()
 {

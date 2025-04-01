@@ -26,9 +26,9 @@ void map_list::Init()
 void map_list::LoadDefault(ResourceManager* rm)
 {
     Clear();
-    // These are in the root directory of preload.dfs
+    // This is in the root directory of preload.dfs
     const char* diskMapData = (const char*)rm->getResourceData("ENG_DiskMaps.TXT");
-    Parse(diskMapData, MF_NOT_PRESENT, -1);
+    Parse(diskMapData, MF_DVD_MAP, -1);
 }
 
 void map_list::Kill()
@@ -43,89 +43,22 @@ void map_list::Clear()
     m_MapList.clear();
 }
 
-//=========================================================================
-// This will append an entry from one maplist to another. If the game type info is not
-// within the new maplist, then all required fields will be copied. This will make the
-// current manifest totally self-contained.
-bool map_list::Append(const map_entry& Entry, const map_list* pSourceMapList)
+std::string map_list::GetDisplayName(int MapID)
 {
-    assert(false);
-    /*
-    if( m_MapList.Find( Entry ) != -1 )
-    {
-        return false;
-    }
-
-    if( pSourceMapList == nullptr )
-    {
-        pSourceMapList = &g_MapList;
-    }
-
-    // Ok, so this entry was not in the maplist. So, we duplicate it and append it to the maplist.
-
-    map_entry& NewEntry = m_MapList.Append( );
-    NewEntry = Entry;
-
-    // We need to search through our GameType field in the new maplist to see if it's there. If so,
-    // then we set up the index within this entry or we append it to our list of gametypes.
-    game_type_info TempType;
-
-    TempType.Type = Entry.m_GameTypeID;
-    if( m_GameTypes.Find( TempType ) == -1 )
-    {
-        int GameTypeIndex = pSourceMapList->m_GameTypes.Find( TempType );
-        if( GameTypeIndex != -1 )
-        {
-            m_GameTypes.push_back( pSourceMapList->m_GameTypes[GameTypeIndex] );
-        }
-        else
-        {
-            // Must have found it!
-            GameTypeIndex = g_MapList.m_GameTypes.Find( TempType );
-            //ASSERTS( GameTypeIndex != -1, "Could not find game type definition" );
-            m_GameTypes.push_back( g_MapList.m_GameTypes[GameTypeIndex] );
-        }
-    }
-
-    map_info TempMap;
-    TempMap.MapID = Entry.m_MapID;
-    if( m_Maps.Find( TempMap ) == -1 )
-    {
-        int MapIndex = pSourceMapList->m_Maps.Find( TempMap );
-        if( MapIndex != -1 )
-        {
-            m_Maps.push_back( pSourceMapList->m_Maps[MapIndex] );
-        }
-        else
-        {
-            MapIndex = g_MapList.m_Maps.Find( TempMap );
-            //ASSERTS( MapIndex != -1, "Could not find map definition" );
-            m_Maps.push_back( g_MapList.m_Maps[MapIndex] );
-        }
-
-    }
-*/
-    return true;
-}
-
-const char* map_list::GetDisplayName(int MapID)
-{
-    const map_entry* pEntry;
-
-    pEntry = Find(MapID);
+    const map_entry* pEntry = Find(MapID);
     if (pEntry == nullptr) {
-        return nullptr;
+        return "";
     }
     return pEntry->GetDisplayName();
 }
 
-const char* map_list::GetFileName(int MapID)
+std::string map_list::GetFileName(int MapID)
 {
     const map_entry* pEntry;
 
     pEntry = Find(MapID);
     if (pEntry == nullptr) {
-        return nullptr;
+        return "";
     }
     return pEntry->GetFilename();
 }
@@ -154,10 +87,8 @@ map_entry* map_list::GetByIndex(int MapIndex)
 
 bool map_list::IsPresent(const char* pFilename)
 {
-    int i;
-
-    for (i = 0; i < m_MapList.size(); i++) {
-        if (strcmp(pFilename, m_MapList[i].GetFilename()) == 0) {
+    for (int i = 0; i < m_MapList.size(); i++) {
+        if (m_MapList[i].GetFilename() == pFilename) {
             return true;
         }
     }
@@ -521,6 +452,11 @@ void map_list::Parse(const char* pMapFile, map_flags Flags, int Location)
             assert(false);
         }
     }
+
+    for (auto& map : m_MapList) {
+        map.mapInfo = GetMapInfo(map.m_MapID);
+    }
+
     Stream.CloseText();
 }
 
@@ -562,22 +498,11 @@ const game_type_info* map_list::GetGameTypeInfo(int TypeID) const
 //=========================================================================
 const map_info* map_list::GetMapInfo(int MapID) const
 {
-    /*
-    int i;
-    map_info Dummy;
-
-    Dummy.MapID = MapID;
-    i = m_Maps.Find( Dummy );
-    if( i!=-1 )
-    {
-        return &m_Maps[i];
+    for (int i = 0; i < m_Maps.size(); i++) {
+        if (m_Maps[i].MapID == MapID) {
+            return &m_Maps[i];
+        }
     }
-
-    if( this != &g_MapList )
-    {
-        return g_MapList.GetMapInfo( MapID );
-    }
-        */
     return nullptr;
 }
 
@@ -586,45 +511,29 @@ int map_entry::GetMapID() const
     return m_MapID;
 }
 
-const char* map_entry::GetFilename() const
+std::string map_entry::GetFilename() const
 {
-    return nullptr; //g_MapList.GetMapInfo( m_MapID )->Filename;
+    return mapInfo->Filename;
 }
 
-const char* map_entry::GetDisplayName() const
+std::string map_entry::GetDisplayName() const
 {
-    return nullptr; //g_MapList.GetMapInfo( m_MapID )->DisplayName;
+    return mapInfo->DisplayName;
 }
 
-const char* map_entry::GetDescription() const
+std::string map_entry::GetDescription() const
 {
-    return nullptr; //g_MapList.GetMapInfo( m_MapID )->Description;
+    return mapInfo->Description;
 }
 
 map_flags map_entry::GetFlags() const
 {
-    return map_flags::MF_DVD_MAP; //g_MapList.GetMapInfo( m_MapID )->Flags;
+    return mapInfo->Flags;
 }
 
 game_type map_entry::GetGameType() const
 {
     return m_GameTypeID;
-}
-
-const char* map_entry::GetShortGameTypeName() const
-{
-
-    return nullptr; //g_MapList.GetGameTypeInfo( m_GameTypeID )->ShortTypeName;
-}
-
-const char* map_entry::GetGameTypeName() const
-{
-    return nullptr; //g_MapList.GetGameTypeInfo( m_GameTypeID )->TypeName;
-}
-
-const char* map_entry::GetGameRules() const
-{
-    return nullptr; //g_MapList.GetGameTypeInfo( m_GameTypeID )->Rules;
 }
 
 bool map_entry::IsAvailable() const

@@ -58,11 +58,8 @@ int main(int argc, char** argv)
                 if (gameObject.levelLoader->isLevelLoaded()) {
                     gameObject.levelLoader->finishLoading();
                     gameObject.stateMachine->setState(StateMachine::State::playing_game);
-                    
                 }
             }
-           
-            
         }
         if (gameObject.stateMachine->getState() != StateMachine::State::playing_game) {
             gameObject.uiManager->update(context.DeltaTime);

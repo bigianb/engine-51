@@ -37,6 +37,8 @@ public:
         return l.searchPriority < r.searchPriority;
     }
 
+    void logHeader();
+
 private:
     void     readDataFiles();
     void     freeSubfileData();

@@ -28,7 +28,7 @@ public:
     bool IsEOF() const;
 
     char* GetDelimeter();
-    void  SetDelimeter(char* pStr);
+    void  SetDelimeter(const char* pStr);
 
     // Move through tokens in file
     void  Rewind();

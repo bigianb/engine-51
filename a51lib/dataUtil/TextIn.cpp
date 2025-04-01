@@ -57,7 +57,16 @@ bool text_in::ReportError(const char* pStr, ...)
     return false;
 }
 
-//=========================================================================
+void text_in::OpenText( const char* pText )
+{
+    // Reset the class
+    m_nValidFields   = 0;
+    m_Record.nFields = 0;
+    m_Record.Name[0] = 0;
+
+    m_Tokenizer.SetDelimeter( ":,[]{}()<>" );
+    m_Tokenizer.OpenText( pText );
+}
 
 bool text_in::ReadAllFields()
 {
