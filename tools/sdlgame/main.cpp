@@ -51,7 +51,8 @@ int main(int argc, char** argv)
         if (gameObject.stateMachine->getState() == StateMachine::State::single_player_load_mission) {
             // kick off the load if we are not already loading
             if (!gameObject.levelLoader->isLoading()) {
-                gameObject.levelLoader->loadLevel(bFullLevelLoad);
+                const map_entry* mapEntry = gameObject.stateMachine->getActiveMap();
+                gameObject.levelLoader->loadLevel(bFullLevelLoad, mapEntry);
             } else {
                 // check if the level is loaded
                 if (gameObject.levelLoader->isLevelLoaded()) {

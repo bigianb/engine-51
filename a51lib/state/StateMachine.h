@@ -80,6 +80,8 @@ public:
 
     map_list* getMapList() { return mapList; }
 
+    const map_entry* getActiveMap();
+
 private:
     void enterState();
     void updateState();

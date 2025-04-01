@@ -55,6 +55,12 @@ void StateMachine::init(ui::Manager* ui, ResourceManager* rm)
     ui->enableUser(ui->getUserId(), true);
 }
 
+const map_entry* StateMachine::getActiveMap()
+{
+    const map_entry* mapEntry = mapList->Find(activeConfig.GetLevelID(), GAME_CAMPAIGN);
+    return mapEntry;
+}
+
 void StateMachine::update(float deltaTime)
 {
     updateState();
@@ -381,13 +387,9 @@ void StateMachine::updateCampaignMenu()
 
                 // set initial level
                 const map_entry* pMapEntry = mapList->Find(-1, GAME_CAMPAIGN);
-                //pendingConfig.SetLevelID( pMapEntry->GetMapID() );
-                //pendingConfig.SetMaxPlayerCount( 1 );
-                //setLevelIndex( 0 );
-
-                // commit pending config to active.
-                //g_NetworkMgr.BecomeServer();
-
+                pendingConfig.SetLevelID( pMapEntry->GetMapID() );
+                activeConfig.commit(pendingConfig);
+                
                 // set campaign game type
                 //m_CampaignType = SM_NEW_CAMPAIGN_GAME;
 

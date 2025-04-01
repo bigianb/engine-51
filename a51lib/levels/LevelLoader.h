@@ -3,8 +3,11 @@
 #include <string>
 #include <thread>
 
+#include "../state/MapList.h"
+
 class FileSystem;
 class ResourceManager;
+class map_entry;
 
 class LevelLoader
 {
@@ -13,7 +16,7 @@ public:
     void loadDFS(FileSystem& fs,  ResourceManager* rm, std::string name);
 
     /* If a level isn't already loading, start a thread to load the level. */
-    void loadLevel(bool fullLoad);
+    void loadLevel(bool fullLoad, const map_entry* pMapEntry);
 
     void finishLoading();
 
@@ -37,6 +40,9 @@ private:
 
     // Indicates whether the level loading thread has finished;
     bool levelLoaded = false;
+
+    // The level to lead
+    const map_entry* mapEntry;
 
     bool fullLoad = false;
 };

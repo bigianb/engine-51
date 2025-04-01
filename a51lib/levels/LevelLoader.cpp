@@ -53,11 +53,12 @@ void LevelLoader::loadDFS(FileSystem& fs, ResourceManager* rm, std::string dfsNa
     }
 }
 
-void LevelLoader::loadLevel(bool fullLoad)
+void LevelLoader::loadLevel(bool fullLoad, const map_entry* pMapEntry)
 {
     levelLoaded = false;
     loadRequested = true;
     this->fullLoad = fullLoad;
+    mapEntry = pMapEntry;
 
     assert(loadThread == nullptr);
     loadThread = new std::thread(&LevelLoader::loadLevelThreadFunction, this);
@@ -94,53 +95,19 @@ void LevelLoader::loadLevelThreadFunction()
     char pPath2 [ 256 ];
     char pPath3 [ 256 ];
 //    slot_id SlotID;
-/*
-    const map_entry* pMapEntry = g_MapList.Find( g_ActiveConfig.GetLevelID(), g_ActiveConfig.GetGameTypeID() );
-    if( pMapEntry == NULL )
-    {
-        FetchManifest();
-        pMapEntry = g_MapList.Find( g_ActiveConfig.GetLevelID(), g_ActiveConfig.GetGameTypeID() );
-    }
 
-    if( pMapEntry == NULL )
-    {
-        g_ActiveConfig.SetExitReason( GAME_EXIT_INVALID_MISSION );
-        return;
-    }
-        */
+    std::cout << "loading level id = " << mapEntry->GetMapID() << std::endl;
+
 /*
     GameMgr.SetZoneMinimum( pMapEntry->GetMinPlayers() );
 
     xfs LevelDFS( "levels/%s/level", g_ActiveConfig.GetLevelPath() );
 
-#ifndef X_RETAIL
-    if( bFullLoad )
-    {
-        extern s32 GetMemoryBallastForLevel( const char* pLevelName );
-        g_pBallast = x_malloc( GetMemoryBallastForLevel( g_ActiveConfig.GetLevelPath() ) );
-    }
-#endif
-
     LOG_MESSAGE( "LoadLevel", "BEGIN! Level:%s, Memory Free:%d bytes",pMapEntry->GetDisplayName(),x_MemGetFree() );
 
-    if( pMapEntry->GetFlags() & MF_DOWNLOAD_MAP )
-    {
-        // Ok, the map is on the memory card so we need to load it now. This WILL eventually have been 
-        // pre-loaded by the front end as map loading really needs to have some sort of indication that
-        // it is in progress. But for now, we just brute force load it and assume only the first memory 
-        // card slot.
-        if( LoadContent( *pMapEntry ) == FALSE )
-        {
-            g_ActiveConfig.SetExitReason( GAME_EXIT_INVALID_MISSION );
-            return;
-        }
-    }
-    else
-    {
-        // Mount the level.dfs file.
-        g_IOFSMgr.MountFileSystem( (const char*)LevelDFS, 2 );
-    }
-
+    // Mount the level.dfs file.
+    g_IOFSMgr.MountFileSystem( (const char*)LevelDFS, 2 );
+    
     if( bFullLoad )
     {      
         // Initialize animation system
@@ -236,14 +203,6 @@ void LevelLoader::loadLevelThreadFunction()
             Handle.SetName(pPath);
             Handle.GetPointer();
         }
-    #if 0
-        // Force the ordered files to load
-        x_makepath( pPath, NULL, g_FullPath, "level_data", ".load" );
-        ForceLoad(pPath);
-
-        x_makepath( pPath, NULL, g_FullPath, "level_data", ".load_extra" );
-        ForceLoad(pPath);
-    #endif
 
         x_makepath( pPath, NULL, g_FullPath, "level_data", ".info" );
         LoadInfo( pPath );
