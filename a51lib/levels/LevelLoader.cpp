@@ -7,6 +7,7 @@
 #include "../io/FileSystem.h"
 #include "../DFSFile.h"
 #include "../resourceManager/ResourceManager.h"
+#include "../objectManager/ObjectManager.h"
 #include "../dataUtil/TextIn.h"
 
 void LevelLoader::mountDefaultFilesystems()
@@ -159,53 +160,53 @@ void LevelLoader::loadLevelThreadFunction()
                 std::cout << "Loading dfs " << arguments << std::endl;
                 fs->mount(arguments, 3);
                 loadDFS(arguments);
-                //fs->unmount(hddargs);
+                fs->unmount(arguments);
             } else if (strcmp(command, "load_resource") == 0) {
                 std::cout << "Loading resource " << arguments << std::endl;
-                //rhandle_base Handle;
-                //Handle.SetName(arguments);
-                //Handle.GetPointer();
+                ResourceHandleBase handle(resourceManager);
+                handle.setName(arguments);
+                handle.getPointer();
             } else if (strcmp(command, "mount_dfs") == 0) {
                 std::cout << "Mounting dfs " << arguments << std::endl;
                 fs->mount(arguments, 3);
             } else if (strcmp(command, "unmount_dfs") == 0) {
-                //fs->unmount(hddargs);
+                fs->unmount(arguments);
             }
         }
         /*
-                                g_DataVault.Init();
-                                LoadTweaks( g_FullPath );
-                                LoadPain( g_FullPath );
+                g_DataVault.Init();
+                LoadTweaks( g_FullPath );
+                LoadPain( g_FullPath );
+*/
+                // Create permanent objects
+                objectManager->CreateObject("god") ;
+/*
+                // Load the NavMap
+                x_makepath( pPath, NULL, g_FullPath, "level_data", ".nmp" );
+                g_NavMap.Load( pPath );
 
-                                // Create permanent objects
-                                g_ObjMgr.CreateObject("god") ;
+                // Load Globals Variables...
+                x_makepath( pPath, NULL, g_FullPath, "level_data", ".glb" );
+                {
+                    MEMORY_OWNER( "GLOBAL VARIABLE DATA" );
+                    g_VarMgr.LoadGlobals( pPath );
+                }
 
-                                // Load the NavMap
-                                x_makepath( pPath, NULL, g_FullPath, "level_data", ".nmp" );
-                                g_NavMap.Load( pPath );
+                // Setup resource handles to rigid color table
+                x_makepath( pPath, NULL, g_FullPath, "level_data", ".rigidcolor" );
 
-                                // Load Globals Variables...
-                                x_makepath( pPath, NULL, g_FullPath, "level_data", ".glb" );
-                                {
-                                    MEMORY_OWNER( "GLOBAL VARIABLE DATA" );
-                                    g_VarMgr.LoadGlobals( pPath );
-                                }
+                // Force the rigid color instance to be loaded prior to level init
+                // since it requires a large allocation
 
-                                // Setup resource handles to rigid color table
-                                x_makepath( pPath, NULL, g_FullPath, "level_data", ".rigidcolor" );
+                {
+                    rhandle_base Handle;
+                    Handle.SetName(pPath);
+                    Handle.GetPointer();
+                }
 
-                                // Force the rigid color instance to be loaded prior to level init
-                                // since it requires a large allocation
-
-                                {
-                                    rhandle_base Handle;
-                                    Handle.SetName(pPath);
-                                    Handle.GetPointer();
-                                }
-
-                                x_makepath( pPath, NULL, g_FullPath, "level_data", ".info" );
-                                LoadInfo( pPath );
-                        */
+                x_makepath( pPath, NULL, g_FullPath, "level_data", ".info" );
+                LoadInfo( pPath );
+        */
     }
     /*
         // Create god, proxy play surface, load the globals.

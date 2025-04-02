@@ -3,6 +3,7 @@
 #include "../../a51lib/levels/LevelLoader.h"
 #include "../../a51lib/io/FileSystem.h"
 #include "../../a51lib/resourceManager/ResourceManager.h"
+#include "../../a51lib/objectManager/ObjectManager.h"
 #include "../../a51lib/resourceManager/ResourceLoaders.h"
 #include "../../a51lib/ui/UIManager.h"
 #include "../../a51lib/state/StateMachine.h"
@@ -44,6 +45,8 @@ bool GameObject::init()
     resourceManager->setFilesystem(fs);
     resourceLoaders = new ResourceLoaders();
     
+    objectManager = new ObjectManager();
+
     engine = new SDLEngine();
     engine->init();
 
@@ -53,7 +56,7 @@ bool GameObject::init()
         g_IoMgr.Init();
         */
 
-    levelLoader = new LevelLoader(fs, resourceManager);
+    levelLoader = new LevelLoader(fs, resourceManager, objectManager);
     levelLoader->mountDefaultFilesystems();
 
     /*

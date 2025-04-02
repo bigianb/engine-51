@@ -12,7 +12,8 @@ class FileSystem
         FileSystem();
         ~FileSystem();
         bool mount(std::string pathname, int searchPriority);
-
+        void unmount(std::string pathname);
+        
         DFSFile* getMount(std::string name);
 
         uint8_t* readFile(std::string filename, int& len_out);

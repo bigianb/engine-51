@@ -7,6 +7,7 @@ class LevelLoader;
 class FileSystem;
 class ResourceManager;
 class ResourceLoaders;
+class ObjectManager;
 namespace ui {
     class Manager;
 }
@@ -27,6 +28,7 @@ class GameObject
     FileSystem* fs;
     ResourceManager* resourceManager;
     ResourceLoaders* resourceLoaders;
+    ObjectManager* objectManager;
     ui::Manager* uiManager;
     SDLEngine* engine;
     StateMachine* stateMachine;

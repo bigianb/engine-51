@@ -65,6 +65,11 @@ set(RESOURCE_MGR_SOURCES
         resourceManager/ResourceManager.h
 )
 
+set(OBJECT_MGR_SOURCES
+        objectManager/ObjectManager.cpp
+        objectManager/ObjectManager.h
+)
+
 target_sources(a51lib PRIVATE
         BinLevel.cpp
         BinLevel.h
@@ -85,6 +90,8 @@ target_sources(a51lib PRIVATE
         Playsurface.cpp
         PlaysurfaceDB.h
         PlaysurfaceDB.cpp
+        Property.cpp
+        Property.h
         PropertyDefs.h
         RigidGeom.cpp
         RigidGeom.h
@@ -97,6 +104,7 @@ target_sources(a51lib PRIVATE
         ${SYSTEM_SOURCES}
         ${LEVELS_SOURCES}
         ${IO_SOURCES}
+        ${OBJECT_MGR_SOURCES}
         ${RESOURCE_MGR_SOURCES}
         ${UI_FILES}
         ${STATE_INCLUDES}

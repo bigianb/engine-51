@@ -8,13 +8,14 @@
 
 class FileSystem;
 class ResourceManager;
+class ObjectManager;
 class map_entry;
 
 class LevelLoader
 {
 public:
-    LevelLoader(FileSystem* fs, ResourceManager* rm)
-        : fs(fs), resourceManager(rm)
+    LevelLoader(FileSystem* fs, ResourceManager* rm, ObjectManager* om)
+        : fs(fs), resourceManager(rm), objectManager(om)
     {
         assert(fs != nullptr);
     }
@@ -48,6 +49,7 @@ public:
 private:
     FileSystem*  fs;
     ResourceManager* resourceManager;
+    ObjectManager* objectManager;
 
     std::thread* loadThread = nullptr;
 

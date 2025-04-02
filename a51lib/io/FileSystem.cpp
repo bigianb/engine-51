@@ -36,6 +36,11 @@ bool FileSystem::mount(std::string pathName, int searchPriority)
     return success;
 }
 
+void FileSystem::unmount(std::string pathName)
+{
+    // TODO: find and delete the DFS file.
+}
+
 uint8_t* FileSystem::readFile(std::string filename, int& len_out)
 {
     uint8_t* data = nullptr;
