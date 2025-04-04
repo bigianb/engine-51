@@ -4,6 +4,7 @@
 #include "system/SDL_Renderer.h"
 
 class LevelLoader;
+class Level;
 class FileSystem;
 class ResourceManager;
 class ResourceLoaders;
@@ -25,6 +26,7 @@ class GameObject
         void quit();
 
     LevelLoader* levelLoader;
+    Level* level;
     FileSystem* fs;
     ResourceManager* resourceManager;
     ResourceLoaders* resourceLoaders;

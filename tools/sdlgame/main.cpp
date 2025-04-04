@@ -52,7 +52,7 @@ int main(int argc, char** argv)
             // kick off the load if we are not already loading
             if (!gameObject.levelLoader->isLoading()) {
                 const map_entry* mapEntry = gameObject.stateMachine->getActiveMap();
-                gameObject.levelLoader->loadLevel(bFullLevelLoad, mapEntry);
+                gameObject.levelLoader->loadLevel(bFullLevelLoad, mapEntry, gameObject.level);
             } else {
                 // check if the level is loaded
                 if (gameObject.levelLoader->isLevelLoaded()) {

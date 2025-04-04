@@ -31,6 +31,9 @@ file(GLOB SYSTEM_SOURCES
 set(LEVELS_SOURCES
         levels/LevelLoader.cpp
         levels/LevelLoader.h
+        levels/VariableManager.h
+        levels/navigation/NavMap.cpp
+        levels/navigation/NavMap.h
         )
 
 set(IO_SOURCES

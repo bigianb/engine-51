@@ -1,5 +1,6 @@
 #include "gameObject.h"
 
+#include "../../a51lib/levels/Level.h"
 #include "../../a51lib/levels/LevelLoader.h"
 #include "../../a51lib/io/FileSystem.h"
 #include "../../a51lib/resourceManager/ResourceManager.h"
@@ -55,6 +56,8 @@ bool GameObject::init()
 
         g_IoMgr.Init();
         */
+
+    level = new Level();
 
     levelLoader = new LevelLoader(fs, resourceManager, objectManager);
     levelLoader->mountDefaultFilesystems();

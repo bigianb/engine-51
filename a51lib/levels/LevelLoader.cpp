@@ -55,11 +55,12 @@ void LevelLoader::loadDFS(std::string dfsName)
     }
 }
 
-void LevelLoader::loadLevel(bool fullLoad, const map_entry* pMapEntry)
+void LevelLoader::loadLevel(bool fullLoad, const map_entry* pMapEntry, Level* level)
 {
     levelLoaded = false;
     loadRequested = true;
     this->fullLoad = fullLoad;
+    this->level = level;
     mapEntry = pMapEntry;
 
     assert(loadThread == nullptr);
@@ -178,20 +179,8 @@ void LevelLoader::loadLevelThreadFunction()
                 LoadTweaks( g_FullPath );
                 LoadPain( g_FullPath );
 */
-                // Create permanent objects
-                objectManager->CreateObject("god") ;
 /*
-                // Load the NavMap
-                x_makepath( pPath, NULL, g_FullPath, "level_data", ".nmp" );
-                g_NavMap.Load( pPath );
-
-                // Load Globals Variables...
-                x_makepath( pPath, NULL, g_FullPath, "level_data", ".glb" );
-                {
-                    MEMORY_OWNER( "GLOBAL VARIABLE DATA" );
-                    g_VarMgr.LoadGlobals( pPath );
-                }
-
+ 
                 // Setup resource handles to rigid color table
                 x_makepath( pPath, NULL, g_FullPath, "level_data", ".rigidcolor" );
 
@@ -203,29 +192,27 @@ void LevelLoader::loadLevelThreadFunction()
                     Handle.SetName(pPath);
                     Handle.GetPointer();
                 }
+*/
 
-                x_makepath( pPath, NULL, g_FullPath, "level_data", ".info" );
-                LoadInfo( pPath );
-        */
+        //        x_makepath( pPath, NULL, g_FullPath, "level_data", ".info" );
+        //        LoadInfo( pPath );
+    } else {
+        // not full load
+        //g_PlaySurfaceMgr.CreateProxyPlaySurfaceObject();
     }
+
+    // Create permanent objects
+    objectManager->CreateObject("god") ;
+
+    int nmpLength = 0;
+    const uint8_t* nmpData = fs->readFile("LEVEL_DATA.NMP", nmpLength);
+    level->navMap.Load( nmpData, nmpLength );
+
+    int glbLength = 0;
+    const uint8_t* glbData = fs->readFile("LEVEL_DATA.GLB", glbLength);
+    level->varMgr.Load(glbData, glbLength);
+
     /*
-        // Create god, proxy play surface, load the globals.
-        if( !bFullLoad )
-        {
-            g_ObjMgr.CreateObject("god");
-            g_PlaySurfaceMgr.CreateProxyPlaySurfaceObject();
-
-            // Load the NavMap
-            x_makepath( pPath, NULL, g_FullPath, "level_data", ".nmp" );
-            g_NavMap.Load( pPath );
-
-            // Load Globals Variables...
-            x_makepath( pPath, NULL, g_FullPath, "level_data", ".glb" );
-            {
-                MEMORY_OWNER( "GLOBAL VARIABLE DATA" );
-                g_VarMgr.LoadGlobals( pPath );
-            }
-        }
 
         // Load the level
         x_makepath( pPath,      NULL, g_FullPath, "level_data", ".bin_level" );
@@ -298,11 +285,6 @@ void LevelLoader::loadLevelThreadFunction()
 
         g_level_loading = FALSE;
 
-    #ifndef X_RETAIL
-        // setup automonkey in non-retail builds
-        g_Monkey.SetAutoMonkeyMode(g_Config.AutoMonkeyMode);
-    #endif
-
         // reset the rigid color pointers
         x_makepath( pPath, NULL, g_FullPath, "level_data", ".rigidcolor" );
         g_BinLevelMgr.SetRigidColor( pPath );
@@ -337,17 +319,8 @@ void LevelLoader::loadLevelThreadFunction()
         {
             KillSlideShow();
         }
-
-        // Unmount the level.dfs file.
-        if( pMapEntry->GetFlags() & MF_DOWNLOAD_MAP )
-        {
-            UnloadContent();
-        }
-        else
-        {
-            g_IOFSMgr.UnmountFileSystem( (const char*)LevelDFS );
-        }
-            */
+    */
+   fs->unmount(levelDFS);
 }
 
 void LevelLoader::InitSlideShow(const char* pSlideShowScriptFile)

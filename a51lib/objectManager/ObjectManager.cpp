@@ -1,6 +1,7 @@
 #include "ObjectManager.h"
 #include <cassert>
 #include <cstring>
+#include <iostream>
 
 guid ObjectManager::CreateObject(const char* objectTypeName)
 {
@@ -11,7 +12,8 @@ guid ObjectManager::CreateObject(const char* objectTypeName)
             }
         }
     }
-    assert(false);
+    std::cout << "ERROR: ObjectManager::CreateObject: Unknown object type " << objectTypeName << std::endl;
+    //assert(false);
     return guid(0);
 }
 

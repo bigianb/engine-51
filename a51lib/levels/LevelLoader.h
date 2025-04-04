@@ -5,6 +5,7 @@
 #include <cassert>
 
 #include "../state/MapList.h"
+#include "Level.h"
 
 class FileSystem;
 class ResourceManager;
@@ -15,7 +16,7 @@ class LevelLoader
 {
 public:
     LevelLoader(FileSystem* fs, ResourceManager* rm, ObjectManager* om)
-        : fs(fs), resourceManager(rm), objectManager(om)
+        : fs(fs), resourceManager(rm), objectManager(om), level(nullptr)
     {
         assert(fs != nullptr);
     }
@@ -30,7 +31,7 @@ public:
     void loadDFS(std::string name);
 
     /* If a level isn't already loading, start a thread to load the level. */
-    void loadLevel(bool fullLoad, const map_entry* pMapEntry);
+    void loadLevel(bool fullLoad, const map_entry* pMapEntry, Level* level);
 
     void finishLoading();
 
@@ -50,6 +51,8 @@ private:
     FileSystem*  fs;
     ResourceManager* resourceManager;
     ObjectManager* objectManager;
+    // The level that is being loaded. We don't own this, it is passed into loadLevel.
+    Level* level;
 
     std::thread* loadThread = nullptr;
 
