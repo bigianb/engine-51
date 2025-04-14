@@ -98,6 +98,8 @@ target_sources(a51lib PRIVATE
         PropertyDefs.h
         RigidGeom.cpp
         RigidGeom.h
+        SkinGeom.cpp
+        SkinGeom.h
         streamingOperators.cpp
         streamingOperators.h
         VectorMath.h

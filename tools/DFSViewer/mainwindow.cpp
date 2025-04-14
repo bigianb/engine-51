@@ -5,6 +5,7 @@
 #include "../../a51lib/Bitmap.h"
 #include "../../a51lib/DFSFile.h"
 #include "../../a51lib/RigidGeom.h"
+#include "../../a51lib/SkinGeom.h"
 #include "../../a51lib/animation/animData.h"
 #include "../../a51lib/Playsurface.h"
 #include "../../a51lib/LevelTemplate.h"
@@ -395,6 +396,14 @@ void MainWindow::treeItemClicked(const QModelIndex& index)
         rigidGeom.describe(ss);
         ui->plainTextEdit->setPlainText(ss.str().c_str());
         ui->modelPage->setGeom(rigidGeom);
+        exportable = true;
+    } else if (extension == ".SKINGEOM") {
+        SkinGeom skinGeom;
+        skinGeom.readFile(fileData, fileLen);
+        std::ostringstream ss;
+        skinGeom.describe(ss);
+        ui->plainTextEdit->setPlainText(ss.str().c_str());
+        //ui->modelPage->setGeom(skinGeom);
         exportable = true;
     } else if (extension == ".STRINGBIN") {
         StringTable stringTable;
