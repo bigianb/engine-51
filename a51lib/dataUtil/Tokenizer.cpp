@@ -1,6 +1,7 @@
 #include "Tokenizer.h"
 #include <cstring>
 #include <cassert>
+#include <cmath>
 
 static const int BUFFER_SIZE = 1024 * 32;
 

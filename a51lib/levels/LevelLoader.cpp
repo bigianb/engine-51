@@ -1,6 +1,7 @@
 #include "LevelLoader.h"
 
 #include <set>
+#include <algorithm>
 #include <iostream>
 #include <cassert>
 
