@@ -246,20 +246,22 @@ token_stream::type token_stream::Read(int NTokens)
         if (((ch >= '0') && (ch <= '9')) || (ch == '-') || (ch == '+')) {
             // Copy number into string buffer
             i = 0;
-            m_IsFloat = false;
+            u_int8_t floatTracker = 0;
             while (1) {
                 ch = CHAR(m_FilePos);
                 if (!m_IsCharNumber[ch]) {
                     break;
                 }
                 m_String[i] = ch;
-                m_IsFloat |= m_IsCharNumber[ch];
+                floatTracker |= m_IsCharNumber[ch];
                 m_FilePos++;
                 i++;
                 assert(i < TOKEN_STRING_SIZE - 1);
             }
-            m_IsFloat >>= 1;
+            floatTracker >>= 1;
             m_String[i] = 0;
+
+            m_IsFloat = floatTracker != 0;
 
             // Generate float version
             if (m_IsFloat) {

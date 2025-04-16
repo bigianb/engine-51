@@ -302,6 +302,21 @@ void MainWindow::exportFile(int entryNo, QString exportDir)
         int       fileLen = dfsFile->getFileSize(entryNo);
         rigidGeom.readFile(fileData, fileLen);
         exportGLTF(rigidGeom, fileName);
+    } else if (extension == ".SKINGEOM") {
+        QString fileName;
+        if (exportDir.isEmpty()) {
+            fileName = QFileDialog::getSaveFileName(this, tr("Export GLTF"),
+                                                    origFilename.c_str(),
+                                                    tr("GLTF Files (*.gltf)"));
+        } else {
+            fileName = QDir::toNativeSeparators(exportDir + "/" + origFilename.c_str() + ".gltf");
+        }
+
+        SkinGeom geom;
+        uint8_t*  fileData = dfsFile->getFileData(entryNo);
+        int       fileLen = dfsFile->getFileSize(entryNo);
+        geom.readFile(fileData, fileLen);
+        exportGLTF(geom, fileName);
     } else if (extension == ".PLAYSURFACE") {
         QString fileName;
         if (exportDir.isEmpty()) {
@@ -403,7 +418,7 @@ void MainWindow::treeItemClicked(const QModelIndex& index)
         std::ostringstream ss;
         skinGeom.describe(ss);
         ui->plainTextEdit->setPlainText(ss.str().c_str());
-        //ui->modelPage->setGeom(skinGeom);
+        ui->modelPage->setGeom(skinGeom);
         exportable = true;
     } else if (extension == ".STRINGBIN") {
         StringTable stringTable;
