@@ -71,9 +71,9 @@ struct Property
     union
     {
         float floatVal;
-        int   intVal;
+        uint32_t intVal;
         float angle;
-        int   stringOffset;
+        uint32_t   stringOffset;
     } value;
 
     void read(InevFile&);
