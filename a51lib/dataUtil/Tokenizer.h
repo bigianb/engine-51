@@ -2,6 +2,7 @@
 
 #include "../Colour.h"
 #include "../VectorMath.h"
+#include <cstdint>
 
 #define TOKEN_STRING_SIZE 1024
 #define TOKEN_DELIMITER_STR ",{}()<>;"

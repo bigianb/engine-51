@@ -246,7 +246,7 @@ token_stream::type token_stream::Read(int NTokens)
         if (((ch >= '0') && (ch <= '9')) || (ch == '-') || (ch == '+')) {
             // Copy number into string buffer
             i = 0;
-            u_int8_t floatTracker = 0;
+            uint8_t floatTracker = 0;
             while (1) {
                 ch = CHAR(m_FilePos);
                 if (!m_IsCharNumber[ch]) {
