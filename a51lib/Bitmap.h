@@ -173,7 +173,15 @@ private:
 
     int getMipDataSize(int mip = 0) const;
 
+    Colour readColor(uint8_t* pRead) const;
+
 public:
+    int getWidth() const { return width; }
+    int getHeight() const { return height; }
+
+    Colour getPixelColor(int x, int y, int mip = 0);
+    Colour readDXTCPixel(int x, int y, int mip = 0);
+
     int          dataSize;
     int          clutSize;
     int          width;

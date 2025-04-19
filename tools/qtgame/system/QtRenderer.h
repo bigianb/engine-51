@@ -1,0 +1,37 @@
+#pragma once
+
+#include "../../../a51lib/system/Renderer.h"
+
+class QRhiResourceUpdateBatch;
+class QRhi;
+
+class QtRenderer : public Renderer
+{
+public:
+    QtRenderer();
+    void begin() override {};
+    void end() override {};
+
+    void startFrame(QRhiResourceUpdateBatch *batch, QRhi* rhi);
+    QRhiResourceUpdateBatch * endFrame();
+
+    void renderRect(const IntRect& rect, const Colour& colour, bool doWire) override
+    {
+    }
+
+    void getRes(int& width, int& height) override
+    {
+        width = 640;
+        height = 480;
+    }
+
+    void drawBegin(Primitive, int drawFlags) override;
+    void drawEnd() override;
+    void setTexture(Bitmap* tex) override;
+    void drawColour(const Colour& colour) override;
+    void drawVertex(float x, float y, float z, float u, float v) override;
+
+    private:
+        QRhiResourceUpdateBatch *batch;
+        QRhi* rhi;
+};

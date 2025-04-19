@@ -45,6 +45,8 @@ void Property::read(InevFile& inevFile)
         inevFile.read(value.stringOffset);
         break;
     default:
+        value.stringOffset = 0;
+        inevFile.skip(4);
         std::cerr << "Uknown Type " << type << std::endl;
     }
 }
@@ -215,9 +217,9 @@ bool Geom::readFile(uint8_t* fileData, int len)
         return false;
     }
 
-    std::ostringstream ss;
-    inevFile.describe(ss);
-    std::cout << ss.str() << std::endl;
+    //std::ostringstream ss;
+    //inevFile.describe(ss);
+    //std::cout << ss.str() << std::endl;
     read(inevFile);
     return true;
 }
@@ -250,8 +252,9 @@ void Geom::read(InevFile& inevFile)
 
     inevFile.readArray(bones, numBones);
     inevFile.readArray(boneMasks, numBoneMasks);
-    inevFile.readArray(properties, numProperties);
+    
     inevFile.readArray(propertySections, numPropertySections);
+    inevFile.readArray(properties, numProperties);
     inevFile.readArray(rigidBodies, numRigidBodies);
     inevFile.readArray(meshes, numMeshes);
     inevFile.readArray(subMeshes, numSubMeshes);

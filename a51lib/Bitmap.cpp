@@ -729,6 +729,163 @@ Colour* Bitmap::decodeToColor(const uint8_t* source, Format sourceFormat, int co
     return output;
 }
 
+Colour Bitmap::readDXTCPixel(int x, int y, int mip)
+{
+    // TODO
+    return COLOR_BLACK;
+}
+
+Colour Bitmap::getPixelColor(int x, int y, int mip)
+{
+    // Handle DXT formats
+    switch (format) {
+    case FMT_DXT1:
+    case FMT_DXT3:
+    case FMT_DXT5:
+        return readDXTCPixel(x, y, mip);
+    }
+    /*
+        if( flags & FLAG_XBOX_DATA_SWIZZLED )
+        {
+            extern xcolor xbox_UnswizzlePoint( const xbitmap*,s32,s32,s32 );
+            return xbox_UnswizzlePoint( this,X,Y,Mip );
+        }
+    */
+    const FormatInfo& sourceFormatInfo = formatInfo[format];
+
+    int W, H;
+
+    if (nMips == 0) {
+        W = width;
+        H = height;
+    } else {
+        W = data.mipData[mip].width;
+        H = data.mipData[mip].height;
+    }
+
+    uint8_t* pPixel = data.pixelData;
+    pPixel += nMips ? data.mipData[mip].offset : 0;
+    pPixel += ((y * W) * sourceFormatInfo.BPP) >> 3;
+    pPixel += ((x)*sourceFormatInfo.BPP) >> 3;
+
+    if (sourceFormatInfo.ClutBased) {
+        int Index;
+
+        if (sourceFormatInfo.BPP == 4) {
+            if (flags & FLAG_4BIT_NIBBLES_FLIPPED) {
+                Index = (x & 0x01) ? (*pPixel >> 4) : (*pPixel & 0x0F);
+            } else {
+                Index = (x & 0x01) ? (*pPixel & 0x0F) : (*pPixel >> 4);
+            }
+        } else {
+            Index = *pPixel;
+        }
+
+        if (flags & FLAG_PS2_CLUT_SWIZZLED) {
+            // TODO: Index = getPS2SwizzledIndex(Index);
+        }
+
+        // We now have the index, find the pixel's color in the palette.
+
+        pPixel = clutData;
+        pPixel += (Index * sourceFormatInfo.BPC) >> 3;
+    }
+    // We'll use an internal helper function for the rest.
+
+    return (readColor(pPixel));
+}
+
+Colour Bitmap::readColor(uint8_t* pRead) const
+{
+    uint32_t Pixel = 0;
+    uint32_t R, G, B, A;
+    int Bits;
+
+    const FormatInfo& sourceFormatInfo = formatInfo[format];
+
+    // The pointer pRead is pointing to some color data we want to read from 
+    // this bitmap.  The data may be in the image or the palette.  It doesn't
+    // matter.
+
+    // Read the color into our local 32 bit Pixel.
+
+    if( sourceFormatInfo.BPC == 32 )
+    {
+        Pixel = *((uint32_t*)(pRead));
+    }
+    else
+    if( sourceFormatInfo.BPC == 24 )
+    {
+        Pixel = ((uint32_t)(pRead[0]) << 16) |
+                ((uint32_t)(pRead[1]) <<  8) |
+                ((uint32_t)(pRead[2]) <<  0);
+    }
+    else
+    if( sourceFormatInfo.BPC == 16 )
+    {
+        Pixel = (uint32_t)(*((uint16_t*)(pRead)));
+    }
+    else
+    if( sourceFormatInfo.format == FMT_A8 )
+    {
+        uint32_t a = *(uint8_t*)pRead;
+        Pixel = (a<<24) | (a<<16) | (a<<8) | a;
+    }
+    
+
+    // We have the color isolated in Pixel, but in its "native" format).  Pick 
+    // out each component, and make sure we have 8 valid bits of data.
+
+    // R
+
+    R   = Pixel;
+    R  &= sourceFormatInfo.RMask;
+    R >>= sourceFormatInfo.RShiftR;
+    R <<= sourceFormatInfo.RShiftL;
+    R  |= (R >> sourceFormatInfo.RBits);
+
+    // G
+
+    G   = Pixel;
+    G  &= sourceFormatInfo.GMask;
+    G >>= sourceFormatInfo.GShiftR;
+    G <<= sourceFormatInfo.GShiftL;
+    G  |= (G >> sourceFormatInfo.GBits);
+
+    // B
+
+    B   = Pixel;
+    B  &= sourceFormatInfo.BMask;
+    B >>= sourceFormatInfo.BShiftR;
+    B <<= sourceFormatInfo.BShiftL;
+    B  |= (B >> sourceFormatInfo.BBits);
+
+    // A
+
+    if( sourceFormatInfo.ABits )
+    {
+        A   = Pixel;
+        A  &= sourceFormatInfo.AMask;
+        A >>= sourceFormatInfo.AShiftR;
+        A <<= sourceFormatInfo.AShiftL;
+    
+        Bits = sourceFormatInfo.ABits;
+        while( Bits < 8 )
+        {
+            A |= (A >> Bits);
+            Bits <<= 1;
+        }
+    }
+    else
+    {
+        A = 0xFF;
+    }
+
+    // That's it.  We've got a full 8 bits for each component.
+
+    return( Colour( (uint8_t)R, (uint8_t)G, (uint8_t)B, (uint8_t)A ) );    
+}
+
 void Bitmap::describe(std::ostringstream& ss)
 {
     ss << "Width x Height: " << width << " x " << height << std::endl;

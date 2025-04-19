@@ -3,7 +3,19 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <cctype>  
+#include <algorithm>
+#include <string_view>
 
+bool ichar_equals(char a, char b)
+{
+    return std::tolower(static_cast<char>(a)) == std::tolower(static_cast<char>(b));
+}
+
+bool iequals(std::string_view lhs, std::string_view rhs)
+{
+    return std::ranges::equal(lhs, rhs, ichar_equals);
+}
 
 struct DFSSubfile1
 {
@@ -86,8 +98,9 @@ DFSHeader::DFSHeader(const uint8_t* data)
     }
 }
 
-DFSFile::DFSFile()
+DFSFile::DFSFile(int searchPriorityIn)
 {
+    searchPriority = searchPriorityIn;
     header = nullptr;
     dfsData = nullptr;
 }
@@ -140,7 +153,7 @@ uint32_t DFSFile::getSubfileOffset(int idx) const
     return header->subFileTable3[idx].offset;
 }
 
-uint8_t* DFSFile::getFileData(int entryNo) const
+uint8_t* DFSFile::getFileData(int entryNo)
 {
     if (entryNo < 0 || entryNo >= numFiles() || header == nullptr || !header->isValid()) {
         return nullptr;
@@ -158,7 +171,35 @@ uint8_t* DFSFile::getFileData(int entryNo) const
     if (subFileIdx > 0){
         subOffset -= getSubfileOffset(subFileIdx-1);
     }
+
+    if (subFileData.empty()){
+        readDataFiles();
+    }
+
     return subFileData[subFileIdx] + subOffset;
+}
+
+void DFSFile::logHeader()
+{
+    if (header != nullptr && header->isValid()) {
+        std::cout << "DFS Header:" << std::endl;
+        std::cout << "  Magic: " << header->magic << std::endl;
+        std::cout << "  Version: " << header->version << std::endl;
+        std::cout << "  Checksum: " << header->checksum << std::endl;
+        std::cout << "  Sector Size: " << header->sectorSize << std::endl;
+        std::cout << "  Split Size: " << header->splitSize << std::endl;
+        std::cout << "  Number of Files: " << header->numFiles << std::endl;
+        std::cout << "  Number of Subfiles: " << header->numSubFiles << std::endl;
+
+        for (int i = 0; i < header->numFiles; ++i) {
+            DFSFileEntry& file = header->files[i];
+            std::cout << "  File " << i << ": " << file.fileNameOffset1 << std::endl;
+            std::cout << "  File Name 1: " << header->strings +  file.fileNameOffset1 << std::endl;
+            std::cout << "  File Name 2: " << header->strings +  file.fileNameOffset2 << std::endl;
+            std::cout << "  Path Name: " << header->strings + file.pathNameOffset << std::endl;
+            std::cout << "  Extension: " << header->strings + file.extNameOffset << std::endl;
+        }
+    }
 }
 
 std::string DFSFile::getFilename(int entryNo) const
@@ -195,7 +236,7 @@ std::string DFSFile::getBaseFilename(int entryNo) const
 int DFSFile::findEntry(std::string baseFilename, std::string extension) const
 {
     for (int i=0; i<numFiles(); ++i){
-        if (baseFilename == getBaseFilename(i) && extension == getFileExtension(i)){
+        if (iequals(baseFilename, getBaseFilename(i)) && iequals(extension, getFileExtension(i))){
             return i;
         }
     }
@@ -230,7 +271,7 @@ static uint8_t* readFile(std::string path, size_t& size)
     return data;
 }
 
-void DFSFile::read(std::string path)
+bool DFSFile::read(std::string path, bool headerOnly)
 {
     this->path = path;
     delete[] dfsData;
@@ -244,9 +285,10 @@ void DFSFile::read(std::string path)
         delete header;
         header = new DFSHeader(dfsData);
     }
-    if (header != nullptr && header->isValid()) {
+    if (header != nullptr && header->isValid() && !headerOnly) {
         readDataFiles();
     }
+    return header != nullptr;
 }
 
 void DFSFile::readDataFiles()

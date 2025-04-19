@@ -4,6 +4,7 @@
 #include <rhi/qrhi.h>
 
 class RigidGeom;
+class SkinGeom;
 
 class ModelWidget : public QRhiWidget
 {
@@ -18,6 +19,7 @@ public:
     void releaseResources() override;
 
     void setGeom(RigidGeom& );
+    void setGeom(SkinGeom& );
 
     void setCubeTextureText(const QString &s)
     {

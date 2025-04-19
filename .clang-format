@@ -3,7 +3,7 @@
 AccessModifierOffset: -4
 AlignConsecutiveDeclarations: Consecutive
 AllowShortBlocksOnASingleLine: Always
-AllowShortFunctionsOnASingleLine: None
+AllowShortFunctionsOnASingleLine: Inline
 AllowShortIfStatementsOnASingleLine: true
 BreakBeforeBraces: Custom
 BraceWrapping:
@@ -32,7 +32,7 @@ NamespaceIndentation: All
 PointerBindsToType: true
 SortIncludes: false
 SpaceBeforeParens: ControlStatements
-Standard: c++17
+Standard: c++20
 SpacesInLineCommentPrefix:
   Minimum: 0
   Maximum: -1

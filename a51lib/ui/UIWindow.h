@@ -1,0 +1,174 @@
+#pragma once
+
+#include <string>
+#include <vector>
+
+#include "../VectorMath.h"
+
+class Renderer;
+
+namespace ui
+{
+    class User;
+    class Manager;
+
+    class Window
+    {
+    public:
+        enum flags
+        {
+            WF_VISIBLE = 0x00000001, // Is visible
+            WF_STATIC = 0x00000002,  // Is static, should not respond to input
+            WF_BORDER = 0x00000004,  // Has Border
+            WF_TAB = 0x00000008,     // Is a page of a tabbed dialog
+
+            WF_NO_ACTIVATE = 0x00000010, // Do not activate first control of dialog
+            WF_TITLE = 0x00010000,       // Has a title.
+            WF_DLG_CENTER = 0x00000020,  // Center Dialog when it is opened
+
+            WF_DISABLED = 0x00000100,  // Is disabled
+            WF_SELECTED = 0x00000200,  // Is selected
+            WF_HIGHLIGHT = 0x00000400, // Is highlight
+
+            WF_INPUTMODAL = 0x00001000,  // Is input modal, input stops here
+            WF_RENDERMODAL = 0x00002000, // Is render modal, rendering stops here
+
+            WF_BUTTON_LEFT = 0x00004000,  // Button needs to be left just.
+            WF_BUTTON_RIGHT = 0x00008000, // Button needs to be right just.
+
+            WF_USE_ABSOLUTE = 0x00010000, // Use absolute co-ordinates
+
+            WF_SCALE_XPOS = 0x00020000,  // Scale dialog object X position
+            WF_SCALE_XSIZE = 0x00040000, // Scale dialog object X size
+            WF_SCALE_YPOS = 0x00080000,  // Scale dialog object Y position
+            WF_SCALE_YSIZE = 0x00100000, // Scale dialog object Y size
+        };
+
+        enum notifications
+        {
+            WN_COMBO_SELCHANGE = 0x00000001, // Combo control selection change
+
+            WN_SLIDER_CHANGE, // Slider value has changed
+
+            WN_CHECK_CHANGE, // Check state change
+
+            WN_LIST_SELCHANGE, // List selection changed
+            WN_LIST_ACCEPTED,  // New selection accepted
+            WN_LIST_CANCELLED, // New selection cancelled
+
+            WN_TAB_CHANGE, // Tabbed dialog changed tab
+
+            WN_USER = 0x40000000, // First User Message
+        };
+
+        Window()
+            : id(-1)
+        {
+        }
+        virtual ~Window();
+
+        virtual void destroy();
+
+        virtual bool create(User*          user,
+                            Manager*       manager,
+                            const IntRect& position,
+                            Window*        parent,
+                            int            flags);
+
+        void addChild(Window* w) { children.push_back(w); }
+        void removeChild(ui::Window* child);
+
+        virtual void render(Renderer& renderer, int x, int y);
+
+        Window* findChildById(int id) const;
+
+        int  getControlId() const { return id; }
+        void setControlId(int id) { this->id = id; }
+
+        bool visible() const { return (flags & WF_VISIBLE) == WF_VISIBLE; }
+        bool disabled() const { return (flags & WF_DISABLED) == WF_DISABLED; }
+        bool enabled() const { return !disabled(); }
+        bool isStatic() const { return (flags & WF_STATIC) == WF_STATIC; }
+        bool isDynamic() const { return !isStatic(); }
+        bool highlighted() const { return (flags & WF_HIGHLIGHT) == WF_HIGHLIGHT; }
+        bool selected() const { return (flags & WF_SELECTED) == WF_SELECTED; }
+        bool isRenderModel() const { return (flags & WF_RENDERMODAL) == WF_RENDERMODAL; }
+
+        const IntRect& getPosition() const { return position; }
+        void           setPosition(IntRect& r) { position = r; }
+        int            getWidth() const { return position.getWidth(); }
+        int            getHeight() const { return position.getHeight(); }
+
+        Manager* getUIManger() const { return manager; }
+
+        int  getFlags() const { return flags; }
+        void setFlag(int flag) { flags |= flag; }
+        void setFlag(int flag, bool doSet) { doSet ? setFlag(flag) : clearFlag(flag); }
+        void clearFlag(int flag) { flags &= ~flag; }
+
+        void setCreatePosition(IntRect p) { createPosition = p; }
+
+        void setLabel(std::wstring newLabel) { label = newLabel; }
+
+        void    localToScreen(int& x, int& y) const;
+        void    screenToLocal(int& x, int& y) const;
+        Window* getWindowAtXY(int x, int y);
+
+        bool isChildOf(Window* parent) const;
+
+        std::vector<Window*> children;
+
+        void          setLabelColour(const Colour& c) { labelColor = c; }
+        const Colour& getLabelColour() const { return labelColor; }
+        void          setLabelFlags(unsigned int newFlags) { labelFlags = newFlags; }
+
+        virtual void onUpdate(float deltaTime);
+        virtual void onNotify(Window* sender, int command, void* data);
+        virtual void onLBDown(Window*);
+        virtual void onLBUp();
+        virtual void onMBDown();
+        virtual void onMBUp();
+        virtual void onRBDown();
+        virtual void onRBUp();
+        virtual void onCursorMove(int x, int y);
+        virtual void onCursorEnter();
+        virtual void onCursorExit();
+        virtual void onKeyDown(int key);
+        virtual void onKeyUp(int key);
+
+        enum NavigateDir
+        {
+            NAV_UP,
+            NAV_DOWN,
+            NAV_LEFT,
+            NAV_RIGHT,
+        };
+
+        virtual void onPadNavigate(NavigateDir code, int presses, int repeats, bool wrapX = false, bool wrapY = false);
+        virtual void onPadSelect(Window*);
+        virtual void onPadBack();
+        virtual void onPadDelete();
+        virtual void onPadHelp();
+        virtual void onPadActivate();
+        virtual void onPadShoulder(int direction);
+        virtual void onPadShoulder2(int direction);
+
+    protected:
+        IntRect position;
+
+        std::wstring label;
+        unsigned int labelFlags;
+        Colour       labelColor;
+        int          flags;
+        User*        user;
+        Window*      parent;
+
+    private:
+        Manager* manager;
+
+        int     id;
+        IntRect createPosition;
+
+        //int                 font;
+    };
+};

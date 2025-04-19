@@ -5,6 +5,7 @@
 #include "modelWidget.h"
 #include "cube.h"
 #include "../../a51lib/RigidGeom.h"
+#include "../../a51lib/SkinGeom.h"
 
 static const QSize CUBE_TEX_SIZE(512, 512);
 
@@ -73,6 +74,28 @@ static QShader getShader(const QString &name)
 }
 
 void ModelWidget::setGeom(RigidGeom& geom)
+{
+    if (!m_rhi){
+        // Window has never been exposed, so rhi is not set-up
+        return;
+    }
+    numVertices = geom.getNumVertices(0);
+    const int vertexSize = 5 * 4;   // x y z u v as floats
+    scene.vbuf.reset(m_rhi->newBuffer(QRhiBuffer::Immutable, QRhiBuffer::VertexBuffer, numVertices * vertexSize));
+    scene.vbuf->create();
+
+    float* vertexData = geom.getVerticesPUV(0);
+    if (scene.resourceUpdates){
+        scene.resourceUpdates->release();
+    }
+    scene.resourceUpdates = m_rhi->nextResourceUpdateBatch();
+    scene.resourceUpdates->uploadStaticBuffer(scene.vbuf.get(), vertexData);
+    delete[] vertexData;
+
+    update();
+}
+
+void ModelWidget::setGeom(SkinGeom& geom)
 {
     if (!m_rhi){
         // Window has never been exposed, so rhi is not set-up

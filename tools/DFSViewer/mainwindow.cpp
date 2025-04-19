@@ -5,10 +5,11 @@
 #include "../../a51lib/Bitmap.h"
 #include "../../a51lib/DFSFile.h"
 #include "../../a51lib/RigidGeom.h"
+#include "../../a51lib/SkinGeom.h"
 #include "../../a51lib/animation/animData.h"
 #include "../../a51lib/Playsurface.h"
 #include "../../a51lib/LevelTemplate.h"
-
+#include "../../a51lib/strings/StringTable.h"
 #include "../../a51lib/dataUtil/Bitstream.h"
 
 #include "gltfExporter.h"
@@ -301,6 +302,21 @@ void MainWindow::exportFile(int entryNo, QString exportDir)
         int       fileLen = dfsFile->getFileSize(entryNo);
         rigidGeom.readFile(fileData, fileLen);
         exportGLTF(rigidGeom, fileName);
+    } else if (extension == ".SKINGEOM") {
+        QString fileName;
+        if (exportDir.isEmpty()) {
+            fileName = QFileDialog::getSaveFileName(this, tr("Export GLTF"),
+                                                    origFilename.c_str(),
+                                                    tr("GLTF Files (*.gltf)"));
+        } else {
+            fileName = QDir::toNativeSeparators(exportDir + "/" + origFilename.c_str() + ".gltf");
+        }
+
+        SkinGeom geom;
+        uint8_t*  fileData = dfsFile->getFileData(entryNo);
+        int       fileLen = dfsFile->getFileSize(entryNo);
+        geom.readFile(fileData, fileLen);
+        exportGLTF(geom, fileName);
     } else if (extension == ".PLAYSURFACE") {
         QString fileName;
         if (exportDir.isEmpty()) {
@@ -396,6 +412,22 @@ void MainWindow::treeItemClicked(const QModelIndex& index)
         ui->plainTextEdit->setPlainText(ss.str().c_str());
         ui->modelPage->setGeom(rigidGeom);
         exportable = true;
+    } else if (extension == ".SKINGEOM") {
+        SkinGeom skinGeom;
+        skinGeom.readFile(fileData, fileLen);
+        std::ostringstream ss;
+        skinGeom.describe(ss);
+        ui->plainTextEdit->setPlainText(ss.str().c_str());
+        ui->modelPage->setGeom(skinGeom);
+        exportable = true;
+    } else if (extension == ".STRINGBIN") {
+        StringTable stringTable;
+        stringTable.read(fileData, fileLen, "");
+        std::wostringstream ss;
+        stringTable.describe(ss);
+        QString qtString = QString::fromWCharArray( ss.str().c_str() );
+        ui->plainTextEdit->setPlainText(qtString);
+        exportable = false;
     } else if (extension == ".XBMP") {
         ui->imageLabel->clear();
         const bool oldVersion = dfsFile->getVersion() == 1;
@@ -512,6 +544,7 @@ void MainWindow::dropEvent(QDropEvent* event)
         ui->treeView->setSortingEnabled(false);
         dfsTreeModel->doBeginResetModel();
         dfsFile->read(filename.toStdString());
+        dfsFile->logHeader();
         dfsTreeModel->doEndResetModel();
         ui->treeView->setSortingEnabled(true);
         event->acceptProposedAction();
