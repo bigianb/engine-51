@@ -6,6 +6,7 @@
 
 #include "../state/MapList.h"
 #include "Level.h"
+#include "../Guid.h"
 
 class FileSystem;
 class ResourceManager;
@@ -35,6 +36,8 @@ public:
 
     void finishLoading();
 
+    void spawnPlayer();
+
     bool isLoading() const
     {
         return loadRequested;
@@ -47,6 +50,12 @@ public:
 
     void InitSlideShow(const char* pSlideShowScriptFile);
 
+    void SetPlayerSpawnInfo(const Vector3& Position,
+        Radian         Pitch,
+        Radian         Yaw,
+        int            Zone,
+        const guid&    Guid);
+
 private:
     FileSystem*  fs;
     ResourceManager* resourceManager;
@@ -55,6 +64,8 @@ private:
     Level* level;
 
     std::thread* loadThread = nullptr;
+
+    void loadInfo( const char* levelInfoData );
 
     void loadLevelThreadFunction();
 
@@ -68,4 +79,11 @@ private:
     const map_entry* mapEntry;
 
     bool fullLoad = false;
+
+    bool m_bSpawnInfoSet;
+    Vector3 m_PlayerSpawnPosition;
+    Radian m_PlayerSpawnPitch;
+    Radian m_PlayerSpawnYaw;
+    int m_PlayerSpawnZone;
+    guid m_PlayerSpawnGuid;
 };

@@ -13,6 +13,9 @@ namespace ui {
     class Manager;
 }
 class StateMachine;
+class collision_mgr;
+class poly_cache;
+class PlaysurfaceMgr;
 
 /*
  * Used to hold game global objects.
@@ -35,4 +38,7 @@ class GameObject
     SDLEngine* engine;
     StateMachine* stateMachine;
     SDLRenderer* renderer;
+    collision_mgr* collisionManager;
+    poly_cache* polyCache;
+    PlaysurfaceMgr* playsurfaceManager;
 };

@@ -5,7 +5,7 @@
 class DataReader
 {
 public:
-    DataReader(uint8_t* data, int l)
+    DataReader(const uint8_t* data, int l)
         : fileData(data)
         , len(l)
         , cursor(0)
@@ -57,6 +57,16 @@ public:
         if (cursor + 4 <= len) {
             uint32_t i = *(uint32_t*)(fileData + cursor);
             cursor += 4;
+            return i;
+        }
+        return 0;
+    }
+
+    uint32_t readUInt64()
+    {
+        if (cursor + 8 <= len) {
+            uint64_t i = *(uint64_t*)(fileData + cursor);
+            cursor += 8;
             return i;
         }
         return 0;
@@ -121,7 +131,7 @@ public:
         return (cursor + n) <= len;
     }
 
-    uint8_t* fileData;
+    const uint8_t* fileData;
     int      len;
     int      cursor;
 };

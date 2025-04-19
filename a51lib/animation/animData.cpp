@@ -26,6 +26,41 @@ void read(DataReader& reader, BBox& bbox)
     read(reader, bbox.max);
 }
 
+void AnimKey::Identity( void )
+{
+    translation.Zero() ;
+    rotation.identity() ;
+}
+
+void AnimKey::Setup( Matrix4& M )
+{
+    // Fill out 3x3 rotations.
+    float tx  = 2.0f * rotation.x;   // 2x
+    float ty  = 2.0f * rotation.y;   // 2y
+    float tz  = 2.0f * rotation.z;   // 2z
+    float txw =   tx * rotation.w;   // 2x * w
+    float tyw =   ty * rotation.w;   // 2y * w
+    float tzw =   tz * rotation.w;   // 2z * w
+    float txx =   tx * rotation.x;   // 2x * x
+    float tyx =   ty * rotation.x;   // 2y * x
+    float tzx =   tz * rotation.x;   // 2z * x
+    float tyy =   ty * rotation.y;   // 2y * y
+    float tzy =   tz * rotation.y;   // 2z * y
+    float tzz =   tz * rotation.z;   // 2z * z
+    M(0,0) = 1.0f-(tyy+tzz); M(0,1) = tyx + tzw;      M(0,2) = tzx - tyw;           
+    M(1,0) = tyx - tzw;      M(1,1) = 1.0f-(txx+tzz); M(1,2) = tzy + txw;           
+    M(2,0) = tzx + tyw;      M(2,1) = tzy - txw;      M(2,2) = 1.0f-(txx+tyy);    
+
+    // Fill out translation
+    M.SetTranslation( translation );
+
+    // Fill out last column
+    M(0,3) = 0.0f;
+    M(1,3) = 0.0f;
+    M(2,3) = 0.0f;
+    M(3,3) = 1.0f;
+}
+
 void AnimGroup::readBone(DataReader& reader, AnimBone& bone)
 {
     read(reader, bone.bindMatrixInv);

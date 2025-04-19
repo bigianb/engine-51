@@ -5,10 +5,15 @@
 #include "../../a51lib/io/FileSystem.h"
 #include "../../a51lib/resourceManager/ResourceManager.h"
 #include "../../a51lib/objectManager/ObjectManager.h"
+#include "../../a51lib/objects/ObjectRegistrar.h"
 #include "../../a51lib/resourceManager/ResourceLoaders.h"
 #include "../../a51lib/ui/UIManager.h"
 #include "../../a51lib/state/StateMachine.h"
-
+#include "../../a51lib/spatialDBase/SpatialDBase.h"
+#include "../../a51lib/Guid.h"
+#include "../../a51lib/collisionMgr/CollisionMgr.h"
+#include "../../a51lib/collisionMgr/PolyCache.h"
+#include "../../a51lib/PlaysurfaceMgr.h"
 #include "system/SDL_Engine.h"
 #include "system/SDL_Renderer.h"
 
@@ -47,15 +52,24 @@ bool GameObject::init()
     resourceLoaders = new ResourceLoaders();
     
     objectManager = new ObjectManager();
+    polyCache = new poly_cache(objectManager);
 
+    playsurfaceManager = new PlaysurfaceMgr();
+
+    collisionManager = new collision_mgr();
+    collisionManager->setPolycache(polyCache);
+    collisionManager->setObjectManager(objectManager);
+    collisionManager->setPlaysurfaceManager(playsurfaceManager);
+    
+    ObjectRegistrarInterface* objectRegistrar = new ObjectRegistrar();
+    spatial_dbase* spatialDatabase = new spatial_dbase();
+    objectManager->Init(objectRegistrar, spatialDatabase, collisionManager);
+    delete objectRegistrar;
     engine = new SDLEngine();
     engine->init();
+    guid_Init();
 
-    /*
-        guid_Init();
-
-        g_IoMgr.Init();
-        */
+    //    g_IoMgr.Init();
 
     level = new Level();
 

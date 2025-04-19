@@ -9,6 +9,8 @@ class ResourceManager;
 class FileSystem;
 class StringTable;
 
+#define RESOURCE_NAME_SIZE  128
+
 // Abstract base class for a loader.
 // Deserialises a types based on a file extension.
 class ResourceLoader
@@ -106,6 +108,7 @@ public:
     int  findEntry(std::string resourceName);
 
     void* getPointer(const ResourceHandleBase& handle);
+    bool isRHandleLoaded(const ResourceHandleBase& handle);
 
     // does not take ownership of the object.
     void registerLoader(ResourceLoader* loader);

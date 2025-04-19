@@ -11,6 +11,14 @@ set(ANIM_SOURCES
         animation/animData.cpp
         animation/animData.h
         animation/animDecompress.cpp
+        animation/AnimEvent.cpp
+        animation/AnimPlayer.cpp
+        animation/AnimPlayer.h
+        animation/AnimTrack.h
+        animation/BasePlayer.cpp
+        animation/BasePlayer.h
+        animation/SMemMatrixCache.cpp
+        animation/SMemMatrixCache.h
         )
 
 set(DATAUTIL_SOURCES
@@ -31,6 +39,8 @@ file(GLOB SYSTEM_SOURCES
 set(LEVELS_SOURCES
         levels/LevelLoader.cpp
         levels/LevelLoader.h
+        levels/LevelTemplate.cpp
+        levels/LevelTemplate.h
         levels/VariableManager.h
         levels/navigation/NavMap.cpp
         levels/navigation/NavMap.h
@@ -52,6 +62,46 @@ set(UI_FILES
         ${UI_INCLUDES}
         ${UI_SOURCES}
         )
+
+set(OBJECTS_SOURCES 
+        objects/render/RenderInst.cpp
+        objects/render/RenderInst.h
+        objects/render/RigidInst.cpp
+        objects/render/RigidInst.h
+        objects/render/SkinInst.cpp
+        objects/render/SkinInst.h
+        objects/render/VirtualMeshMask.cpp
+        objects/render/VirtualMeshMask.h
+        objects/render/VirtualTextureMask.cpp
+        objects/render/VirtualTextureMask.h
+        objects/sound/EventSoundEmitter.cpp
+        objects/sound/EventSoundEmitter.h
+        objects/Actor.cpp
+        objects/Actor.h
+        objects/AnimSurface.h
+        objects/Corpse.cpp
+        objects/Corpse.h
+        objects/CorpsePain.cpp
+        objects/CorpsePain.h
+        objects/Event.h
+        objects/HudObject.cpp
+        objects/HudObject.h
+        objects/NewWeapon.cpp
+        objects/NewWeapon.h
+        objects/Object.cpp
+        objects/Object.h
+        objects/ObjectRegistrar.cpp
+        objects/ObjectRegistrar.h
+        objects/ParticleEventEmitter.cpp
+        objects/ParticleEventEmitter.h
+        objects/Pickup.h
+        objects/Player.h
+        objects/PlayerLoco.cpp
+        objects/PlayerLoco.h
+        objects/PlayerObject.cpp
+        objects/PlaySurface.cpp
+        objects/PlaySurface.h
+)
 
 file(GLOB STATE_INCLUDES state/*.h)
 file(GLOB STATE_SOURCES state/*.cpp)
@@ -78,31 +128,117 @@ target_sources(a51lib PRIVATE
         BinLevel.h
         Bitmap.cpp
         Bitmap.h
-        CollisionVolume.cpp
-        CollisionVolume.h
+        characters/ActorEffects.h
+        characters/factions.h
+        characters/FloorProperties.cpp
+        characters/FloorProperties.h
+        collisionMgr/collisionMgr_Private.h
+        collisionMgr/collisionMgr.cpp
+        collisionMgr/collisionMgr.h
+        collisionMgr/CollisionPrimatives.cpp
+        collisionMgr/CollisionPrimatives.h
+        collisionMgr/GridWalker.cpp
+        collisionMgr/GridWalker.h
+        collisionMgr/PolyCache.cpp
+        collisionMgr/PolyCache.h
+        dataVault/DataVault.cpp
+        dataVault/DataVault.h
+        decals/DecalDefinition.cpp
+        decals/DecalDefinition.h
+        decals/DecalMgr.cpp
+        decals/DecalMgr.h
+        decals/DecalPackage.cpp
+        decals/DecalPackage.h
         DFSFile.cpp
         DFSFile.h
-        Geom.cpp
-        Geom.h
+        EventMgr.cpp
+        EventMgr.h
+        Guid.cpp
         Guid.h
+        Helpers.cpp
+        Helpers.h
         InevFile.cpp
         InevFile.h
-        LevelTemplate.cpp
-        LevelTemplate.h
-        Playsurface.h
-        Playsurface.cpp
+        inventory/Inventory.cpp
+        inventory/Inventory.h
+        loco/CharacterPhysics.cpp
+        loco/CharacterPhysics.h
+        loco/Loco.cpp
+        loco/Loco.h
+        loco/LocoAdditiveController.cpp
+        loco/LocoAdditiveController.h
+        loco/LocoAimController.cpp
+        loco/LocoAimController.h
+        loco/LocoAnimController.cpp
+        loco/LocoAnimController.h
+        loco/LocoCharAnimPlayer.cpp
+        loco/LocoCharAnimPlayer.h
+        loco/locoIKSolver.cpp
+        loco/locoIKSolver.h
+        loco/LocoMaskController.cpp
+        loco/LocoMaskController.h
+        loco/LocoMotionController.cpp
+        loco/LocoMotionController.h
+        math/BoundingBox.cpp
+        math/BoundingBox.h
+        math/CommonMath.h
+        math/Matrix4.cpp
+        math/Matrix4.h
+        math/Quaternion.h
+        math/Radian3.h
+        math/Random.cpp
+        math/Random.h
+        math/Vector3.h
+        painManager/Pain.cpp
+        painManager/Pain.h
+        painManager/PainMgr.cpp
+        painManager/PainMgr.h
+        PerceptionMgr.cpp
+        PerceptionMgr.h
+        PlaysurfaceMgr.h
+        PlaysurfaceMgr.cpp
         PlaysurfaceDB.h
         PlaysurfaceDB.cpp
         Property.cpp
         Property.h
         PropertyDefs.h
-        RigidGeom.cpp
-        RigidGeom.h
-        SkinGeom.cpp
-        SkinGeom.h
+        RigidGeomCollision.cpp
+        RigidGeomCollision.h
+        render/CollisionVolume.cpp
+        render/CollisionVolume.h
+        render/Geom.cpp
+        render/Geom.h
+        render/Material_Prefs.h
+        render/Material.cpp
+        render/Material.h
+        render/MaterialArray.cpp
+        render/MaterialArray.h
+        render/Render.cpp
+        render/Render.h
+        render/RigidGeom.cpp
+        render/RigidGeom.h
+        render/SkinGeom.cpp
+        render/SkinGeom.h
+        spatialDBase/SpatialDBase.cpp
+        spatialDBase/SpatialDBase.h
         streamingOperators.cpp
         streamingOperators.h
+        trigger/Trigger_Actions.cpp
+        trigger/Trigger_Actions.h
+        tweakManager/TweakMgr.cpp
+        tweakManager/TweakMgr.h
         VectorMath.h
+        View/View.cpp
+        View/View.h
+        xfiles/x_plus.cpp
+        xfiles/x_plus.h
+        xfiles/x_time.cpp
+        xfiles/x_time.h
+        xfiles/xfs.cpp
+        xfiles/xfs.h
+        xfiles/xHandle.h
+        xfiles/xHandleArray.h
+
 	${GLTF_SOURCES}
         ${ANIM_SOURCES}
         ${DATAUTIL_SOURCES}
@@ -115,6 +251,7 @@ target_sources(a51lib PRIVATE
         ${STATE_INCLUDES}
         ${STATE_SOURCES}
         ${STRING_SOURCES}
+        ${OBJECTS_SOURCES}
 )
 
 target_compile_features(a51lib PUBLIC cxx_std_20)

@@ -4,6 +4,7 @@
 #include "gameObject.h"
 #include "../../a51lib/state/StateMachine.h"
 #include "../../a51lib/levels/LevelLoader.h"
+#include "../../a51lib/objectManager/ObjectManager.h"
 #include "system/SDL_Renderer.h"
 
 struct Context
@@ -17,6 +18,8 @@ struct Context
     bool  UpPressed;
     float DeltaTime;
 };
+
+void RenderGame();
 
 int main(int argc, char** argv)
 {
@@ -32,6 +35,7 @@ int main(int argc, char** argv)
         return 1;
     }
 
+    int logicFramesAfterLoad = 0;
     bool bFullLevelLoad = true;
     while (!gameObject.engine->isQuitRequested()) {
         gameObject.engine->processEventQueue();
@@ -57,15 +61,47 @@ int main(int argc, char** argv)
                 // check if the level is loaded
                 if (gameObject.levelLoader->isLevelLoaded()) {
                     gameObject.levelLoader->finishLoading();
+                    gameObject.levelLoader->spawnPlayer();
                     gameObject.stateMachine->setState(StateMachine::State::playing_game);
+                    logicFramesAfterLoad = 0;
                 }
             }
         }
         if (gameObject.stateMachine->getState() != StateMachine::State::playing_game) {
             gameObject.uiManager->update(context.DeltaTime);
             gameObject.uiManager->render(*gameObject.renderer);
-            gameObject.renderer->draw();
+        } else {
+            if (logicFramesAfterLoad == 0) {
+                std::cout << "Playing game..." << std::endl;
+            }
+            logicFramesAfterLoad++;
+/*
+            render::Update(DeltaTime);
+            g_TracerMgr.OnUpdate(DeltaTime);
+
+            corpse::LimitCount();
+
+            g_PhysicsMgr.Advance(DeltaTime);
+            {
+                STAT_LOGGER(temp, k_stats_OnAdvance);
+                g_ObjMgr.AdvanceAllLogic(DeltaTime);
+            }
+            g_LightMgr.OnUpdate(DeltaTime);
+            g_PostEffectMgr.OnUpdate(DeltaTime);
+            g_DecalMgr.OnUpdate(DeltaTime);
+            g_AlienGlobMgr.Advance(DeltaTime);
+            g_TriggerExMgr.OnUpdate(DeltaTime);
+            g_NetworkMgr.Update( DeltaTime );       // runs the character logic
+            g_GameTextMgr.Update(DeltaTime);
+            UpdateAudio(DeltaTime);
+*/
+            if (logicFramesAfterLoad > 10) {
+                uint8_t playerViewZone = 0;
+                //gameObject.objectManager->Render(true, g_View, playerViewZone);
+                //g_ObjMgr.Render(TRUE,g_View,pPlayers[i]->GetPlayerViewZone());
+            }
         }
+        gameObject.renderer->draw();
     }
 
     SDL_Log("Done");

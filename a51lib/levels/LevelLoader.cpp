@@ -4,12 +4,19 @@
 #include <algorithm>
 #include <iostream>
 #include <cassert>
+#include <cstring>
+
+#ifdef _MSC_VER
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+#endif
 
 #include "../io/FileSystem.h"
 #include "../DFSFile.h"
 #include "../resourceManager/ResourceManager.h"
 #include "../objectManager/ObjectManager.h"
 #include "../dataUtil/TextIn.h"
+#include "../objects/Player.h"
 
 void LevelLoader::mountDefaultFilesystems()
 {
@@ -58,6 +65,7 @@ void LevelLoader::loadDFS(std::string dfsName)
 
 void LevelLoader::loadLevel(bool fullLoad, const map_entry* pMapEntry, Level* level)
 {
+    m_bSpawnInfoSet= false;
     levelLoaded = false;
     loadRequested = true;
     this->fullLoad = fullLoad;
@@ -180,148 +188,224 @@ void LevelLoader::loadLevelThreadFunction()
                 LoadTweaks( g_FullPath );
                 LoadPain( g_FullPath );
 */
-/*
- 
-                // Setup resource handles to rigid color table
-                x_makepath( pPath, NULL, g_FullPath, "level_data", ".rigidcolor" );
+        /*
 
-                // Force the rigid color instance to be loaded prior to level init
-                // since it requires a large allocation
+                        // Setup resource handles to rigid color table
+                        x_makepath( pPath, NULL, g_FullPath, "level_data", ".rigidcolor" );
 
-                {
-                    rhandle_base Handle;
-                    Handle.SetName(pPath);
-                    Handle.GetPointer();
-                }
-*/
+                        // Force the rigid color instance to be loaded prior to level init
+                        // since it requires a large allocation
 
-        //        x_makepath( pPath, NULL, g_FullPath, "level_data", ".info" );
-        //        LoadInfo( pPath );
+                        {
+                            rhandle_base Handle;
+                            Handle.SetName(pPath);
+                            Handle.GetPointer();
+                        }
+        */
+
+        const char* levelInfoData = (const char*)resourceManager->getResourceData("LEVEL_DATA.INFO");
+        loadInfo( levelInfoData );
     } else {
         // not full load
         //g_PlaySurfaceMgr.CreateProxyPlaySurfaceObject();
     }
 
     // Create permanent objects
-    objectManager->CreateObject("god") ;
+    objectManager->CreateObject("god");
 
-    int nmpLength = 0;
+    int            nmpLength = 0;
     const uint8_t* nmpData = fs->readFile("LEVEL_DATA.NMP", nmpLength);
-    level->navMap.Load( nmpData, nmpLength );
+    level->navMap.Load(nmpData, nmpLength);
 
-    int glbLength = 0;
+    int            glbLength = 0;
     const uint8_t* glbData = fs->readFile("LEVEL_DATA.GLB", glbLength);
     level->varMgr.Load(glbData, glbLength);
 
+    int            binLevelLength = 0;
+    const uint8_t* binLevelData = fs->readFile("LEVEL_DATA.BIN_LEVEL", binLevelLength);
+    int            levDictLength = 0;
+    const uint8_t* levelDictData = fs->readFile("LEVEL_DATA.LEV_DICT", levDictLength);
+
+    level->binLevel.loadLevel(objectManager, binLevelData, binLevelLength, levelDictData, levDictLength);
+
+    if (fullLoad) {
+        /*
+        {
+            // load the rigid colors...they will be assigned to the
+            // geometry in a moment
+            rhandle<color_info> hRigidColor;
+            x_makepath( pPath, NULL, g_FullPath, "level_data", ".rigidcolor" );
+            hRigidColor.SetName( pPath );
+            hRigidColor.GetPointer();
+        }
+            */
+        /*
+                    {
+                        //load templates
+                        x_makepath( pPath, NULL, g_FullPath, "level_data", ".templates" );
+                        x_makepath( pPath2, NULL, g_FullPath, "level_data", ".tmpl_dct" );
+                        g_TemplateMgr.LoadData(pPath, pPath2);
+                    }
+
+                    {
+                        //load portal/zone list
+                        x_makepath( pPath, NULL, g_FullPath, "level_data", ".zone" );
+                        g_ZoneMgr.Load(pPath);
+                    }
+
+                    {
+                        //load playsurfaces
+                        x_makepath( pPath, NULL, g_FullPath, "level_data", ".playsurface" );
+                        g_PlaySurfaceMgr.OpenFile(pPath, TRUE);
+                        g_PlaySurfaceMgr.LoadAllZones();
+                        g_PlaySurfaceMgr.CloseFile();
+                    }
+
+                    {
+                        //load static decals
+                        x_makepath( pPath, NULL, g_FullPath, "level_data", ".decals" );
+                        g_DecalMgr.LoadStaticDecals( pPath );
+                    }
+                        */
+    }
+
+    //initialize player tracker
     /*
+    SlotID = objectManager->GetFirst( Object::TYPE_PLAYER );
 
-        // Load the level
-        x_makepath( pPath,      NULL, g_FullPath, "level_data", ".bin_level" );
-        x_makepath( pPath2,     NULL, g_FullPath, "level_data", ".lev_dict" );
-        x_makepath( pPath3,     NULL, g_FullPath, "level_data", ".load" );
+    while(SlotID != SLOT_NULL)
+    {
+        object_ptr<player> PlayerObj( g_ObjMgr.GetObjectBySlot( SlotID ) );
 
-        g_BinLevelMgr.LoadLevel( pPath, pPath2, pPath3 );
-
-        if( bFullLoad )
+        if (PlayerObj.IsValid())
         {
-            {
-                // load the rigid colors...they will be assigned to the
-                // geometry in a moment
-                rhandle<color_info> hRigidColor;
-                x_makepath( pPath, NULL, g_FullPath, "level_data", ".rigidcolor" );
-                hRigidColor.SetName( pPath );
-                hRigidColor.GetPointer();
-            }
-
-            {
-                MEMORY_OWNER("TEMPLATE DATA");
-                //load templates
-                x_makepath( pPath, NULL, g_FullPath, "level_data", ".templates" );
-                x_makepath( pPath2, NULL, g_FullPath, "level_data", ".tmpl_dct" );
-                g_TemplateMgr.LoadData(pPath, pPath2);
-            }
-
-            {
-                MEMORY_OWNER("ZONE DATA");
-                //load portal/zone list
-                x_makepath( pPath, NULL, g_FullPath, "level_data", ".zone" );
-                g_ZoneMgr.Load(pPath);
-            }
-
-            {
-                MEMORY_OWNER("PLAYSURFACE DATA");
-                //load playsurfaces
-                x_makepath( pPath, NULL, g_FullPath, "level_data", ".playsurface" );
-                g_PlaySurfaceMgr.OpenFile(pPath, TRUE);
-                g_PlaySurfaceMgr.LoadAllZones();
-                g_PlaySurfaceMgr.CloseFile();
-            }
-
-            {
-                MEMORY_OWNER("STATIC DECAL DATA");
-                //load static decals
-                x_makepath( pPath, NULL, g_FullPath, "level_data", ".decals" );
-                g_DecalMgr.LoadStaticDecals( pPath );
-            }
+            PlayerObj.m_pObject->InitZoneTracking();
         }
 
-        //initialize player tracker
-        SlotID = g_ObjMgr.GetFirst( object::TYPE_PLAYER );
+        SlotID = g_ObjMgr.GetNext( SlotID );
+    }
+*/
+    /*
+            // Clear the polycache
+            g_PolyCache.InvalidateAllCells();
 
-        while(SlotID != SLOT_NULL)
-        {
-            object_ptr<player> PlayerObj( g_ObjMgr.GetObjectBySlot( SlotID ) );
+            g_level_loading = FALSE;
 
-            if (PlayerObj.IsValid())
+            // reset the rigid color pointers
+            x_makepath( pPath, NULL, g_FullPath, "level_data", ".rigidcolor" );
+            g_BinLevelMgr.SetRigidColor( pPath );
+
+            // reset any screen fades we might've had on
+            g_PostEffectMgr.StartScreenFade( xcolor(0,0,0,0), 0.0f );
+
+            // reset the audio that may have been faded at some point
+            g_AudioMgr.SetMasterVolume( 1.0f );
+
+            MsgMgr.Init();
+            g_MusicMgr.Init();
+
+            // Setup OccluderMgr and search invis walls for occluders
+            g_OccluderMgr.Init();
+            g_OccluderMgr.GatherOccluders();
+
+            // Reset DecalMgr
+            g_DecalMgr.ResetDynamicDecals();
+
+            // Setup the global game timer
+            g_GameTimer.Reset();
+            g_GameTimer.Start();
+
+            // inflate the world bounds a bit
+            g_ObjMgr.InflateSafeBBox( 1000.0f );
+
+            // reset the frame count to 0
+            g_nLogicFramesAfterLoad = 0;
+
+            if( bFullLoad )
             {
-                PlayerObj.m_pObject->InitZoneTracking();
+                KillSlideShow();
             }
+        */
+    fs->unmount(levelDFS);
 
-            SlotID = g_ObjMgr.GetNext( SlotID );
-        }
+    levelLoaded = true;
+}
 
+void LevelLoader::loadInfo( const char* levelInfoData )
+{
+    text_in InfoTextIn;
+    InfoTextIn.OpenText( levelInfoData );
 
-        // Clear the polycache
-        g_PolyCache.InvalidateAllCells();
-
-        g_level_loading = FALSE;
-
-        // reset the rigid color pointers
-        x_makepath( pPath, NULL, g_FullPath, "level_data", ".rigidcolor" );
-        g_BinLevelMgr.SetRigidColor( pPath );
-
-        // reset any screen fades we might've had on
-        g_PostEffectMgr.StartScreenFade( xcolor(0,0,0,0), 0.0f );
-
-        // reset the audio that may have been faded at some point
-        g_AudioMgr.SetMasterVolume( 1.0f );
-
-        MsgMgr.Init();
-        g_MusicMgr.Init();
-
-        // Setup OccluderMgr and search invis walls for occluders
-        g_OccluderMgr.Init();
-        g_OccluderMgr.GatherOccluders();
-
-        // Reset DecalMgr
-        g_DecalMgr.ResetDynamicDecals();
-
-        // Setup the global game timer
-        g_GameTimer.Reset();
-        g_GameTimer.Start();
-
-        // inflate the world bounds a bit
-        g_ObjMgr.InflateSafeBBox( 1000.0f );
-
-        // reset the frame count to 0
-        g_nLogicFramesAfterLoad = 0;
-
-        if( bFullLoad )
+    while ( InfoTextIn.ReadHeader() )
+    {
+        if ( strcasecmp( InfoTextIn.GetHeaderName(), "Info" ) == 0 )
         {
-            KillSlideShow();
+            BBox WorldBBox;
+            /*
+            WorldBBox.Clear();
+            InfoTextIn.ReadFields();
+            InfoTextIn.GetBBox( "WorldBBox", WorldBBox );
+            g_ObjMgr.SetSafeBBox( WorldBBox );
+            */
         }
-    */
-   fs->unmount(levelDFS);
+
+        if ( strcasecmp( InfoTextIn.GetHeaderName(), "PlayerInfo" ) == 0 )
+        {
+            Vector3 Position;
+            Radian  Pitch;
+            Radian  Yaw;
+            int     Zone;
+            guid    Guid;
+            InfoTextIn.ReadFields();
+            InfoTextIn.GetVector3(  "Position", Position    );
+            InfoTextIn.GetF32(      "Pitch",    Pitch       );
+            InfoTextIn.GetF32(      "Yaw",      Yaw         );
+            InfoTextIn.GetS32(      "Zone",     Zone        );
+            InfoTextIn.GetGuid(     "PlayerGuid", Guid      );
+
+            SetPlayerSpawnInfo( Position, Pitch, Yaw, Zone, Guid );
+        }
+    }
+}
+
+void LevelLoader::SetPlayerSpawnInfo(const Vector3& Position,
+                                        Radian         Pitch,
+                                        Radian         Yaw,
+                                        int            Zone,
+                                        const guid&    Guid)
+{
+    m_bSpawnInfoSet = true;
+    m_PlayerSpawnPosition = Position;
+    m_PlayerSpawnPitch = Pitch;
+    m_PlayerSpawnYaw = Yaw;
+    m_PlayerSpawnZone = Zone;
+    m_PlayerSpawnGuid = Guid;
+}
+
+void LevelLoader::spawnPlayer()
+{
+    if (m_bSpawnInfoSet) {
+        objectManager->CreateObject("Player", m_PlayerSpawnGuid);
+        player* pPlayer = (player*)objectManager->GetObjectByGuid(m_PlayerSpawnGuid);
+
+        assert(pPlayer);
+        if (pPlayer) {
+            // Setting position in orientation
+            Matrix4 L2W;
+            L2W.Identity();
+            L2W.RotateY(m_PlayerSpawnYaw);
+            L2W.Translate(m_PlayerSpawnPosition);
+            pPlayer->OnTransform(L2W);
+
+            // set this player up
+            pPlayer->SetPitch(m_PlayerSpawnPitch);
+            pPlayer->SetZone1(m_PlayerSpawnZone);
+            pPlayer->SetZone2(0);
+            pPlayer->InitZoneTracking();
+        }
+    } else {
+        assert(false);
+    }
 }
 
 void LevelLoader::InitSlideShow(const char* pSlideShowScriptFile)

@@ -8,7 +8,7 @@
 #include "../../a51lib/SkinGeom.h"
 #include "../../a51lib/animation/animData.h"
 #include "../../a51lib/Playsurface.h"
-#include "../../a51lib/LevelTemplate.h"
+#include "../../a51lib/levels/LevelTemplate.h"
 #include "../../a51lib/strings/StringTable.h"
 #include "../../a51lib/dataUtil/Bitstream.h"
 
@@ -164,7 +164,7 @@ void MainWindow::exportAllTriggered()
     }
 }
 
-void exportJSON(Playsurface playSurface, QString filename)
+void exportJSON(PlaysurfaceMgr playSurface, QString filename)
 {
     json zones;
     for (auto& zi : playSurface.zones) {
@@ -326,7 +326,7 @@ void MainWindow::exportFile(int entryNo, QString exportDir)
         } else {
             fileName = QDir::toNativeSeparators(exportDir + "/" + origFilename.c_str() + ".json");
         }
-        Playsurface playSurface;
+        PlaysurfaceMgr playSurface;
         uint8_t*    fileData = dfsFile->getFileData(entryNo);
         int         fileLen = dfsFile->getFileSize(entryNo);
         playSurface.readFile(fileData, fileLen);
@@ -347,7 +347,7 @@ void MainWindow::exportFile(int entryNo, QString exportDir)
         uint8_t*    fileData = dfsFile->getFileData(entryNo);
         int         fileLen = dfsFile->getFileSize(entryNo);
         BinLevel binLevel;
-        binLevel.readFile(fileData, fileLen, dictFileData, dictFileLen);
+        binLevel.loadData(fileData, fileLen, dictFileData, dictFileLen);
         exportJSON(binLevel, fileName);
     } else if (extension == ".TEMPLATES") {
         QString fileName;
@@ -439,7 +439,7 @@ void MainWindow::treeItemClicked(const QModelIndex& index)
         setBitmap(labelBitmap, ui->imageLabel);
         exportable = true;
     } else if (extension == ".PLAYSURFACE") {
-        Playsurface playSurface;
+        PlaysurfaceMgr playSurface;
         playSurface.readFile(fileData, fileLen);
         std::ostringstream ss;
         playSurface.describe(ss);
@@ -462,7 +462,7 @@ void MainWindow::treeItemClicked(const QModelIndex& index)
         int      dictFileLen = dfsFile->getFileSize(dictEntryNo);
 
         BinLevel binLevel;
-        binLevel.readFile(fileData, fileLen, dictFileData, dictFileLen);
+        binLevel.loadData(fileData, fileLen, dictFileData, dictFileLen);
         std::ostringstream ss;
         binLevel.describe(ss);
         ui->plainTextEdit->setPlainText(ss.str().c_str());

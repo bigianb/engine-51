@@ -98,3 +98,5 @@ public:
 
     level_check_points m_Level;
 };
+
+#undef MAX_LEVELS

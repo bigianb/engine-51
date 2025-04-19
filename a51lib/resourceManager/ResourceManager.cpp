@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <string>
 #include <iostream>
+#include <cassert>
 
 #include "../io/FileSystem.h"
 #include "../strings/StringTable.h"
@@ -9,6 +10,11 @@
 void ResourceHandleBase::setName(std::string resourceName)
 {
     resourceManager->addRHandle(*this, resourceName);
+}
+
+bool ResourceHandleBase::isLoaded() const
+{
+    return resourceManager->isRHandleLoaded( *this );
 }
 
 std::string ResourceHandleBase::getName() const
@@ -63,15 +69,21 @@ void ResourceManager::addRHandle(ResourceHandleBase& rHandle, std::string resour
     rHandle.setIndex(resourceIdxByName[resourceName]);
 }
 
-std::string ResourceManager::getRHandleName(const ResourceHandleBase& rHandle)
+std::string ResourceManager::getRHandleName(const ResourceHandleBase& handle)
 {
-    // TODO: Implement
-    return "";
+    int i = handle.getIndex();
+
+    if (i == -1) {
+        return "";
+    }
+    const Resource& res = resources.at(i);
+    return res.name;
 }
     
 
 int ResourceManager::findEntry(std::string resourceName)
 {
+    assert(false);
     return -1;
 }
 
@@ -116,6 +128,17 @@ static std::string getFileExtension(const std::string& s)
     }
 
     return "";
+}
+
+bool ResourceManager::isRHandleLoaded(const ResourceHandleBase& handle)
+{
+    int i = handle.getIndex();
+
+    if (i == -1) {
+        return false;
+    }
+    const Resource& res = resources.at(i);
+    return res.state == State::LOADED;
 }
 
 void ResourceManager::load(std::string resourceName)
