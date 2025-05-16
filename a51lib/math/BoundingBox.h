@@ -60,6 +60,13 @@ struct BBox
     Vector3 GetSize() const { return (max - min); }
     Vector3 GetCenter() const { return ((min + max) * 0.5f); };
 
+    float GetRadius() const { return (max - min).Length() / 2.0f; }
+    float GetRadiusSquared() const
+    {
+        const Vector3 r = (max - min) * 0.5f;
+        return r.Dot(r);
+    }
+
     void Inflate(float x, float y, float z)
     {
         min -= Vector3(x, y, z);

@@ -72,21 +72,33 @@ public:
         // clang-format on
     }
 
+    bool IsValid() const
+    {
+        for (int r = 0; r < 4; r++) {
+            for (int c = 0; c < 4; ++c) {
+                if (!isvalid(cells[c][r])) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     Quaternion GetQuaternion() const;
 
     Vector3 GetTranslation() const { return Vector3(cells[3][0], cells[3][1], cells[3][2]); }
     void    SetTranslation(const Vector3& translation)
     {
 
-        cells[3][0] = translation.GetX();
-        cells[3][1] = translation.GetY();
-        cells[3][2] = translation.GetZ();
+        cells[3][0] = translation.x;
+        cells[3][1] = translation.y;
+        cells[3][2] = translation.z;
     }
     Radian3 GetRotation() const;
     void    ClearScale()
     {
         Vector3 S = GetScale();
-        PreScale(Vector3(1 / S.GetX(), 1 / S.GetY(), 1 / S.GetZ()));
+        PreScale(Vector3(1 / S.x, 1 / S.y, 1 / S.z));
     }
 
     Vector3 GetScale() const
@@ -119,12 +131,13 @@ public:
                     const Vector3& V3)
     {
         // clang-format off
-        M(0,0) = V1.GetX(); M(1,0) = V2.GetX(); M(2,0) = V3.GetX();
-        M(0,1) = V1.GetY(); M(1,1) = V2.GetY(); M(2,1) = V3.GetY();
-        M(0,2) = V1.GetZ(); M(1,2) = V2.GetZ(); M(2,2) = V3.GetZ();
+        M(0,0) = V1.x; M(1,0) = V2.x; M(2,0) = V3.x;
+        M(0,1) = V1.y; M(1,1) = V2.y; M(2,1) = V3.y;
+        M(0,2) = V1.z; M(1,2) = V2.z; M(2,2) = V3.z;
         // clang-format on
     }
 
+    void Orthogonalize();
     bool Invert();
     bool InvertRT();
 
@@ -314,9 +327,9 @@ public:
     Vector3 RotateVector(const Vector3& V) const
     {
 
-        return (Vector3((M(0, 0) * V.GetX()) + (M(1, 0) * V.GetY()) + (M(2, 0) * V.GetZ()),
-                        (M(0, 1) * V.GetX()) + (M(1, 1) * V.GetY()) + (M(2, 1) * V.GetZ()),
-                        (M(0, 2) * V.GetX()) + (M(1, 2) * V.GetY()) + (M(2, 2) * V.GetZ())));
+        return (Vector3((M(0, 0) * V.x) + (M(1, 0) * V.y) + (M(2, 0) * V.z),
+                        (M(0, 1) * V.x) + (M(1, 1) * V.y) + (M(2, 1) * V.z),
+                        (M(0, 2) * V.x) + (M(1, 2) * V.y) + (M(2, 2) * V.z)));
     }
 
     void GetColumns(Vector3& V1, Vector3& V2, Vector3& V3) const
@@ -341,24 +354,24 @@ public:
             (M(1, 3) == 0.0f) &&
             (M(2, 3) == 0.0f) &&
             (M(3, 3) == 1.0f)) {
-            M(3, 0) += Translation.GetX();
-            M(3, 1) += Translation.GetY();
-            M(3, 2) += Translation.GetZ();
+            M(3, 0) += Translation.x;
+            M(3, 1) += Translation.y;
+            M(3, 2) += Translation.z;
         } else {
-            M(0, 0) += M(0, 3) * Translation.GetX();
-            M(1, 0) += M(1, 3) * Translation.GetX();
-            M(2, 0) += M(2, 3) * Translation.GetX();
-            M(3, 0) += M(3, 3) * Translation.GetX();
+            M(0, 0) += M(0, 3) * Translation.x;
+            M(1, 0) += M(1, 3) * Translation.x;
+            M(2, 0) += M(2, 3) * Translation.x;
+            M(3, 0) += M(3, 3) * Translation.x;
 
-            M(0, 1) += M(0, 3) * Translation.GetY();
-            M(1, 1) += M(1, 3) * Translation.GetY();
-            M(2, 1) += M(2, 3) * Translation.GetY();
-            M(3, 1) += M(3, 3) * Translation.GetY();
+            M(0, 1) += M(0, 3) * Translation.y;
+            M(1, 1) += M(1, 3) * Translation.y;
+            M(2, 1) += M(2, 3) * Translation.y;
+            M(3, 1) += M(3, 3) * Translation.y;
 
-            M(0, 2) += M(0, 3) * Translation.GetZ();
-            M(1, 2) += M(1, 3) * Translation.GetZ();
-            M(2, 2) += M(2, 3) * Translation.GetZ();
-            M(3, 2) += M(3, 3) * Translation.GetZ();
+            M(0, 2) += M(0, 3) * Translation.z;
+            M(1, 2) += M(1, 3) * Translation.z;
+            M(2, 2) += M(2, 3) * Translation.z;
+            M(3, 2) += M(3, 3) * Translation.z;
         }
     }
 
@@ -398,30 +411,51 @@ public:
         }
     }
 
+    void Scale(const Vector3& scale)
+    {
+        M(0, 0) *= scale.x;
+        M(0, 1) *= scale.y;
+        M(0, 2) *= scale.z;
+
+        M(1, 0) *= scale.x;
+        M(1, 1) *= scale.y;
+        M(1, 2) *= scale.z;
+
+        M(2, 0) *= scale.x;
+        M(2, 1) *= scale.y;
+        M(2, 2) *= scale.z;
+
+        // Scale the translation.
+
+        M(3, 0) *= scale.x;
+        M(3, 1) *= scale.y;
+        M(3, 2) *= scale.z;
+    }
+
     void PreScale(const Vector3& Scale)
     {
-        M(0, 0) *= Scale.GetX();
-        M(0, 1) *= Scale.GetX();
-        M(0, 2) *= Scale.GetX();
-        M(0, 3) *= Scale.GetX();
+        M(0, 0) *= Scale.x;
+        M(0, 1) *= Scale.x;
+        M(0, 2) *= Scale.x;
+        M(0, 3) *= Scale.x;
 
-        M(1, 0) *= Scale.GetY();
-        M(1, 1) *= Scale.GetY();
-        M(1, 2) *= Scale.GetY();
-        M(1, 3) *= Scale.GetY();
+        M(1, 0) *= Scale.y;
+        M(1, 1) *= Scale.y;
+        M(1, 2) *= Scale.y;
+        M(1, 3) *= Scale.y;
 
-        M(2, 0) *= Scale.GetZ();
-        M(2, 1) *= Scale.GetZ();
-        M(2, 2) *= Scale.GetZ();
-        M(2, 3) *= Scale.GetZ();
+        M(2, 0) *= Scale.z;
+        M(2, 1) *= Scale.z;
+        M(2, 2) *= Scale.z;
+        M(2, 3) *= Scale.z;
     }
 
     void PreTranslate(const Vector3& Translation)
     {
-        M(3, 0) += (M(0, 0) * Translation.GetX()) + (M(1, 0) * Translation.GetY()) + (M(2, 0) * Translation.GetZ());
-        M(3, 1) += (M(0, 1) * Translation.GetX()) + (M(1, 1) * Translation.GetY()) + (M(2, 1) * Translation.GetZ());
-        M(3, 2) += (M(0, 2) * Translation.GetX()) + (M(1, 2) * Translation.GetY()) + (M(2, 2) * Translation.GetZ());
-        M(3, 3) += (M(0, 3) * Translation.GetX()) + (M(1, 3) * Translation.GetY()) + (M(2, 3) * Translation.GetZ());
+        M(3, 0) += (M(0, 0) * Translation.x) + (M(1, 0) * Translation.y) + (M(2, 0) * Translation.z);
+        M(3, 1) += (M(0, 1) * Translation.x) + (M(1, 1) * Translation.y) + (M(2, 1) * Translation.z);
+        M(3, 2) += (M(0, 2) * Translation.x) + (M(1, 2) * Translation.y) + (M(2, 2) * Translation.z);
+        M(3, 3) += (M(0, 3) * Translation.x) + (M(1, 3) * Translation.y) + (M(2, 3) * Translation.z);
     }
 
     void Setup(const Vector3& Axis, Radian Angle);
@@ -456,9 +490,9 @@ public:
         M(3, 0) = 0.0f;
     }
 
-    void Setup( const Vector3& Scale, 
-                     const Quaternion& Rotation,
-                     const Vector3& Translation );
+    void Setup(const Vector3&    Scale,
+               const Quaternion& Rotation,
+               const Vector3&    Translation);
 
     void SetRotation(const Radian3& Rotation);
 
@@ -491,11 +525,13 @@ public:
         M(2, 2) = 1.0f - (txx + tyy);
     }
 
+    Matrix4& operator+=(const Matrix4& M);
+
     Vector3 operator*(const Vector3& V) const
     {
-        return (Vector3((M(0, 0) * V.GetX()) + (M(1, 0) * V.GetY()) + (M(2, 0) * V.GetZ()) + M(3, 0),
-                        (M(0, 1) * V.GetX()) + (M(1, 1) * V.GetY()) + (M(2, 1) * V.GetZ()) + M(3, 1),
-                        (M(0, 2) * V.GetX()) + (M(1, 2) * V.GetY()) + (M(2, 2) * V.GetZ()) + M(3, 2)));
+        return (Vector3((M(0, 0) * V.x) + (M(1, 0) * V.y) + (M(2, 0) * V.z) + M(3, 0),
+                        (M(0, 1) * V.x) + (M(1, 1) * V.y) + (M(2, 1) * V.z) + M(3, 1),
+                        (M(0, 2) * V.x) + (M(1, 2) * V.y) + (M(2, 2) * V.z) + M(3, 2)));
     }
     Vector4 operator*(const Vector4& V) const
     {
@@ -577,10 +613,9 @@ inline Matrix4 operator*(const Matrix4& L, const Matrix4& R)
     return Result;
 }
 
-inline
-void Matrix4::Setup( const Vector3& Axis, Radian Angle )
+inline void Matrix4::Setup(const Vector3& Axis, Radian Angle)
 {
-    Setup( Quaternion( Axis, Angle ) );
+    Setup(Quaternion(Axis, Angle));
 }
 
 inline void Matrix4::Setup(const Vector3& Scale,
@@ -602,20 +637,20 @@ inline void Matrix4::Setup(const Vector3& Scale,
     sxcz = sx * cz;
 
     // Fill out 3x3 rotations.
-    M(0, 0) = (cy * cz + sy * sxsz) * Scale.GetX();
-    M(0, 1) = (cx * sz) * Scale.GetX();
-    M(0, 2) = (cy * sxsz - sy * cz) * Scale.GetX();
-    M(1, 0) = (sy * sxcz - sz * cy) * Scale.GetY();
-    M(1, 1) = (cx * cz) * Scale.GetY();
-    M(1, 2) = (sy * sz + sxcz * cy) * Scale.GetY();
-    M(2, 0) = (cx * sy) * Scale.GetZ();
-    M(2, 1) = (-sx) * Scale.GetZ();
-    M(2, 2) = (cx * cy) * Scale.GetZ();
+    M(0, 0) = (cy * cz + sy * sxsz) * Scale.x;
+    M(0, 1) = (cx * sz) * Scale.x;
+    M(0, 2) = (cy * sxsz - sy * cz) * Scale.x;
+    M(1, 0) = (sy * sxcz - sz * cy) * Scale.y;
+    M(1, 1) = (cx * cz) * Scale.y;
+    M(1, 2) = (sy * sz + sxcz * cy) * Scale.y;
+    M(2, 0) = (cx * sy) * Scale.z;
+    M(2, 1) = (-sx) * Scale.z;
+    M(2, 2) = (cx * cy) * Scale.z;
 
     // Translate
-    M(3, 0) = Translation.GetX();
-    M(3, 1) = Translation.GetY();
-    M(3, 2) = Translation.GetZ();
+    M(3, 0) = Translation.x;
+    M(3, 1) = Translation.y;
+    M(3, 2) = Translation.z;
 
     // Clear bottom row
     M(0, 3) = 0.0f;
@@ -624,10 +659,9 @@ inline void Matrix4::Setup(const Vector3& Scale,
     M(3, 3) = 1.0f;
 }
 
-inline
-void Matrix4::Setup( const Vector3& Scale, 
-                     const Quaternion& Rotation,
-                     const Vector3& Translation )
+inline void Matrix4::Setup(const Vector3&    Scale,
+                           const Quaternion& Rotation,
+                           const Vector3&    Translation)
 {
     /*
     Identity   ( );
@@ -636,40 +670,40 @@ void Matrix4::Setup( const Vector3& Scale,
     Translate  ( Translation );
     */
 
-    float tx  = 2.0f * Rotation.x;   // 2x
-    float ty  = 2.0f * Rotation.y;   // 2y
-    float tz  = 2.0f * Rotation.z;   // 2z
-    float txw =   tx * Rotation.w;   // 2x * w
-    float tyw =   ty * Rotation.w;   // 2y * w
-    float tzw =   tz * Rotation.w;   // 2z * w
-    float txx =   tx * Rotation.x;   // 2x * x
-    float tyx =   ty * Rotation.x;   // 2y * x
-    float tzx =   tz * Rotation.x;   // 2z * x
-    float tyy =   ty * Rotation.y;   // 2y * y
-    float tzy =   tz * Rotation.y;   // 2z * y
-    float tzz =   tz * Rotation.z;   // 2z * z
-                                
+    float tx = 2.0f * Rotation.x; // 2x
+    float ty = 2.0f * Rotation.y; // 2y
+    float tz = 2.0f * Rotation.z; // 2z
+    float txw = tx * Rotation.w;  // 2x * w
+    float tyw = ty * Rotation.w;  // 2y * w
+    float tzw = tz * Rotation.w;  // 2z * w
+    float txx = tx * Rotation.x;  // 2x * x
+    float tyx = ty * Rotation.x;  // 2y * x
+    float tzx = tz * Rotation.x;  // 2z * x
+    float tyy = ty * Rotation.y;  // 2y * y
+    float tzy = tz * Rotation.y;  // 2z * y
+    float tzz = tz * Rotation.z;  // 2z * z
+
     // Fill out 3x3 rotations.
-    M(0,0) = (1.0f-(tyy+tzz))   * Scale.GetX();
-    M(0,1) = (tyx + tzw)        * Scale.GetX();
-    M(0,2) = (tzx - tyw)        * Scale.GetX();
-    M(1,0) = (tyx - tzw)        * Scale.GetY();
-    M(1,1) = (1.0f-(txx+tzz))   * Scale.GetY();
-    M(1,2) = (tzy + txw)        * Scale.GetY();
-    M(2,0) = (tzx + tyw)        * Scale.GetZ();
-    M(2,1) = (tzy - txw)        * Scale.GetZ();
-    M(2,2) = (1.0f-(txx+tyy))   * Scale.GetZ();
+    M(0, 0) = (1.0f - (tyy + tzz)) * Scale.x;
+    M(0, 1) = (tyx + tzw) * Scale.x;
+    M(0, 2) = (tzx - tyw) * Scale.x;
+    M(1, 0) = (tyx - tzw) * Scale.y;
+    M(1, 1) = (1.0f - (txx + tzz)) * Scale.y;
+    M(1, 2) = (tzy + txw) * Scale.y;
+    M(2, 0) = (tzx + tyw) * Scale.z;
+    M(2, 1) = (tzy - txw) * Scale.z;
+    M(2, 2) = (1.0f - (txx + tyy)) * Scale.z;
 
     // Translate
-    M(3,0) = Translation.GetX();
-    M(3,1) = Translation.GetY();
-    M(3,2) = Translation.GetZ();
+    M(3, 0) = Translation.x;
+    M(3, 1) = Translation.y;
+    M(3, 2) = Translation.z;
 
     // Clear bottom row
-    M(0,3) = 0.0f;
-    M(1,3) = 0.0f;
-    M(2,3) = 0.0f;
-    M(3,3) = 1.0f;
+    M(0, 3) = 0.0f;
+    M(1, 3) = 0.0f;
+    M(2, 3) = 0.0f;
+    M(3, 3) = 1.0f;
 }
 
 inline Radian3 Matrix4::GetRotation() const
@@ -786,10 +820,59 @@ inline Matrix4 m4_InvertRT(const Matrix4& Src)
     return Dest;
 }
 
-bool Matrix4::InvertRT()
+inline bool Matrix4::InvertRT()
 {
-    *this = m4_InvertRT( *this );
+    *this = m4_InvertRT(*this);
     return true;
+}
+
+inline void Matrix4::Orthogonalize()
+{
+    Vector3 VX(M(0, 0), M(0, 1), M(0, 2));
+    Vector3 VY(M(1, 0), M(1, 1), M(1, 2));
+
+    Vector3 VZ;
+
+    VX.Normalize();
+    VY.Normalize();
+
+    VZ = v3_Cross(VX, VY);
+    VY = v3_Cross(VZ, VX);
+
+    SetColumns(VX, VY, VZ);
+}
+
+inline Matrix4 m4_Transpose(const Matrix4& M)
+{
+    Matrix4 Mout = M;
+    Mout.Transpose();
+    return Mout;
+}
+
+inline
+Matrix4& Matrix4::operator += ( const Matrix4& aM )
+{
+    M(0,0) += aM.M(0,0);
+    M(0,1) += aM.M(0,1);
+    M(0,2) += aM.M(0,2);
+    M(0,3) += aM.M(0,3);
+
+    M(1,0) += aM.M(1,0);
+    M(1,1) += aM.M(1,1);
+    M(1,2) += aM.M(1,2);
+    M(1,3) += aM.M(1,3);
+
+    M(2,0) += aM.M(2,0);
+    M(2,1) += aM.M(2,1);
+    M(2,2) += aM.M(2,2);
+    M(2,3) += aM.M(2,3);
+
+    M(3,0) += aM.M(3,0);
+    M(3,1) += aM.M(3,1);
+    M(3,2) += aM.M(3,2);
+    M(3,3) += aM.M(3,3);
+
+    return( *this );
 }
 
 #undef M

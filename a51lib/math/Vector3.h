@@ -556,3 +556,15 @@ inline Radian v3_AngleBetween(const Vector3& V1, const Vector3& V2)
 
     return (acos(Cos));
 }
+
+void    x_ClosestPtsOnLineSegs   ( const Vector3& StartA, const Vector3& EndA,    // IN
+                                   const Vector3& StartB, const Vector3& EndB,    // IN
+                                         Vector3& PtOnA,                          // OUT
+                                         Vector3& PtOnB                       );  // OUT
+
+void    x_ClosestPtsOnLineSegs   ( const Vector3& StartA, const Vector3& EndA,    // IN
+                                   const Vector3& StartB, const Vector3& EndB,    // IN
+                                         Vector3& PtOnA,                          // OUT
+                                         Vector3& PtOnB,                          // OUT
+                                         float&     TA,                             // OUT
+                                         float&     TB                          );  // OUT

@@ -357,7 +357,7 @@ inline bool char_anim_player::IsAtEnd()
 
 inline void char_anim_player::SetFrame(float Frame)
 {
-    //ASSERT( x_isvalid( Frame ) );
+    //ASSERT( isvalid( Frame ) );
 
     // Mark cached L2W matrices as unusable
     DirtyCachedL2W();
@@ -404,7 +404,7 @@ inline void char_anim_player::SetPosition(const Vector3& Pos)
 
 inline void char_anim_player::SetPitch(Radian Pitch)
 {
-    //ASSERT( x_isvalid( Pitch ) );
+    assert( isvalid( Pitch ) );
 
     // Mark cached L2W matrices as unusable
     DirtyCachedL2W();
@@ -416,7 +416,7 @@ inline void char_anim_player::SetPitch(Radian Pitch)
 
 inline void char_anim_player::SetYaw(Radian Yaw)
 {
-    //ASSERT( x_isvalid( Yaw ) );
+    assert( isvalid( Yaw ) );
 
     // Mark cached L2W matrices as unusable
     DirtyCachedL2W();
@@ -428,7 +428,7 @@ inline void char_anim_player::SetYaw(Radian Yaw)
 
 inline void char_anim_player::SetRoll(Radian Roll)
 {
-    //ASSERT( x_isvalid( Roll ) );
+    assert( isvalid( Roll ) );
 
     // Mark cached L2W matrices as unusable
     DirtyCachedL2W();
@@ -440,7 +440,7 @@ inline void char_anim_player::SetRoll(Radian Roll)
 
 inline void char_anim_player::SetScale(float Scale)
 {
-    //ASSERT( x_isvalid( Scale ) );
+    assert( isvalid( Scale ) );
 
     // Mark cached L2W matrices as unusable
     DirtyCachedL2W();
@@ -656,7 +656,7 @@ inline float char_anim_player::GetFrameParametric()
 
 inline void char_anim_player::SetFrameParametric(float Frame)
 {
-    //assert( x_isvalid( Frame ) );
+    assert( isvalid( Frame ) );
 
     m_AnimTrack.SetFrameParametric(Frame);
 }
@@ -680,7 +680,7 @@ inline bool char_anim_player::HasAnimGroup()
 
 inline void char_anim_player::SetBasisMatrix(const Matrix4& BasisM)
 {
-    //assert( BasisM.IsValid() );
+    assert( BasisM.IsValid() );
 
     // Mark cached L2W matrices as unusable
     DirtyCachedL2W();

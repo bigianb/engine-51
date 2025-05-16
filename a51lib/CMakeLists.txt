@@ -188,6 +188,7 @@ target_sources(a51lib PRIVATE
         math/Radian3.h
         math/Random.cpp
         math/Random.h
+        math/Vector3.cpp
         math/Vector3.h
         painManager/Pain.cpp
         painManager/Pain.h
@@ -195,6 +196,18 @@ target_sources(a51lib PRIVATE
         painManager/PainMgr.h
         PerceptionMgr.cpp
         PerceptionMgr.h
+        physics/Collider.cpp
+        physics/Collider.h
+        physics/CollisionShape.cpp
+        physics/CollisionShape.h
+        physics/Constraint.cpp
+        physics/Constraint.h
+        physics/PhysicsInst.cpp
+        physics/PhysicsInst.h
+        physics/PhysicsMgr.cpp
+        physics/PhysicsMgr.cpp
+        physics/RigidBody.cpp
+        physics/RigidBody.h
         PlaysurfaceMgr.h
         PlaysurfaceMgr.cpp
         PlaysurfaceDB.h

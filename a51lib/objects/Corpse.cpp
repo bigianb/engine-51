@@ -10,7 +10,7 @@
 #include "../characters/ActorEffects.h"
 #include "Corpse.h"
 #include "CorpsePain.h"
-// #include "PhysicsMgr\PhysicsMgr.hpp"
+#include "../physics/PhysicsMgr.h"
 // #include "Objects\ParticleEmiter.hpp"
 #include "Player.h"
 #include "../objectManager/ObjectManager.h"

@@ -1218,7 +1218,7 @@ inline loco_eye_controller& loco::GetEyeController(uint32_t AnimFlags)
 
 inline void loco::SetArriveDist(float ArriveDist)
 {
-    //assert(x_isvalid(ArriveDist)) ;
+    assert(isvalid(ArriveDist)) ;
     m_ArriveDistSqr = sqrt(ArriveDist);
 }
 
@@ -1226,7 +1226,7 @@ inline void loco::SetArriveDist(float ArriveDist)
 
 inline void loco::SetArriveDistSqr(float ArriveDistSqr)
 {
-    //assert(x_isvalid(ArriveDistSqr)) ;
+    assert(isvalid(ArriveDistSqr)) ;
     m_ArriveDistSqr = ArriveDistSqr;
 }
 

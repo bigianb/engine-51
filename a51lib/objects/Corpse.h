@@ -5,7 +5,7 @@
 #include "../decals/DecalPackage.h"
 #include "../zoneManager/ZoneManager.h"
 #include "../characters/FloorProperties.h"
-//#include "PhysicsMgr\PhysicsInst.hpp"
+#include "../physics/PhysicsInst.h"
 
 //=========================================================================
 // DEFINITIONS
@@ -77,24 +77,23 @@ public:
     void  OnTransform(const Matrix4& L2W) override;
     float GetHealth() override { return 0.0f; }
 
-    // IJB physics_inst& GetPhysicsInst();
+    physics_inst& GetPhysicsInst();
     void SetPermanent(bool Permanent);
 
     Colour GetFloorColor() { return m_FloorProperties.GetColor(); }
 
     void ChangeObjectGuid(guid NewGuid);
 
-    /* IJB
+
     skin_inst&       GetSkinInst() { return m_PhysicsInst.GetSkinInst(); }
     const skin_inst& GetSkinInst() const { return m_PhysicsInst.GetSkinInst(); }
-*/
+
     void SetDrainable(bool isDrainable) { m_bDrainable = isDrainable; }
     bool GetDrainable() { return (m_bDrainable != 0); }
 
-    /* IJB
+
     virtual render_inst*       GetRenderInstPtr() { return &m_PhysicsInst.GetSkinInst(); }
     virtual AnimGroup::handle* GetAnimGroupHandlePtr() { return &m_PhysicsInst.GetAnimGroupHandle(); }
-*/
 
     const char* GetLogicalName() override { return "DEADBODY"; }
     eCorpseName NameToEnum(const char* pName);
@@ -146,7 +145,7 @@ protected:
     zone_mgr::tracker m_ZoneTracker; // Tracks the zones.
 
     // Logic
-    // IJB physics_inst     m_PhysicsInst;     // Physics instance
+    physics_inst     m_PhysicsInst;     // Physics instance
     float m_TimeAlive; // Used for time out delete
     floor_properties m_FloorProperties; // Floor tracking class
     actor_effects* m_pActorEffects; // any attached special FX (such as flame particles)
@@ -170,12 +169,12 @@ protected:
 };
 
 //=========================================================================
-/* IJB
+
 inline physics_inst& corpse::GetPhysicsInst()
 {
     return m_PhysicsInst;
 }
-*/
+
 //=========================================================================
 
 inline void corpse::SetPermanent(bool Permanent)

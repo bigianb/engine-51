@@ -483,10 +483,10 @@ void loco_char_anim_player::Advance(float nSeconds, Vector3& DeltaPos, Radian& D
 
         // Sanity check
         assert(DeltaPos.IsValid());
-        //assert(x_isvalid(DeltaYaw));
-        //assert(abs(DeltaPos.GetX()) < (100.0f * 10.0f));
-        //assert(abs(DeltaPos.GetY()) < (100.0f * 10.0f));
-        //assert(abs(DeltaPos.GetZ()) < (100.0f * 10.0f));
+        assert(isvalid(DeltaYaw));
+        assert(abs(DeltaPos.GetX()) < (100.0f * 10.0f));
+        assert(abs(DeltaPos.GetY()) < (100.0f * 10.0f));
+        assert(abs(DeltaPos.GetZ()) < (100.0f * 10.0f));
 
         // Any influence?
         if (pTrack->GetWeight() == 0.0f) {
