@@ -73,7 +73,7 @@ public:
     void DetectCollisions(void);
 
     void PreApplyCollisions(float DeltaTime);
-    int  SolveCollision(collision& Collision);
+    bool  SolveCollision(collision& Collision);
 
     void PreApplyConstraints(float DeltaTime);
     void SolveCollisions(float DeltaTime, int nIterations, ObjectManager*);

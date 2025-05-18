@@ -1,5 +1,6 @@
 
 add_library(a51lib)
+find_package(SDL3 REQUIRED)
 
 set(GLTF_SOURCES
         gltf/json.hpp
@@ -269,3 +270,5 @@ target_sources(a51lib PRIVATE
 )
 
 target_compile_features(a51lib PUBLIC cxx_std_20)
+
+target_link_libraries(a51lib SDL3::SDL3)

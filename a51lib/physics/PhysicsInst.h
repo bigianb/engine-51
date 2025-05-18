@@ -116,15 +116,15 @@ public:
 
 private:
     // Flags
-    int m_bInitialized : 1;           // Initialized
-    int m_bInAwakeList : 1;           // In physics mgr awake list
-    int m_bInSleepingList : 1;        // In physics mgr sleeping list
-    int m_bInCollisionWakeupList : 1; // In physics mgr collision wake up list
-    int m_bPopFix : 1;                // Use pop fix matrices?
-    int m_bActorCollision : 1;        // Should collision with actors occur?
-    int m_bWorldCollision : 1;        // Should instance collides with the world?
-    int m_bInstCollision : 1;         // Should instance collide with other instances?
-    int m_bActiveWhenVisible : 1;     // Bodies are always active when visible
+    bool m_bInitialized;           // Initialized
+    bool m_bInAwakeList;           // In physics mgr awake list
+    bool m_bInSleepingList;        // In physics mgr sleeping list
+    bool m_bInCollisionWakeupList; // In physics mgr collision wake up list
+    bool m_bPopFix;                // Use pop fix matrices?
+    bool m_bActorCollision;        // Should collision with actors occur?
+    bool m_bWorldCollision;        // Should instance collides with the world?
+    bool m_bInstCollision;         // Should instance collide with other instances?
+    bool m_bActiveWhenVisible;     // Bodies are always active when visible
 
 protected:
     // Physics components

@@ -3011,7 +3011,7 @@ void loco::ComputeMotion(bool          bAllowDir[4], // F L B R
             }
 
             // Compute move yaw to test
-            Radian TestMoveYaw = MoveYaw - (TestMotion * R_90);
+            Radian TestMoveYaw = MoveYaw - (i * R_90);
 
             // Compute look delta yaw
             Radian Yaw = abs(x_MinAngleDiff(TestMoveYaw, LookYaw));
@@ -3059,7 +3059,7 @@ void loco::ComputeMotion(bool          bAllowDir[4], // F L B R
     assert(bAllowDir[Motion]);
 
     // Compute final desired move yaw
-    Radian DesiredYaw = x_ModAngle2(MoveYaw - (Motion * R_90));
+    Radian DesiredYaw = x_ModAngle2(MoveYaw - (i * R_90));
 
     // 3) Compute delta yaw that needs to be applied to the current animation
     DeltaYaw = x_MinAngleDiff(DesiredYaw, m_Player.GetCurrAnimYaw());

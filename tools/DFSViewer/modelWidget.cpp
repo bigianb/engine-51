@@ -4,8 +4,8 @@
 
 #include "modelWidget.h"
 #include "cube.h"
-#include "../../a51lib/RigidGeom.h"
-#include "../../a51lib/SkinGeom.h"
+#include "../../a51lib/render/RigidGeom.h"
+#include "../../a51lib/render/SkinGeom.h"
 
 static const QSize CUBE_TEX_SIZE(512, 512);
 

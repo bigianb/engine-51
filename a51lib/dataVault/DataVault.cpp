@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include <cassert>
+#include <cstdlib>
 
 #define DO_LOG_SETNAME 0
 

@@ -1,6 +1,6 @@
 #include "gltfExporter.h"
-#include "../../a51lib/RigidGeom.h"
-#include "../../a51lib/SkinGeom.h"
+#include "../../a51lib/render/RigidGeom.h"
+#include "../../a51lib/render/SkinGeom.h"
 #include "../../a51lib/Bitmap.h"
 #include "../../a51lib/DFSFile.h"
 
@@ -165,7 +165,7 @@ void exportGLTF(RigidGeom& rigidGeom, QString fileName, DFSFile* dfsFile, bool e
     int nodeMeshIdx = 0;
     int buffersIdx = 0;
     for (int meshNo = 0; meshNo < numMeshes; ++meshNo) {
-        Mesh& mesh = rigidGeom.meshes[meshNo];
+        Geom::Mesh& mesh = rigidGeom.meshes[meshNo];
         for (int submeshIdx = mesh.iSubMesh; submeshIdx < mesh.iSubMesh + mesh.nSubMeshes; ++submeshIdx) {
 
             int    numVertices = rigidGeom.getNumSubmeshVertices(submeshIdx);
@@ -352,7 +352,7 @@ void exportGLTF(SkinGeom& geom, QString fileName, DFSFile* dfsFile, bool embedTe
     int nodeMeshIdx = 0;
     int buffersIdx = 0;
     for (int meshNo = 0; meshNo < numMeshes; ++meshNo) {
-        Mesh& mesh = geom.meshes[meshNo];
+        Geom::Mesh& mesh = geom.meshes[meshNo];
         for (int submeshIdx = mesh.iSubMesh; submeshIdx < mesh.iSubMesh + mesh.nSubMeshes; ++submeshIdx) {
 
             int    numVertices = geom.getNumSubmeshVertices(submeshIdx);

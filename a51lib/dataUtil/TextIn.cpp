@@ -342,7 +342,7 @@ bool text_in::ReadFields()
                     return ReportError("Expecting a GUID but found something else");
                 }
 
-                guid GUID;
+                guid GUID = 0;
 
                 //
                 // Take from guid.cpp

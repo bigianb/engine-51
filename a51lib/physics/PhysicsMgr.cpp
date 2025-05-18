@@ -824,7 +824,7 @@ void physics_mgr::PreApplyCollisions(float DeltaTime)
 
 //==============================================================================
 
-int physics_mgr::SolveCollision(collision& Collision)
+bool physics_mgr::SolveCollision(collision& Collision)
 {
     // No penetration?
     if (Collision.m_Depth < 0) {
@@ -1007,7 +1007,7 @@ void physics_mgr::SolveCollisions(float DeltaTime, int nIterations, ObjectManage
     int Direction = om->GetNLogicLoops() & 1;
 
     // Process as normal
-    int bActive = true;
+    bool bActive = true;
     int Loops = 0;
     while ((nIterations--) && (bActive)) {
         bActive = false;
@@ -1070,7 +1070,7 @@ void physics_mgr::SolveContacts(float DeltaTime, int nIterations, ObjectManager*
     int Direction = om->GetNLogicLoops() & 1;
 
     // Process as inelastic collisions
-    int bActive = true;
+    bool bActive = true;
     int Loops = 0;
     while ((nIterations--) && (bActive)) {
         bActive = false;
@@ -1158,17 +1158,14 @@ void physics_mgr::ShockPropagation()
 void physics_mgr::PutInstancesToSleep(float DeltaTime)
 {
 
+    std::vector<physics_inst*> instancesToSleep;
     // Loop through awake instances checking to see if we can put them to sleep
-    physics_inst* pInst = m_AwakeInstances.GetHead();
-    while (pInst) {
+    for (physics_inst* pInst : m_AwakeInstances) {
         // Validate list management
         assert(pInst->m_bInitialized);
         assert(pInst->m_bInAwakeList == true);
         assert(pInst->m_bInSleepingList == false);
         assert(pInst->m_bInCollisionWakeupList == false);
-
-        // Get next instance in-case of deletion from this list
-        physics_inst* pNextInst = m_AwakeInstances.GetNext(pInst);
 
         // Default to not active
         bool bInstActive = false;
@@ -1193,13 +1190,13 @@ void physics_mgr::PutInstancesToSleep(float DeltaTime)
         }
 
         // Put to sleep?
-        if (bInstActive == false) {
+        if (!bInstActive) {
             // Put to sleep
-            PutToSleepInstance(pInst);
+            instancesToSleep.push_back(pInst);
         }
-
-        // Check next awake instance
-        pInst = pNextInst;
+    }
+    for (physics_inst* pInst : instancesToSleep) {
+        PutToSleepInstance(pInst);
     }
 }
 
@@ -1212,11 +1209,10 @@ void physics_mgr::BuildActiveBodyList(void)
     m_ActiveBodies.clear();
 
     // Loop through all awake instances
-    physics_inst* pInst = m_AwakeInstances.GetHead();
-    while (pInst) {
+    for (physics_inst* pInst : m_AwakeInstances) {
         // Validate list management
         assert(pInst->m_bInitialized);
-        assert(pInst->m_bInAwakeList == true);
+        assert(pInst->m_bInAwakeList);
         assert(pInst->m_bInSleepingList == false);
         assert(pInst->m_bInCollisionWakeupList == false);
 
@@ -1231,9 +1227,6 @@ void physics_mgr::BuildActiveBodyList(void)
                 m_ActiveBodies.push_back(&Body);
             }
         }
-
-        // Get next awake instance
-        pInst = m_AwakeInstances.GetNext(pInst);
     }
 }
 

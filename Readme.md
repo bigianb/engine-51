@@ -7,18 +7,20 @@ Very experimental.
 
 # How to build
 
-Install Qt 6 and run cmake. Nothing special - works in a vscode cmake environment just fine.
+Install Qt 6 and SDL3 and run cmake. Nothing special - works in a vscode cmake environment just fine.
 
-Github actions build for winodws, linux and macos so you can always look at the workflow there to troubleshoot any issues you see locally.
+I use vcpkg to install sdl3.
+
+Github actions build for windows, linux and macos are available so you can always look at the workflow there to troubleshoot any issues you see locally.
 
 ## Specific windows guide
-This assumes you have Qt 6.8.0 installed in c:\Qt, you have visual studio 2022 installed and you have the source checked out in c:\dev\engine-51. If your paths are different, just adjust any paths below as needed.
+This assumes you have Qt 6.8.1 installed in c:\Qt, you have visual studio 2022 installed and you have the source checked out in c:\dev\engine-51. If your paths are different, just adjust any paths below as needed.
 
 ```
 cd c:\dev\engine-51
 mkdir build
 cd build
-cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH="C:\Qt\6.8.0\msvc2022_64"
+cmake -G "Visual Studio 17 2022" -A x64 -DVCPKG_TARGET_TRIPLET=x64-windows -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" -DCMAKE_PREFIX_PATH=D:\Qt\6.8.1\msvc2022_64 ..
 ```
 This should create a Visual Studio solution in the build directory.
 Open the Engine51.sln file in Visual Studio.

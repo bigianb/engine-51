@@ -20,20 +20,20 @@ simple_anim_player::simple_anim_player     (  )
     m_bAtEnd        = false;
     m_LoopDelay     = 0;
     
-    m_pCachedGroup      = NULL ;
+    m_pCachedGroup      = nullptr ;
     m_iCachedAnim       = -1 ;
     m_CachedFrame       = -1 ;
-    m_bCachedApplyBind  = -1 ;
+    m_bCachedApplyBind  = true ;
 
-    m_pTrackController[0] = NULL;
-    m_pTrackController[1] = NULL;
-    m_pTrackController[2] = NULL;
-    m_pTrackController[3] = NULL;
+    m_pTrackController[0] = nullptr;
+    m_pTrackController[1] = nullptr;
+    m_pTrackController[2] = nullptr;
+    m_pTrackController[3] = nullptr;
 }
 
 //=========================================================================
 
-simple_anim_player::~simple_anim_player     ( void )
+simple_anim_player::~simple_anim_player     (  )
 {
 }
 
@@ -433,7 +433,7 @@ void simple_anim_player::DirtyCachedL2W( void )
     m_pCachedGroup              = NULL ;
     m_iCachedAnim               = -1 ;
     m_CachedFrame               = -1 ;
-    m_bCachedApplyBind          = -1 ;    
+    m_bCachedApplyBind          = true ;    
 }
 
 //=========================================================================
@@ -450,17 +450,19 @@ const Matrix4* simple_anim_player::UpdateCachedL2W( bool bApplyTheBindPose )
 
     // No anim?
     if (m_iAnim == -1)
-        return NULL ;
+        return nullptr ;
 
     // Lookup group
     const AnimGroup* pGroup = GetAnimGroup();
-    if (!pGroup)
-        return NULL ;
+    if (!pGroup) {
+        return nullptr;
+    }
 
     // Get cache matrices
     Matrix4* pMatrices = m_CachedL2W.GetMatrices(pGroup->GetNBones()) ;
-    if (!pMatrices)
-        return NULL ;
+    if (!pMatrices) {
+        return nullptr;
+    }
 
     // Record cache values
     m_pCachedGroup              = pGroup ;
@@ -515,8 +517,9 @@ const Matrix4* simple_anim_player::GetBoneL2W( int iBone, bool bApplyTheBindPose
 {
     // Compute bones
     const Matrix4* pL2Ws = UpdateCachedL2W(bApplyTheBindPose) ;
-    if (!pL2Ws)
-        return NULL ;
+    if (!pL2Ws) {
+        return nullptr;
+    }
 
     // Return specific bone
     return &pL2Ws[iBone] ;
@@ -744,7 +747,7 @@ BBox simple_anim_player::ComputeBBox(  ) const
 {
     // Lookup anim group and return default if not loaded
     const AnimGroup* pAnimGroup = m_hGroup.getPointer();
-    if( pAnimGroup == NULL )
+    if (pAnimGroup == nullptr)
     {
         // Use default bbox
         BBox bb;
