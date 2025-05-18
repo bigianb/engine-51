@@ -8,6 +8,7 @@
 class actor;
 class rigid_body;
 class physics_inst;
+class ObjectManager;
 
 class physics_mgr
 {
@@ -75,16 +76,16 @@ public:
     int  SolveCollision(collision& Collision);
 
     void PreApplyConstraints(float DeltaTime);
-    void SolveCollisions(float DeltaTime, int nIterations);
-    void SolveContacts(float DeltaTime, int nIterations);
+    void SolveCollisions(float DeltaTime, int nIterations, ObjectManager*);
+    void SolveContacts(float DeltaTime, int nIterations, ObjectManager*);
     void ShockPropagation();
 
     // Logic functions
     void PutInstancesToSleep(float DeltaTime);
     void BuildActiveBodyList();
     void BuildActiveBodyAndConstraintList();
-    void Step(float DeltaTime);
-    void Advance(float DeltaTime);
+    void Step(float DeltaTime, ObjectManager*);
+    void Advance(float DeltaTime, ObjectManager*);
 
 public:
     // Settings

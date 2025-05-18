@@ -4,7 +4,7 @@
 #include "CollisionShape.h"
 #include "PhysicsInst.h"
 #include "../objects/Actor.h"
-//#include "Obj_Mgr\Obj_Mgr.hpp"
+#include "../objectManager/ObjectManager.h"
 
 #include <cassert>
 
@@ -214,35 +214,31 @@ void physics_mgr::RemoveInstance(physics_inst* pInstance)
     }
 
     // Should have been removed from both lists!
-    assert(pInstance->m_bInAwakeList == false);
-    assert(pInstance->m_bInSleepingList == false);
+    assert(!pInstance->m_bInAwakeList);
+    assert(!pInstance->m_bInSleepingList);
 
     // Activate any overlapping sleeping instances so
     // that they aren't left floating in the air
-    physics_inst* pSleepingInst = m_SleepingInstances.GetHead();
-    while (pSleepingInst) {
+    std::vector<physics_inst*> activateList;
+    for (physics_inst* pSleepingInst : m_SleepingInstances) {
         // Validate list management
-        assert(pSleepingInst->m_bInitialized == true);
-        assert(pSleepingInst->m_bInAwakeList == false);
-        assert(pSleepingInst->m_bInSleepingList == true);
-        assert(pSleepingInst->m_bInCollisionWakeupList == false);
-
-        // Lookup next instance in-case instance is woken up!
-        physics_inst* pNextInst = m_SleepingInstances.GetNext(pSleepingInst);
+        assert(pSleepingInst->m_bInitialized);
+        assert(!pSleepingInst->m_bInAwakeList);
+        assert(pSleepingInst->m_bInSleepingList);
+        assert(!pSleepingInst->m_bInCollisionWakeupList);
 
         // Quick zone check - in same zone?
         if (pInstance->GetZone() == pSleepingInst->GetZone()) {
             // Overlap?
             if (pInstance->GetWorldBBox().Intersect(pSleepingInst->GetWorldBBox())) {
-                // Activate
-                pSleepingInst->Activate();
+                // Activate. This modifies sleepingInstances list to defer the activation
+                activateList.push_back(pSleepingInst);
             }
         }
-
-        // Check next
-        pSleepingInst = pNextInst;
     }
-
+    for (physics_inst* toActivate : activateList) {
+        toActivate->Activate();
+    }
     // Flag as not ready any more
     pInstance->m_bInitialized = false;
 }
@@ -319,7 +315,7 @@ void physics_mgr::CollisionWakeupInstance(physics_inst* pInstance)
 {
     // Should be initialized
     assert(pInstance->m_bInitialized);
-    assert(pInstance->m_bInAwakeList == false);
+    assert(!pInstance->m_bInAwakeList);
 
     // Already in collision wakeup list?
     if (pInstance->m_bInCollisionWakeupList) {
@@ -327,8 +323,8 @@ void physics_mgr::CollisionWakeupInstance(physics_inst* pInstance)
     }
 
     // Should be in sleeping list!
-    assert(pInstance->m_bInAwakeList == false);
-    assert(pInstance->m_bInSleepingList == true);
+    assert(!pInstance->m_bInAwakeList);
+    assert(pInstance->m_bInSleepingList);
 
     // Remove from sleeping list?
     if (pInstance->m_bInSleepingList) {
@@ -337,7 +333,7 @@ void physics_mgr::CollisionWakeupInstance(physics_inst* pInstance)
     }
 
     // Add to collision wakeup list
-    assert(pInstance->m_bInCollisionWakeupList == false);
+    assert(!pInstance->m_bInCollisionWakeupList);
     m_CollisionWakeupInstances.push_back(pInstance);
     pInstance->m_bInCollisionWakeupList = true;
 }
@@ -511,14 +507,13 @@ void physics_mgr::DetectInstInstCollisions(physics_inst* pInst0)
     const BBox& BBox0 = pInst0->GetWorldBBox();
 
     // Check against the rest of the awake list
-    physics_inst* pInst1 = m_AwakeInstances.GetNext(pInst0);
-    while (pInst1) {
+    for (physics_inst* pInst1 : m_AwakeInstances) {
         // Validate list management
         assert(pInst0 != pInst1);
-        assert(pInst1->m_bInitialized == true);
-        assert(pInst1->m_bInAwakeList == true);
-        assert(pInst1->m_bInSleepingList == false);
-        assert(pInst1->m_bInCollisionWakeupList == false);
+        assert(pInst1->m_bInitialized);
+        assert(pInst1->m_bInAwakeList);
+        assert(!pInst1->m_bInSleepingList);
+        assert(!pInst1->m_bInCollisionWakeupList);
 
         // Overlap?
         if ((pInst1->GetInstCollision())                  // Inst collision enabled?
@@ -530,7 +525,7 @@ void physics_mgr::DetectInstInstCollisions(physics_inst* pInst0)
                 // Lookup body0 and skip if inactive
                 rigid_body* pBody0 = &pInst0->GetRigidBody(i);
                 assert(pBody0);
-                if (pBody0->IsActive() == false) {
+                if (!pBody0->IsActive()) {
                     continue;
                 }
 
@@ -567,14 +562,10 @@ void physics_mgr::DetectInstInstCollisions(physics_inst* pInst0)
                 }
             }
         }
-
-        // Check next awake instance
-        pInst1 = m_AwakeInstances.GetNext(pInst1);
     }
 
-    // Check against all of the sleeping list :(
-    pInst1 = m_SleepingInstances.GetHead();
-    while (pInst1) {
+    std::vector<physics_inst*> instancesToCollisionWakeup;
+    for (physics_inst* pInst1 : m_SleepingInstances) {
         // Validate list management
         assert(pInst0 != pInst1);
         assert(pInst1->m_bInitialized == true);
@@ -582,9 +573,6 @@ void physics_mgr::DetectInstInstCollisions(physics_inst* pInst0)
         assert(pInst1->m_bInSleepingList == true);
         assert(pInst1->m_bInCollisionWakeupList == false);
 
-        // Lookup next instance in-case it's moved into the awake list
-        physics_inst* pNextInst = m_SleepingInstances.GetNext(pInst1);
-
         // Overlap?
         if ((pInst1->GetInstCollision())                  // Inst collision enabled?
             && (pInst0->GetZone() == pInst1->GetZone())   // Quick zone check
@@ -595,7 +583,7 @@ void physics_mgr::DetectInstInstCollisions(physics_inst* pInst0)
                 // Lookup body0 and skip if inactive
                 rigid_body* pBody0 = &pInst0->GetRigidBody(i);
                 assert(pBody0);
-                if (pBody0->IsActive() == false) {
+                if (!pBody0->IsActive()) {
                     continue;
                 }
 
@@ -625,9 +613,8 @@ void physics_mgr::DetectInstInstCollisions(physics_inst* pInst0)
 
                         // Collision occurred?
                         if (g_Collider.Check(pColl0, pColl1)) {
-                            // Add to collision wakeup list
-                            CollisionWakeupInstance(pInst1);
-
+                            // CollisionWakeupInstance changes the sleeping list, so defer.
+                            instancesToCollisionWakeup.push_back(pInst1);
                             // Wakeup body1
                             pBody1->CollisionWakeup();
                         }
@@ -635,9 +622,9 @@ void physics_mgr::DetectInstInstCollisions(physics_inst* pInst0)
                 }
             }
         }
-
-        // Check next instance
-        pInst1 = pNextInst;
+    }
+    for (physics_inst* p : instancesToCollisionWakeup) {
+        CollisionWakeupInstance(p);
     }
 }
 
@@ -723,27 +710,22 @@ void physics_mgr::DetectCollisions(void)
     m_Collisions.clear();
 
     // Update bboxes of active instances (and internal bodies)
-    physics_inst* pInst = m_AwakeInstances.GetHead();
-    while (pInst) {
+    for (physics_inst* pInst : m_AwakeInstances) {
         // Validate list management
-        assert(pInst->m_bInitialized == true);
-        assert(pInst->m_bInAwakeList == true);
-        assert(pInst->m_bInSleepingList == false);
-        assert(pInst->m_bInCollisionWakeupList == false);
+        assert(pInst->m_bInitialized);
+        assert(pInst->m_bInAwakeList);
+        assert(!pInst->m_bInSleepingList);
+        assert(!pInst->m_bInCollisionWakeupList);
 
         // Update bbox
         pInst->ComputeWorldBBox();
-
-        // Next
-        pInst = m_AwakeInstances.GetNext(pInst);
     }
 
     // Loop through all active instances
-    pInst = m_AwakeInstances.GetHead();
-    while (pInst) {
+    for (physics_inst* pInst : m_AwakeInstances) {
         // Validate list management
-        assert(pInst->m_bInitialized == true);
-        assert(pInst->m_bInAwakeList == true);
+        assert(pInst->m_bInitialized);
+        assert(pInst->m_bInAwakeList);
         assert(pInst->m_bInSleepingList == false);
         assert(pInst->m_bInCollisionWakeupList == false);
 
@@ -768,37 +750,31 @@ void physics_mgr::DetectCollisions(void)
         if (pInst->GetActorCollision()) {
             DetectInstActorCollisions(pInst);
         }
-
-        // Check next active instance
-        pInst = m_AwakeInstances.GetNext(pInst);
     }
 
     // Collision may wake up some sleeping instances
-    pInst = m_CollisionWakeupInstances.GetHead();
-    while (pInst) {
+    std::vector<physics_inst*> wakeupList;
+    for (physics_inst* pInst : m_CollisionWakeupInstances) {
+        // needed because WakeupInstance modifies the list
+        wakeupList.push_back(pInst);
+    }
+
+    for (physics_inst* pInst : wakeupList) {
         // Validate list management
-        assert(pInst->m_bInitialized == true);
-        assert(pInst->m_bInAwakeList == false);
-        assert(pInst->m_bInSleepingList == false);
-        assert(pInst->m_bInCollisionWakeupList == true);
-
-        // Lookup next since current inst will be removed from list
-        physics_inst* pNextInst = m_CollisionWakeupInstances.GetNext(pInst);
-
-        // Put into awake list
+        assert(pInst->m_bInitialized);
+        assert(!pInst->m_bInAwakeList);
+        assert(!pInst->m_bInSleepingList);
+        assert(pInst->m_bInCollisionWakeupList);
         WakeupInstance(pInst);
 
         // Validate list management
-        assert(pInst->m_bInitialized == true);
-        assert(pInst->m_bInAwakeList == true);
-        assert(pInst->m_bInSleepingList == false);
-        assert(pInst->m_bInCollisionWakeupList == false);
-
-        // Check next
-        pInst = pNextInst;
+        assert(pInst->m_bInitialized);
+        assert(pInst->m_bInAwakeList);
+        assert(!pInst->m_bInSleepingList);
+        assert(!pInst->m_bInCollisionWakeupList);
     }
 
-    assert(m_CollisionWakeupInstances.size() == 0);
+    assert(m_CollisionWakeupInstances.empty());
 }
 
 //==============================================================================
@@ -1010,7 +986,7 @@ void physics_mgr::PreApplyConstraints(float DeltaTime)
 
 //==============================================================================
 
-void physics_mgr::SolveCollisions(float DeltaTime, int nIterations)
+void physics_mgr::SolveCollisions(float DeltaTime, int nIterations, ObjectManager* om)
 {
     int i;
 
@@ -1028,7 +1004,7 @@ void physics_mgr::SolveCollisions(float DeltaTime, int nIterations)
     PreApplyCollisions(DeltaTime);
 
     // Alternate solve direction to reduce jitter when resting
-    int Direction = g_ObjMgr.GetNLogicLoops() & 1;
+    int Direction = om->GetNLogicLoops() & 1;
 
     // Process as normal
     int bActive = true;
@@ -1040,13 +1016,9 @@ void physics_mgr::SolveCollisions(float DeltaTime, int nIterations)
         // Solve in which direction?
         if (Direction) {
             // Solve all constraints
-
-            active_constraint* pConstraint = m_SolveConstraints.GetHead();
-            while (pConstraint) {
-
+            for (active_constraint* pConstraint : m_SolveConstraints){
                 assert(pConstraint->m_pOwner);
                 bActive |= pConstraint->m_pOwner->Apply(*pConstraint);
-                pConstraint = m_SolveConstraints.GetNext(pConstraint);
             }
 
             for (i = 0; i < nCollisions; i++) {
@@ -1055,12 +1027,9 @@ void physics_mgr::SolveCollisions(float DeltaTime, int nIterations)
         } else {
             // Solve all constraints
 
-            active_constraint* pConstraint = m_SolveConstraints.GetHead();
-            while (pConstraint) {
-
+            for (active_constraint* pConstraint : m_SolveConstraints){
                 assert(pConstraint->m_pOwner);
                 bActive |= pConstraint->m_pOwner->Apply(*pConstraint);
-                pConstraint = m_SolveConstraints.GetNext(pConstraint);
             }
 
             for (i = nCollisions - 1; i >= 0; i--) {
@@ -1075,7 +1044,7 @@ void physics_mgr::SolveCollisions(float DeltaTime, int nIterations)
 
 //==============================================================================
 
-void physics_mgr::SolveContacts(float DeltaTime, int nIterations)
+void physics_mgr::SolveContacts(float DeltaTime, int nIterations, ObjectManager* om)
 {
     int i;
 
@@ -1098,7 +1067,7 @@ void physics_mgr::SolveContacts(float DeltaTime, int nIterations)
     PreApplyCollisions(DeltaTime);
 
     // Alternate solve direction to reduce jitter when resting
-    int Direction = g_ObjMgr.GetNLogicLoops() & 1;
+    int Direction = om->GetNLogicLoops() & 1;
 
     // Process as inelastic collisions
     int bActive = true;
@@ -1111,12 +1080,9 @@ void physics_mgr::SolveContacts(float DeltaTime, int nIterations)
         if (Direction) {
             // Solve all constraints
 
-            active_constraint* pConstraint = m_SolveConstraints.GetHead();
-            while (pConstraint) {
-
+            for (active_constraint* pConstraint : m_SolveConstraints){
                 assert(pConstraint->m_pOwner);
                 bActive |= pConstraint->m_pOwner->Apply(*pConstraint);
-                pConstraint = m_SolveConstraints.GetNext(pConstraint);
             }
 
             for (i = 0; i < nCollisions; i++) {
@@ -1126,12 +1092,9 @@ void physics_mgr::SolveContacts(float DeltaTime, int nIterations)
         } else {
             // Solve all constraints
 
-            active_constraint* pConstraint = m_SolveConstraints.GetHead();
-            while (pConstraint) {
-
+            for (active_constraint* pConstraint : m_SolveConstraints){
                 assert(pConstraint->m_pOwner);
                 bActive |= pConstraint->m_pOwner->Apply(*pConstraint);
-                pConstraint = m_SolveConstraints.GetNext(pConstraint);
             }
 
             for (i = nCollisions - 1; i >= 0; i--) {
@@ -1282,12 +1245,11 @@ void physics_mgr::BuildActiveBodyAndConstraintList()
 
     // Clear all lists
     m_ActiveBodies.clear();
-    m_ActiveConstraints.clear()
-        m_SolveConstraints.clear();
+    m_ActiveConstraints.clear();
+    m_SolveConstraints.clear();
 
     // Loop through all awake instances
-    physics_inst* pInst = m_AwakeInstances.GetHead();
-    while (pInst) {
+    for (physics_inst* pInst : m_AwakeInstances){
         // Validate list management
         assert(pInst->m_bInitialized);
         assert(pInst->m_bInAwakeList == true);
@@ -1357,15 +1319,12 @@ void physics_mgr::BuildActiveBodyAndConstraintList()
                 }
             }
         }
-
-        // Get next awake instance
-        pInst = m_AwakeInstances.GetNext(pInst);
     }
 }
 
 //==============================================================================
 
-void physics_mgr::Step(float DeltaTime)
+void physics_mgr::Step(float DeltaTime, ObjectManager* om)
 {
     /*
         // Physics simulation is as follows:
@@ -1395,15 +1354,11 @@ void physics_mgr::Step(float DeltaTime)
     BuildActiveBodyList();
 
     // Store body states and predict new velocities/positions using external forces
-
-    rigid_body* pBody = m_ActiveBodies.GetHead();
-    while (pBody) {
+    for (rigid_body* pBody : m_ActiveBodies) {
         pBody->GetState(pBody->m_BackupState);
         pBody->ComputeForces(DeltaTime);
         pBody->IntegrateVelocity(DeltaTime);
         pBody->IntegratePosition(DeltaTime);
-
-        pBody = m_ActiveBodies.GetNext(pBody);
     }
 
     // Detect collisions with predicted velocity and position
@@ -1412,13 +1367,9 @@ void physics_mgr::Step(float DeltaTime)
 
     // Restore velocities to original zero forces
 
-    rigid_body* pBody = m_ActiveBodies.GetHead();
-    while (pBody) {
+    for (rigid_body* pBody : m_ActiveBodies) {
         // Restore state
         pBody->SetVelocity(pBody->m_BackupState);
-
-        // Next
-        pBody = m_ActiveBodies.GetNext(pBody);
     }
 
     // Build list of active bodies/constraints ready for solving
@@ -1426,21 +1377,19 @@ void physics_mgr::Step(float DeltaTime)
 
     // Solve collisions using old velocity
 
-    SolveCollisions(DeltaTime, m_Settings.m_nCollisionIterations);
+    SolveCollisions(DeltaTime, m_Settings.m_nCollisionIterations, om);
 
     // Restore original positions, integrate to new velocities, and clear forces
 
-    rigid_body* pBody = m_ActiveBodies.GetHead();
-    while (pBody) {
+    for (rigid_body* pBody : m_ActiveBodies) {
         pBody->SetPosition(pBody->m_BackupState);
         pBody->IntegrateVelocity(DeltaTime);
         pBody->ClearForces();
-        pBody = m_ActiveBodies.GetNext(pBody);
     }
 
     // Solve contacts using new velocity
     if (m_Settings.m_bSolveContacts) {
-        SolveContacts(DeltaTime, m_Settings.m_nContactIterations);
+        SolveContacts(DeltaTime, m_Settings.m_nContactIterations, om);
     }
 
     // Perform shock propagation for stacking etc.
@@ -1450,13 +1399,9 @@ void physics_mgr::Step(float DeltaTime)
 
     // Finally, integrate position
 
-    rigid_body* pBody = m_ActiveBodies.GetHead();
-    while (pBody) {
+    for (rigid_body* pBody : m_ActiveBodies) {
         // Integrate
         pBody->IntegratePosition(DeltaTime);
-
-        // Next body
-        pBody = m_ActiveBodies.GetNext(pBody);
     }
 
     // Clear lists in-case active instances are removed during game logic
@@ -1467,7 +1412,7 @@ void physics_mgr::Step(float DeltaTime)
 
 //==============================================================================
 
-void physics_mgr::Advance(float DeltaTime)
+void physics_mgr::Advance(float DeltaTime, ObjectManager* om)
 {
     // Nothing to do?
     if (DeltaTime == 0.0f) {
@@ -1483,7 +1428,7 @@ void physics_mgr::Advance(float DeltaTime)
         float TimeStep = std::min(m_Settings.m_MaxTimeStep, m_DeltaTime);
 
         // Step physics simulation
-        Step(TimeStep);
+        Step(TimeStep, om);
 
         // Update accumulated time
         m_DeltaTime -= TimeStep;

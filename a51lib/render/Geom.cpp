@@ -7,6 +7,7 @@
 #include "Geom.h"
 #include "../InevFile.h"
 
+#include <cassert>
 
 void Geom::Bone::read(InevFile& inevFile)
 {
@@ -162,7 +163,7 @@ void Geom::VirtualTexture::read(InevFile& inevFile)
 Geom::Geom()
 {
     m_RefCount = 0;
-    m_hGeom    = HNULL;
+    m_hGeom = HNULL;
     bones = nullptr;
     boneMasks = nullptr;
     properties = nullptr;
@@ -274,7 +275,7 @@ void Geom::read(InevFile& inevFile)
     inevFile.readArray(virtualMeshes, numVirtualMeshes);
     uint32_t x;
     inevFile.read(x); // Read the unused virtualMaterials pointer.
-    if (numVirtualMaterials > 0){
+    if (numVirtualMaterials > 0) {
         virtualMaterials = new VirtualMaterial[numVirtualMaterials];
     }
     inevFile.readArray(virtualTextures, numVirtualTextures);
@@ -282,7 +283,7 @@ void Geom::read(InevFile& inevFile)
     inevFile.read(x); // Read the unused handle
 
     m_RefCount = 0;
-    m_hGeom    = HNULL;
+    m_hGeom = HNULL;
 }
 
 const char* describePlatform(int plat)
@@ -380,17 +381,16 @@ std::string Geom::getTextureFilename(int tNum)
 
 std::string Geom::GetTextureDesc(int iTexture) const
 {
-    assert( (iTexture >= 0) && (iTexture < numTextures) );
+    assert((iTexture >= 0) && (iTexture < numTextures));
     int StringDataOffset = textures[iTexture].descOffset;
     return lookupString(StringDataOffset);
 }
 
-int Geom::GetVTextureIndex( const char* pName ) const
+int Geom::GetVTextureIndex(const char* pName) const
 {
-    for( int i = 0; i < numVirtualTextures; i++ )
-    {
+    for (int i = 0; i < numVirtualTextures; i++) {
         int StringDataOffset = virtualTextures[i].nameOffset;
-        if (lookupString(StringDataOffset) == pName){
+        if (lookupString(StringDataOffset) == pName) {
             return i;
         }
     }
@@ -625,39 +625,41 @@ bool Geom::GetPropertyString(const Geom::PropertySection* pSection, const char* 
     }
 
     // Grab value and return success
-    strsavecpy( pValue, &stringData[ pProp->value.stringOffset ], nChars );
+    strsavecpy(pValue, &stringData[pProp->value.stringOffset], nChars);
     *pValue = pProp->value.floatVal;
     return true;
 }
 
 uint64_t Geom::GetLODMask(uint32_t VMeshMask, uint16_t ScreenSize) const
 {
-    if( numVirtualMeshes == 0 )
-    {
+    if (numVirtualMeshes == 0) {
         return -1;
     }
 
     uint64_t LODMask = 0;
-    for( int i = 0; i < numVirtualMeshes; i++ )
-    {
+    for (int i = 0; i < numVirtualMeshes; i++) {
         // check the vmesh mask
-        if( (VMeshMask & (1<<i)) && virtualMeshes[i].nLODs )
-        {
+        if ((VMeshMask & (1 << i)) && virtualMeshes[i].nLODs) {
             // okay, this vmesh is on, which LOD?
             int Choice = 0;
-             {
-                for( int j = 1; j < virtualMeshes[i].nLODs; j++ )
-                {
-                    if( ScreenSize < lodSizes[j+virtualMeshes[i].iLOD] )
+            {
+                for (int j = 1; j < virtualMeshes[i].nLODs; j++) {
+                    if (ScreenSize < lodSizes[j + virtualMeshes[i].iLOD]) {
                         Choice = j;
+                    }
                 }
             }
 
             // or in this LOD into the total mask
-            LODMask |= lodMasks[Choice+virtualMeshes[i].iLOD];
+            LODMask |= lodMasks[Choice + virtualMeshes[i].iLOD];
         }
     }
 
-    return LODMask;    
+    return LODMask;
 }
 
+std::string Geom::GetRigidBodyName(int iRigidBody) const
+{
+    assert( ( iRigidBody >= 0 ) && ( iRigidBody < numRigidBodies ) );
+    return lookupString(rigidBodies[ iRigidBody ].nameOffset);
+}

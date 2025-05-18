@@ -167,3 +167,8 @@ inline Radian3 Quaternion::GetRotation() const
 
     return (Radian3(Pitch, Yaw, Roll));
 }
+
+Quaternion BlendSlow(const Quaternion& Q0,
+                     const Quaternion& Q1, float T);
+
+Quaternion BlendToIdentitySlow(const Quaternion& Q1, float T);

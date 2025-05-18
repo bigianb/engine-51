@@ -73,7 +73,7 @@ public:
     // Rigid body functions
     int         GetNRigidBodies() const;
     rigid_body& GetRigidBody(int iRigidBody);
-    const char* GetRigidBodyName(int iRigidBody) const;
+    std::string GetRigidBodyName(int iRigidBody) const;
 
     // Collision functions
     int              GetNCollisionShapes() const;

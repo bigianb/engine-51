@@ -294,12 +294,14 @@ public:
 
     std::string GetTextureDesc(int iTexture) const;
 
-    int GetVTextureIndex( const char* pName ) const;
+    int GetVTextureIndex(const char* pName) const;
 
     const BoneMask* FindBoneMasks(const char* pName) const;
     // Property search: Returns address of section/property if present
     const PropertySection* FindPropertySection(const char* pSection) const;
     const Property*        FindProperty(const PropertySection* pSection, const char* pName, Property::Type type) const;
+
+    std::string GetRigidBodyName(int iRigidBody) const;
 
     // Property query: Returns TRUE and sets up the value if present, else just returns FALSE and leaves value
     bool GetPropertyFloat(const PropertySection* pSection, const char* pName, float* pValue) const;

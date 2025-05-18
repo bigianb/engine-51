@@ -92,7 +92,7 @@ public:
     bool GetDrainable() { return (m_bDrainable != 0); }
 
 
-    virtual render_inst*       GetRenderInstPtr() { return &m_PhysicsInst.GetSkinInst(); }
+    render_inst*       GetRenderInstPtr() override { return &m_PhysicsInst.GetSkinInst(); }
     virtual AnimGroup::handle* GetAnimGroupHandlePtr() { return &m_PhysicsInst.GetAnimGroupHandle(); }
 
     const char* GetLogicalName() override { return "DEADBODY"; }

@@ -184,6 +184,7 @@ target_sources(a51lib PRIVATE
         math/CommonMath.h
         math/Matrix4.cpp
         math/Matrix4.h
+        math/Quaternion.cpp
         math/Quaternion.h
         math/Radian3.h
         math/Random.cpp

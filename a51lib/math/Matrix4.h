@@ -58,6 +58,12 @@ public:
 
     Matrix4() {}
     Matrix4(const Radian3& r) { Setup(r); }
+    Matrix4(const Vector3&    Scale,
+            const Quaternion& Rotation,
+            const Vector3&    Translation)
+    {
+        Setup(Scale, Rotation, Translation);
+    }
 
     float  operator()(int Column, int Row) const { return cells[Column][Row]; }
     float& operator()(int Column, int Row) { return cells[Column][Row]; }
@@ -849,30 +855,29 @@ inline Matrix4 m4_Transpose(const Matrix4& M)
     return Mout;
 }
 
-inline
-Matrix4& Matrix4::operator += ( const Matrix4& aM )
+inline Matrix4& Matrix4::operator+=(const Matrix4& aM)
 {
-    M(0,0) += aM.M(0,0);
-    M(0,1) += aM.M(0,1);
-    M(0,2) += aM.M(0,2);
-    M(0,3) += aM.M(0,3);
+    M(0, 0) += aM.M(0, 0);
+    M(0, 1) += aM.M(0, 1);
+    M(0, 2) += aM.M(0, 2);
+    M(0, 3) += aM.M(0, 3);
 
-    M(1,0) += aM.M(1,0);
-    M(1,1) += aM.M(1,1);
-    M(1,2) += aM.M(1,2);
-    M(1,3) += aM.M(1,3);
+    M(1, 0) += aM.M(1, 0);
+    M(1, 1) += aM.M(1, 1);
+    M(1, 2) += aM.M(1, 2);
+    M(1, 3) += aM.M(1, 3);
 
-    M(2,0) += aM.M(2,0);
-    M(2,1) += aM.M(2,1);
-    M(2,2) += aM.M(2,2);
-    M(2,3) += aM.M(2,3);
+    M(2, 0) += aM.M(2, 0);
+    M(2, 1) += aM.M(2, 1);
+    M(2, 2) += aM.M(2, 2);
+    M(2, 3) += aM.M(2, 3);
 
-    M(3,0) += aM.M(3,0);
-    M(3,1) += aM.M(3,1);
-    M(3,2) += aM.M(3,2);
-    M(3,3) += aM.M(3,3);
+    M(3, 0) += aM.M(3, 0);
+    M(3, 1) += aM.M(3, 1);
+    M(3, 2) += aM.M(3, 2);
+    M(3, 3) += aM.M(3, 3);
 
-    return( *this );
+    return (*this);
 }
 
 #undef M
