@@ -236,6 +236,7 @@ target_sources(a51lib PRIVATE
         render/SkinGeom.h
         spatialDBase/SpatialDBase.cpp
         spatialDBase/SpatialDBase.h
+        spatialDBase/SpatialDBase_inline.h
         streamingOperators.cpp
         streamingOperators.h
         trigger/Trigger_Actions.cpp
