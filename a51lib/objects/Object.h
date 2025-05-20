@@ -4,11 +4,13 @@
 #include "../RTTI.h"
 #include "../render/CollisionVolume.h"
 #include "render/RenderInst.h"
+#include "../animation/animData.h"
 
 class object_desc;
 class pain;
 struct event;
 class ObjectManager;
+class simple_anim_player;
 
 #define MAX_OBJECT_NAME_LENGTH 32
 
@@ -351,9 +353,9 @@ public:
     virtual void OnPain(const pain& Pain) {} // Tells object to recieve pain
     virtual bool OnChildPain(guid ChildGuid, const pain& Pain) { return false; }
 
-    virtual void    OnColNotify(Object& Object) { (void)Object; }
+    virtual void    OnColNotify(Object& ) { }
     virtual void    OnActivate(bool Flag);
-    virtual void    OnEvent(const event& Event);
+    virtual void    OnEvent(const event& ) {}
     virtual Vector3 GetSubPosition(int ID) { return m_L2W.GetTranslation(); }
 
     virtual bool        GetColDetails(int Key, detail_tri& Tri) { return false; }
@@ -507,10 +509,10 @@ public:
     virtual Geom*        GetGeomPtr();
     virtual std::string GetGeomName();
 
-    //virtual simple_anim_player* GetSimpleAnimPlayer() { return NULL; }
-    //virtual anim_group::handle* GetAnimGroupHandlePtr() { return NULL; }
-    //virtual anim_group*         GetAnimGroupPtr();
-    virtual const char* GetAnimGroupName();
+    virtual simple_anim_player* GetSimpleAnimPlayer() { return nullptr; }
+    virtual AnimGroup::handle* GetAnimGroupHandlePtr() { return nullptr; }
+    virtual AnimGroup*         GetAnimGroupPtr();
+    virtual std::string GetAnimGroupName();
 
     const char* GetName();
     void        SetName(const char* pNewObjectName);

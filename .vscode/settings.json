@@ -74,6 +74,7 @@
                 "fstream": "cpp",
                 "span": "cpp",
                 "unordered_set": "cpp",
-                "valarray": "cpp"
+                "valarray": "cpp",
+                "cassert": "cpp"
         }
 }

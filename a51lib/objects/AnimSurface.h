@@ -36,8 +36,8 @@ public:
     virtual void OnAttachedMove(int      iAttachPt,
                                 Matrix4& L2W);
 
-    virtual simple_anim_player* GetSimpleAnimPlayer() { return &m_AnimPlayer; }
-    virtual AnimGroup::handle*  GetAnimGroupHandlePtr() { return &m_hAnimGroup; }
+    simple_anim_player* GetSimpleAnimPlayer() override { return &m_AnimPlayer; }
+    AnimGroup::handle*  GetAnimGroupHandlePtr() override { return &m_hAnimGroup; }
 
 protected:
     void OnRender() override;

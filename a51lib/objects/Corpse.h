@@ -93,7 +93,7 @@ public:
 
 
     render_inst*       GetRenderInstPtr() override { return &m_PhysicsInst.GetSkinInst(); }
-    virtual AnimGroup::handle* GetAnimGroupHandlePtr() { return &m_PhysicsInst.GetAnimGroupHandle(); }
+    AnimGroup::handle* GetAnimGroupHandlePtr() override { return &m_PhysicsInst.GetAnimGroupHandle(); }
 
     const char* GetLogicalName() override { return "DEADBODY"; }
     eCorpseName NameToEnum(const char* pName);

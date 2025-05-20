@@ -15,9 +15,12 @@ set(ANIM_SOURCES
         animation/AnimEvent.cpp
         animation/AnimPlayer.cpp
         animation/AnimPlayer.h
+        animation/AnimTrack.cpp
         animation/AnimTrack.h
         animation/BasePlayer.cpp
         animation/BasePlayer.h
+        animation/CharAnimPlayer.cpp
+        animation/CharAnimPlayer.h
         animation/SMemMatrixCache.cpp
         animation/SMemMatrixCache.h
         )
@@ -97,11 +100,17 @@ set(OBJECTS_SOURCES
         objects/ParticleEventEmitter.h
         objects/Pickup.h
         objects/Player.h
+        objects/PlayerCombat.cpp
         objects/PlayerLoco.cpp
         objects/PlayerLoco.h
         objects/PlayerObject.cpp
+        objects/PlayerState.cpp
         objects/PlaySurface.cpp
         objects/PlaySurface.h
+        objects/Projector.cpp
+        objects/Projector.h
+        objects/ThirdPersonCamera.cpp
+        objects/ThirdPersonCamera.h
 )
 
 file(GLOB STATE_INCLUDES state/*.h)
@@ -130,6 +139,7 @@ target_sources(a51lib PRIVATE
         Bitmap.cpp
         Bitmap.h
         characters/ActorEffects.h
+        characters/ActorEffects.cpp
         characters/factions.h
         characters/FloorProperties.cpp
         characters/FloorProperties.h
@@ -160,6 +170,10 @@ target_sources(a51lib PRIVATE
         Helpers.h
         InevFile.cpp
         InevFile.h
+        inputMgr/GamePad.cpp
+        inputMgr/GamePad.h
+        inputMgr/InputMgr.cpp
+        inputMgr/InputMgr.h
         inventory/Inventory.cpp
         inventory/Inventory.h
         loco/CharacterPhysics.cpp
@@ -246,6 +260,8 @@ target_sources(a51lib PRIVATE
         VectorMath.h
         View/View.cpp
         View/View.h
+        xfiles/scratchMem.cpp
+        xfiles/scratchMem.h
         xfiles/x_plus.cpp
         xfiles/x_plus.h
         xfiles/x_time.cpp

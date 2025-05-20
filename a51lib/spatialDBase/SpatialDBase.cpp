@@ -16,61 +16,6 @@ spatial_dbase::~spatial_dbase(void)
     Clear();
 }
 
-spatial_cell& spatial_dbase::GetCell(uint16_t ID) const
-{
-    assert(ID != SPATIAL_CELL_NULL);
-    assert(ID < m_nCellsAllocated);
-    return m_pCell[ID];
-}
-
-spatial_cell* spatial_dbase::GetCell(int X, int Y, int Z, int Level, bool Create)
-{
-    uint16_t ID = GetCellIndex(X, Y, Z, Level, Create);
-    if (ID == SPATIAL_CELL_NULL) {
-        return NULL;
-    }
-    return &GetCell(ID);
-}
-
-uint16_t spatial_dbase::GetCellIndex(int X, int Y, int Z, int Level, bool Create)
-{
-    // Compute hash entry
-    int H = ComputeHash(X, Y, Z, Level);
-
-    // Loop through hash entries and look for a match
-    uint16_t ID = m_Hash[H].FirstCell;
-    while (ID != SPATIAL_CELL_NULL) {
-        const spatial_cell& Cell = GetCell(ID);
-
-        if ((Cell.X == X) &&
-            (Cell.Y == Y) &&
-            (Cell.Z == Z) &&
-            (Cell.Level == Level)) {
-            return ID;
-        }
-
-        ID = Cell.HashNext;
-    }
-
-    // Could not find cell and caller requested to create one
-    if (Create) {
-        ID = AllocCell(X, Y, Z, Level);
-        return ID;
-    }
-
-    // Could not find cell and caller did not request to create one
-    // so just return
-    return SPATIAL_CELL_NULL;
-}
-
-int spatial_dbase::ComputeHash(int X, int Y, int Z, int Level) const
-{
-    // Compute hash index
-    int H = ((uint32_t)((((((X << 10) + Y) << 10) + Z) << 10) + Level)) % HASH_SIZE;
-    assert((H >= 0) && (H < HASH_SIZE));
-    return H;
-}
-
 void spatial_dbase::Clear(void)
 {
     if (m_pCell) {
@@ -115,17 +60,6 @@ void spatial_dbase::Init(float MinCellWidth)
     for (int i = 0; i < HASH_SIZE; i++) {
         m_Hash[i].FirstCell = SPATIAL_CELL_NULL;
         m_Hash[i].nCells = 0;
-    }
-}
-
-void spatial_dbase::UpdateCell(spatial_cell& Cell)
-{
-    assert((&Cell >= m_pCell) && (&Cell < (&m_pCell[m_nCellsAllocated])));
-
-    if ((Cell.OccFlags == 0) && (Cell.Child == SPATIAL_CELL_NULL)) {
-        int Index = (((uint8_t*)&Cell) - (uint8_t*)m_pCell) / ((int)sizeof(spatial_cell));
-        assert(Index >= 0 && Index < m_nCellsAllocated);
-        FreeCell(Index);
     }
 }
 
@@ -603,18 +537,4 @@ uint16_t spatial_dbase::TraverseCells(const Vector3& WorldSpaceRayStart,
     }
 
     return m_FirstSearch;
-}
-
-uint16_t spatial_dbase::GetFirstInSearch()
-{
-    return m_FirstSearch;
-}
-
-uint16_t spatial_dbase::GetNextInSearch(uint16_t ID)
-{
-    assert(ID < m_nCellsAllocated);
-    assert((m_pCell[ID].SearchNext == SPATIAL_CELL_NULL) ||
-           (ID < m_nCellsAllocated));
-
-    return m_pCell[ID].SearchNext;
 }

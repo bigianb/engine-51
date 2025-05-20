@@ -260,19 +260,30 @@ Geom* Object::GetGeomPtr()
 
 std::string Object::GetGeomName()
 {
-    //render_inst* pRenderInst = GetRenderInstPtr();
-    //if( pRenderInst )
-    //    return pRenderInst->GetGeomName();
-    //else
-    return "NULL";
+    render_inst* pRenderInst = GetRenderInstPtr();
+    if (pRenderInst) {
+        return pRenderInst->GetGeomName();
+    } else {
+        return "NULL";
+    }
 }
 
-const char* Object::GetAnimGroupName()
+AnimGroup* Object::GetAnimGroupPtr()
 {
-    //anim_group::handle* pAnimGroupHandle = GetAnimGroupHandlePtr();
-    //if( pAnimGroupHandle )
-    //    return pAnimGroupHandle->GetName();
-    //else
+    AnimGroup::handle* pAnimGroupHandle = GetAnimGroupHandlePtr();
+    if (pAnimGroupHandle) {
+        return pAnimGroupHandle->getPointer();
+    } else {
+        return nullptr;
+    }
+}
+
+std::string Object::GetAnimGroupName()
+{
+    AnimGroup::handle* pAnimGroupHandle = GetAnimGroupHandlePtr();
+    if( pAnimGroupHandle )
+        return pAnimGroupHandle->getName();
+    else
     return "NULL";
 }
 

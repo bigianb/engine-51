@@ -1,6 +1,8 @@
 
 #include "ThirdPersonCamera.h"
 #include "../objectManager/ObjectManager.h"
+#include "../collisionMgr/CollisionMgr.h"
+#include <cassert>
 
 static float DISTANCE_MIN_ACCELERATION = 100.0f;
 static float CAMERA_SPHERE_RADIUS = 20.0f;
@@ -17,12 +19,13 @@ static struct third_person_camera_desc : public object_desc
     {
     }
 
-    virtual Object* Create(void) { return new third_person_camera; }
+    virtual Object* Create(ObjectManager* om, collision_mgr* cm) { return new third_person_camera(om, cm); }
 
 } s_Third_Person_Camera;
 
-third_person_camera::third_person_camera()
-    : m_OrbitPoint(0.0f, 0.0f, 0.0f)
+third_person_camera::third_person_camera(ObjectManager* om, collision_mgr* cm) : Object(om)
+    , collisionManager(cm)
+    , m_OrbitPoint(0.0f, 0.0f, 0.0f)
     , m_DesiredOrbitPoint(0.0f, 0.0f, 0.0f)
     , m_OrbitPointVelocity(0.0f, 0.0f, 0.0f)
     , m_Distance(0.0f)
@@ -39,29 +42,20 @@ third_person_camera::third_person_camera()
 {
 }
 
-//==============================================================================
-
 const object_desc& third_person_camera::GetTypeDesc() const
 {
     return s_Third_Person_Camera;
 }
-
-//==============================================================================
 
 const object_desc& third_person_camera::GetObjectType()
 {
     return s_Third_Person_Camera;
 }
 
-//==============================================================================
-
 void third_person_camera::ComputeView(view& View) const
 {
-    //View.OrbitPoint( m_OrbitPoint, m_Distance, m_Pitch, m_Yaw );
     View.LookAtPoint(m_CameraPos, m_DesiredOrbitPoint);
 }
-
-//==============================================================================
 
 void third_person_camera::MoveTowards(const Vector3& DesiredPosition)
 {
@@ -72,8 +66,6 @@ void third_person_camera::MoveTowards(const Vector3& DesiredPosition)
     m_DesiredDistance = (View.GetPosition() - m_DesiredOrbitPoint).Length();
 }
 
-//==============================================================================
-
 void third_person_camera::MoveTowards(Radian Pitch, Radian Yaw, float Distance)
 {
     m_DesiredPitch = Pitch;
@@ -81,14 +73,10 @@ void third_person_camera::MoveTowards(Radian Pitch, Radian Yaw, float Distance)
     m_DesiredDistance = Distance;
 }
 
-//==============================================================================
-
 void third_person_camera::SetOrbitPoint(const Vector3& DesiredOrbitPoint)
 {
     m_DesiredOrbitPoint = DesiredOrbitPoint;
 }
-
-//==============================================================================
 
 void third_person_camera::OnAdvanceLogic(float DeltaTime)
 {
@@ -100,21 +88,15 @@ void third_person_camera::OnAdvanceLogic(float DeltaTime)
     g_ZoneMgr.UpdateZoneTracking(*this, m_ZoneTracker, View.GetPosition());
 }
 
-//==============================================================================
-
 void third_person_camera::RotateYaw(Radian DeltaYaw)
 {
     m_DesiredYaw += DeltaYaw;
 }
 
-//==============================================================================
-
 void third_person_camera::MoveTowardsPitch(Radian NewPitch)
 {
     m_DesiredPitch = NewPitch;
 }
-
-//==============================================================================
 
 bool third_person_camera::CheckForObstructions(const Vector3& Dir, float DistToCheck, float& MaxDistFound)
 {
@@ -127,15 +109,15 @@ bool third_person_camera::CheckForObstructions(const Vector3& Dir, float DistToC
     float Length = Delta.Length();
 
     // Do a ray test first to see how far we can move the camera.
-    g_CollisionMgr.RaySetup(GetGuid(), m_OrbitPoint, m_OrbitPoint + Delta);
-    g_CollisionMgr.CheckCollisions(Object::TYPE_ALL_TYPES,
+    collisionManager->RaySetup(GetGuid(), m_OrbitPoint, m_OrbitPoint + Delta);
+    collisionManager->CheckCollisions(Object::TYPE_ALL_TYPES,
                                    (Object::object_attr)(Object::ATTR_BLOCKS_CHARACTER | Object::ATTR_BLOCKS_CHARACTER_LOS),
                                    (Object::object_attr)(Object::ATTR_COLLISION_PERMEABLE));
 
-    int nRayCollisions = g_CollisionMgr.m_nCollisions;
+    int nRayCollisions = collisionManager->m_nCollisions;
     if (nRayCollisions > 0) {
         // We hit something
-        MaxDistFound = g_CollisionMgr.m_Collisions[0].T * Length;
+        MaxDistFound = collisionManager->m_Collisions[0].T * Length;
         if (MaxDistFound < (CAMERA_SPHERE_RADIUS + 5)) {
             // The camera sphere would intersect geometry immediately
             // No point in doing the sphere test.  Just bail.
@@ -150,21 +132,21 @@ bool third_person_camera::CheckForObstructions(const Vector3& Dir, float DistToC
 
     // Next, do a sphere test to see how far back the camera can get and
     // still have a good shot of the target
-    g_CollisionMgr.SphereSetup(GetGuid(), m_OrbitPoint, m_OrbitPoint + Delta, CAMERA_SPHERE_RADIUS);
-    g_CollisionMgr.CheckCollisions(Object::TYPE_ALL_TYPES,
+    collisionManager->SphereSetup(GetGuid(), m_OrbitPoint, m_OrbitPoint + Delta, CAMERA_SPHERE_RADIUS);
+    collisionManager->CheckCollisions(Object::TYPE_ALL_TYPES,
                                    (Object::object_attr)(Object::ATTR_BLOCKS_CHARACTER | Object::ATTR_BLOCKS_CHARACTER_LOS),
                                    (Object::object_attr)(Object::ATTR_COLLISION_PERMEABLE));
 
     // What was the distance from our sphere check?
     float SphereMaxDist;
-    if (g_CollisionMgr.m_nCollisions) {
-        SphereMaxDist = DistToCheck * g_CollisionMgr.m_Collisions[0].T;
+    if (collisionManager->m_nCollisions) {
+        SphereMaxDist = DistToCheck * collisionManager->m_Collisions[0].T;
     } else {
         SphereMaxDist = DistToCheck;
     }
 
     // Did we shoot out of the world?
-    if (((g_CollisionMgr.m_nCollisions == 0) && nRayCollisions) ||
+    if (((collisionManager->m_nCollisions == 0) && nRayCollisions) ||
         (SphereMaxDist > MaxDistFound)) {
         // This means we probably shot out of the world, or at least outside of a wall
         // that we were pressed against. If the camera angle is oblique enough and the
@@ -179,7 +161,7 @@ bool third_person_camera::CheckForObstructions(const Vector3& Dir, float DistToC
     MaxDistFound = SphereMaxDist;
 
     // No collisions from the sphere test? Our camera is good to go...
-    if (g_CollisionMgr.m_nCollisions == 0) {
+    if (collisionManager->m_nCollisions == 0) {
         return false;
     }
 
@@ -239,7 +221,7 @@ void third_person_camera::Setup(const Vector3& InitialOrbitPoint, const Vector3&
     m_Yaw = BestY;
     m_DistanceAcceleration = DISTANCE_MIN_ACCELERATION;
 
-    m_CameraPos(0, 0, m_Distance);
+    m_CameraPos.set(0, 0, m_Distance);
     m_CameraPos.RotateX(m_Pitch);
     m_CameraPos.RotateY(m_Yaw);
     m_CameraPos += InitialOrbitPoint;

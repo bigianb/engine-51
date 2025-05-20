@@ -95,6 +95,8 @@ void AnimGroup::readKeyBlock(DataReader& reader, AnimKeyBlock& keyBlock, int com
 
 void AnimGroup::readAnim(DataReader& reader, AnimInfo& info)
 {
+    info.parentGroup = this;
+
     read(reader, info.totalTranslation);
     read(reader, info.bbox);
     reader.skip(4);

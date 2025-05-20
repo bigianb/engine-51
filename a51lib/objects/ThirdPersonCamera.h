@@ -4,62 +4,66 @@
 #include "../view/View.h"
 #include "../zoneManager/ZoneManager.h"
 
+class collision_mgr;
+
 //=========================================================================
 // THIRD_PERSON_CAMERA
 //=========================================================================
 class third_person_camera : public Object
 {
 public:
-    virtual const object_desc& GetTypeDesc              ( void ) const;
-    static  const object_desc& GetObjectType            ( void );
-    virtual BBox            GetLocalBBox                ( void ) const { return BBox( Vector3( 0.0f, 0.0f, 0.0f ), Vector3( 1.0f, 1.0f, 1.0f ) ); }
-    virtual int             GetMaterial                 ( void ) const { return 0;}
-                            third_person_camera         ( void );
-            void            Setup                       ( const Vector3& InitialOrbitPoint, 
-                                                          const Vector3& IdealAimDirection, 
-                                                          float            StartDist, 
-                                                          float            EndDist,
-                                                          Object*        pOrbitObject );
-            void            ComputeView                 ( view& View ) const;
+    virtual const object_desc& GetTypeDesc() const;
+    static const object_desc&  GetObjectType();
+    virtual BBox               GetLocalBBox() const { return BBox(Vector3(0.0f, 0.0f, 0.0f), Vector3(1.0f, 1.0f, 1.0f)); }
+    virtual int                GetMaterial() const { return 0; }
+    third_person_camera(ObjectManager*, collision_mgr* cm);
+    void Setup(const Vector3& InitialOrbitPoint,
+               const Vector3& IdealAimDirection,
+               float          StartDist,
+               float          EndDist,
+               Object*        pOrbitObject);
+    void ComputeView(view& View) const;
 
-            void            MoveTowards                 ( const Vector3& DesiredPosition );
-            void            MoveTowards                 ( Radian Pitch, Radian Yaw, float Distance );
-            void            RotateYaw                   ( Radian DeltaYaw );
-            void            MoveTowardsPitch            ( Radian NewPitch );
-            void            SetOrbitPoint               ( const Vector3& DesiredOrbitPoint );
+    void MoveTowards(const Vector3& DesiredPosition);
+    void MoveTowards(Radian Pitch, Radian Yaw, float Distance);
+    void RotateYaw(Radian DeltaYaw);
+    void MoveTowardsPitch(Radian NewPitch);
+    void SetOrbitPoint(const Vector3& DesiredOrbitPoint);
 
-            const Vector3&  GetOrbitPoint               ( void ) const { return m_OrbitPoint; }
-            float             GetDistance                 ( void ) const { return m_Distance; }
-    virtual void            OnAdvanceLogic              ( float DeltaTime );      
-            bool           HaveClearView               ( void ) const;
+    const Vector3& GetOrbitPoint() const { return m_OrbitPoint; }
+    float          GetDistance() const { return m_Distance; }
+    virtual void   OnAdvanceLogic(float DeltaTime);
+    bool           HaveClearView() const;
 
 protected:
-            bool           CheckForObstructions        ( const Vector3& Dir, float DistToCheck, float& MaxDistFound );
+    bool CheckForObstructions(const Vector3& Dir, float DistToCheck, float& MaxDistFound);
 
 private:
-    Vector3         m_OrbitPoint;
-    Vector3         m_DesiredOrbitPoint;
-    Vector3         m_OrbitPointVelocity;
+    collision_mgr* collisionManager;
 
-    float             m_Distance;
-    float             m_DesiredDistance;
-    float             m_DistanceVelocity;
-    float             m_DistanceAcceleration;
+    Vector3 m_OrbitPoint;
+    Vector3 m_DesiredOrbitPoint;
+    Vector3 m_OrbitPointVelocity;
 
-    Radian          m_Pitch;
-    Radian          m_DesiredPitch;
-    Radian          m_PitchVelocity;
+    float m_Distance;
+    float m_DesiredDistance;
+    float m_DistanceVelocity;
+    float m_DistanceAcceleration;
 
-    Radian          m_Yaw;
-    Radian          m_DesiredYaw;
-    Radian          m_YawVelocity;
+    Radian m_Pitch;
+    Radian m_DesiredPitch;
+    Radian m_PitchVelocity;
 
-    guid            m_HostPlayerGuid;
+    Radian m_Yaw;
+    Radian m_DesiredYaw;
+    Radian m_YawVelocity;
 
-    Vector3         m_CameraRodEnds[2];
-    float             m_CameraRodLength;
-    int             m_iDesiredRodEnd;
-    Vector3         m_CameraPos;
+    guid m_HostPlayerGuid;
 
-    zone_mgr::tracker   m_ZoneTracker;
-}; 
+    Vector3 m_CameraRodEnds[2];
+    float   m_CameraRodLength;
+    int     m_iDesiredRodEnd;
+    Vector3 m_CameraPos;
+
+    zone_mgr::tracker m_ZoneTracker;
+};

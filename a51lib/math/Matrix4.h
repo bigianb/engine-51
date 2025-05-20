@@ -58,6 +58,7 @@ public:
 
     Matrix4() {}
     Matrix4(const Radian3& r) { Setup(r); }
+    Matrix4(const Quaternion& q) { Setup(q); }
     Matrix4(const Vector3&    Scale,
             const Quaternion& Rotation,
             const Vector3&    Translation)
@@ -112,6 +113,20 @@ public:
         return (Vector3(std::sqrt(M(0, 0) * M(0, 0) + M(0, 1) * M(0, 1) + M(0, 2) * M(0, 2)),
                         std::sqrt(M(1, 0) * M(1, 0) + M(1, 1) * M(1, 1) + M(1, 2) * M(1, 2)),
                         std::sqrt(M(2, 0) * M(2, 0) + M(2, 1) * M(2, 1) + M(2, 2) * M(2, 2))));
+    }
+
+    void SetScale(float Scale)
+    {
+        M(0, 0) = Scale;
+        M(1, 1) = Scale;
+        M(2, 2) = Scale;
+    }
+
+    void SetScale(const Vector3& Scale)
+    {
+        M(0, 0) = Scale.x;
+        M(1, 1) = Scale.y;
+        M(2, 2) = Scale.z;
     }
 
     void ClearTranslation()

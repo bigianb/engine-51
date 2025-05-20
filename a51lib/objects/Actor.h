@@ -526,7 +526,7 @@ public:
     void                  UpdateAvatarMutation(float DeltaTime);
 
     //    virtual render_inst*        GetRenderInstPtr() { return &m_SkinInst; }
-    virtual AnimGroup::handle* GetAnimGroupHandlePtr() { return &m_hAnimGroup; }
+    AnimGroup::handle* GetAnimGroupHandlePtr() override { return &m_hAnimGroup; }
     virtual Vector3            GetBonePos(int BoneIndex);
 
     const char* GetLogicalName() override { return "ACTOR"; }

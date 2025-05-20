@@ -1,98 +1,78 @@
-//==============================================================================
-//
-//  SpatialDBase_inline.hpp
-//
-//==============================================================================
-
-//==============================================================================
 
 inline
-spatial_cell& spatial_dbase::GetCell( u16 ID ) const
+spatial_cell& spatial_dbase::GetCell( uint16_t ID ) const
 {
-    ASSERT( ID != SPATIAL_CELL_NULL );
-    ASSERT( ID < m_nCellsAllocated );
+    assert( ID != SPATIAL_CELL_NULL );
+    assert( ID < m_nCellsAllocated );
     return m_pCell[ ID ];
 }
 
-//==============================================================================
 inline
-u16 spatial_dbase::GetFirstInSearch( void ) 
+uint16_t spatial_dbase::GetFirstInSearch() 
 {
     return m_FirstSearch;
 }
 
-
-//==============================================================================
 inline
-u16 spatial_dbase::GetNextInSearch( u16 ID ) 
+uint16_t spatial_dbase::GetNextInSearch( uint16_t ID ) 
 {
-    ASSERT( ID < m_nCellsAllocated );
-    ASSERT( (m_pCell[ ID ].SearchNext == SPATIAL_CELL_NULL) || 
+    assert( ID < m_nCellsAllocated );
+    assert( (m_pCell[ ID ].SearchNext == SPATIAL_CELL_NULL) || 
             ( ID < m_nCellsAllocated ) );
 
     return m_pCell[ ID ].SearchNext;
 }
 
-//==============================================================================
-
 inline
-spatial_cell* spatial_dbase::GetCell( s32 X, s32 Y, s32 Z, s32 Level, xbool Create )
+spatial_cell* spatial_dbase::GetCell( int X, int Y, int Z, int Level, bool Create )
 {
-    u16 ID = GetCellIndex( X, Y, Z, Level, Create );
+    uint16_t ID = GetCellIndex( X, Y, Z, Level, Create );
     if( ID == SPATIAL_CELL_NULL )
         return NULL;
     return &GetCell( ID );
 }
 
-//==============================================================================
-
 inline
-s32 spatial_dbase::ComputeHash( s32 X, s32 Y, s32 Z, s32 Level ) const
+int spatial_dbase::ComputeHash( int X, int Y, int Z, int Level ) const
 {
     // Compute hash index
-    s32 H = ((u32)((((((X<<10)+Y)<<10)+Z)<<10)+Level)) % HASH_SIZE;
-    ASSERT( (H>=0) && (H<HASH_SIZE) );
+    int H = ((uint32_t)((((((X<<10)+Y)<<10)+Z)<<10)+Level)) % HASH_SIZE;
+    assert( (H>=0) && (H<HASH_SIZE) );
     return H;
 }
 
-//==============================================================================
-
 inline
-bbox spatial_dbase::GetCellBBox( s32 X, s32 Y, s32 Z, s32 Level ) const
+BBox spatial_dbase::GetCellBBox( int X, int Y, int Z, int Level ) const
 {
-    const f32 W = m_CellWidth[ Level ];
+    const float W = m_CellWidth[ Level ];
 
-    return bbox( vector3(X*W,   Y*W,   Z*W),
-                 vector3(X*W+W, Y*W+W, Z*W+W) );
+    return BBox( Vector3(X*W,   Y*W,   Z*W),
+                 Vector3(X*W+W, Y*W+W, Z*W+W) );
 }
 
-//==============================================================================
-
 inline
-bbox spatial_dbase::GetCellBBox( const spatial_cell& Cell ) const
+BBox spatial_dbase::GetCellBBox( const spatial_cell& Cell ) const
 {
     return GetCellBBox( Cell.X, Cell.Y, Cell.Z, Cell.Level );
 }
 
-//==============================================================================
-
 inline
-s32 spatial_dbase::GetBBoxLevel( const bbox& BBox ) const
+int spatial_dbase::GetBBoxLevel( const BBox& BBox ) const
 {
     // Get largest dimension...treat it as a cube
-    vector3 Size = BBox.GetSize();
-    f32     S    = fMax( fMax(Size.GetX(), Size.GetY()), Size.GetZ());
+    Vector3 Size = BBox.GetSize();
+    float     S    = std::max( std::max(Size.x, Size.y), Size.z);
 
     // Find level such that S <= CellWidth
-    for( s32 i=0; i<MAX_LEVELS; i++ )
+    for( int i=0; i<MAX_LEVELS; i++ )
     if( S <= m_CellWidth[i] )
     {
         // Push objects that are close to the size of the cell
         // to the next level
-        if( x_abs(S-m_CellWidth[i]) < 2.0f )
+        if( abs(S-m_CellWidth[i]) < 2.0f )
         {
             i++;
-            ASSERT( i<MAX_LEVELS );
+            assert( i<MAX_LEVELS );
         }
 
         return i;
@@ -100,52 +80,34 @@ s32 spatial_dbase::GetBBoxLevel( const bbox& BBox ) const
 
     // Object too big or too few levels
     
-    x_throw( "Object too big or too few levels" );
+    //x_throw( "Object too big or too few levels" );
     return 0;
 }
 
-//==============================================================================
-
 inline
 void spatial_dbase::GetCellRegion( 
-    const bbox& BBox, 
-    s32         Level, s32& MinX, s32& MinY, s32& MinZ,
-                       s32& MaxX, s32& MaxY, s32& MaxZ ) const
+    const BBox& bb, 
+    int         Level, int& MinX, int& MinY, int& MinZ,
+                       int& MaxX, int& MaxY, int& MaxZ ) const
 {
-    const f32 W = 1.0f / m_CellWidth[Level];
+    const float W = 1.0f / m_CellWidth[Level];
 
-    MinX = (s32)(( BBox.Min.GetX() * W )+1024.0f)-1024;
-    MinY = (s32)(( BBox.Min.GetY() * W )+1024.0f)-1024;
-    MinZ = (s32)(( BBox.Min.GetZ() * W )+1024.0f)-1024;
-    MaxX = (s32)(( BBox.Max.GetX() * W )+1024.0f)-1024;
-    MaxY = (s32)(( BBox.Max.GetY() * W )+1024.0f)-1024;
-    MaxZ = (s32)(( BBox.Max.GetZ() * W )+1024.0f)-1024;
-
-/*
-    ASSERT( (MaxX-MinX) <= 1 );
-    ASSERT( (MaxY-MinY) <= 1 );
-    ASSERT( (MaxZ-MinZ) <= 1 );
-
-    ASSERT( BBox.Max.X <= (MaxX+1)*m_CellWidth[Level] );
-    ASSERT( BBox.Min.X >= MinX*m_CellWidth[Level] );
-    ASSERT( BBox.Max.Y <= (MaxY+1)*m_CellWidth[Level] );
-    ASSERT( BBox.Min.Y >= MinY*m_CellWidth[Level] );
-    ASSERT( BBox.Max.Z <= (MaxZ+1)*m_CellWidth[Level] );
-    ASSERT( BBox.Min.Z >= MinZ*m_CellWidth[Level] );
-*/
-
+    MinX = (int)(( bb.min.x * W )+1024.0f)-1024;
+    MinY = (int)(( bb.min.y * W )+1024.0f)-1024;
+    MinZ = (int)(( bb.min.z * W )+1024.0f)-1024;
+    MaxX = (int)(( bb.max.x * W )+1024.0f)-1024;
+    MaxY = (int)(( bb.max.y * W )+1024.0f)-1024;
+    MaxZ = (int)(( bb.max.z * W )+1024.0f)-1024;
 }
 
-//==============================================================================
-
 inline
-u16 spatial_dbase::GetCellIndex( s32 X, s32 Y, s32 Z, s32 Level, xbool Create )
+uint16_t spatial_dbase::GetCellIndex( int X, int Y, int Z, int Level, bool Create )
 {
     // Compute hash entry
-    s32 H = ComputeHash( X, Y, Z, Level );
+    int H = ComputeHash( X, Y, Z, Level );
 
     // Loop through hash entries and look for a match
-    u16 ID = m_Hash[ H ].FirstCell;
+    uint16_t ID = m_Hash[ H ].FirstCell;
     while( ID != SPATIAL_CELL_NULL )
     {
         const spatial_cell& Cell = GetCell( ID );
@@ -173,19 +135,15 @@ u16 spatial_dbase::GetCellIndex( s32 X, s32 Y, s32 Z, s32 Level, xbool Create )
     return SPATIAL_CELL_NULL;
 }
 
-//==============================================================================
-
 inline
 void spatial_dbase::UpdateCell( spatial_cell& Cell )
 {
-    ASSERT( (&Cell >= m_pCell) && (&Cell < (&m_pCell[m_nCellsAllocated])) );
+    assert( (&Cell >= m_pCell) && (&Cell < (&m_pCell[m_nCellsAllocated])) );
 
     if( (Cell.OccFlags == 0) && (Cell.Child==SPATIAL_CELL_NULL) )
     {
-        s32 Index = (((byte*)&Cell) - (byte*)m_pCell) / ((s32)sizeof(spatial_cell));
-        ASSERT( Index >= 0 && Index < m_nCellsAllocated );
+        int Index = (((uint8_t*)&Cell) - (uint8_t*)m_pCell) / ((int)sizeof(spatial_cell));
+        assert( Index >= 0 && Index < m_nCellsAllocated );
         FreeCell( Index );
     }
 }
-
-//==============================================================================

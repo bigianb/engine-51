@@ -74,7 +74,8 @@ public:
         return (*this * V);
     }
 
-    Vector3 operator*(const Vector3& V) const;
+    Vector3     operator*(const Vector3& V) const;
+    Quaternion& operator*=(const Quaternion& R);
 
     friend Quaternion operator*(const Quaternion& Qa,
                                 const Quaternion& Qb);
@@ -166,6 +167,19 @@ inline Radian3 Quaternion::GetRotation() const
     }
 
     return (Radian3(Pitch, Yaw, Roll));
+}
+
+inline Quaternion& Quaternion::operator*=(const Quaternion& R)
+{
+    Quaternion L(*this);
+
+    x = (L.w * R.x) + (R.w * L.x) + (L.y * R.z) - (L.z * R.y);
+    y = (L.w * R.y) + (R.w * L.y) + (L.z * R.x) - (L.x * R.z);
+    z = (L.w * R.z) + (R.w * L.z) + (L.x * R.y) - (L.y * R.x);
+
+    w = (L.w * R.w) - (R.x * L.x) - (L.y * R.y) - (L.z * R.z);
+
+    return (*this);
 }
 
 Quaternion BlendSlow(const Quaternion& Q0,

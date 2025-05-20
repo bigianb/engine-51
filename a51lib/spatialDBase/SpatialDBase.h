@@ -146,3 +146,5 @@ protected:
     int   m_nCellsInLevel[MAX_LEVELS]; // Counts of cells in levels
     hash  m_Hash[HASH_SIZE];           // Hash of active cells
 };
+
+#include "SpatialDBase_inline.h"

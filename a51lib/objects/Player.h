@@ -28,9 +28,9 @@
 // #include "..\Support\NetworkMgr\NetObj.hpp"
 // #include "..\Support\NetworkMgr\Blender.hpp"
 
-#define STUN_PLAYER
+#include "../inputMgr/GamePad.h"
 
-#define MAX_LOCAL_PLAYERS 4
+#define STUN_PLAYER
 
 #define MAX_MELEE_STATES 5 // ANIM_STATE_MELEE to ANIM_STATE_MELEE_END.  Keep this in sync.
 #define MAX_LORE_ITEMS 5
@@ -957,7 +957,7 @@ protected:
     const char* GetCurrentWeaponName();
 
     void ResetWeaponFlags();
-    //xnew_weapon::reticle_radius_parameters GetReticleParams();
+    // IJB new_weapon::reticle_radius_parameters GetReticleParams();
     virtual int GetWeaponRenderState() override;
 
 public:

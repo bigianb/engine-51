@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.16)
 
 project(Engine51 VERSION 0.1 LANGUAGES CXX)
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 include(CTest)
 include(FetchContent)
 FetchContent_Declare(GoogleTest

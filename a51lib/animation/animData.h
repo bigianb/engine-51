@@ -31,6 +31,17 @@
 #define STREAM_FLG_MASK ((1 << STREAM_FLG_NBITS) - 1)
 #define STREAM_OFT_MASK ((1 << STREAM_OFT_NBITS) - 1)
 
+#define ANIM_DATA_FLAG_LOOPING (1 << 0)
+#define ANIM_DATA_FLAG_HAS_MASKS (1 << 1)
+#define ANIM_DATA_FLAG_ACCUM_HORIZ_MOTION (1 << 2)
+#define ANIM_DATA_FLAG_ACCUM_VERT_MOTION (1 << 3)
+#define ANIM_DATA_FLAG_ACCUM_YAW_MOTION (1 << 4)
+#define ANIM_DATA_FLAG_GRAVITY (1 << 5)
+#define ANIM_DATA_FLAG_WORLD_COLLISION (1 << 6)
+#define ANIM_DATA_FLAG_CHAIN_CYCLES_INTEGER (1 << 7)
+#define ANIM_DATA_FLAG_BLEND_FRAMES (1 << 8)
+#define ANIM_DATA_FLAG_BLEND_LOOP (1 << 9)
+
 class DataReader;
 class AnimGroup;
 class event_data;
@@ -184,16 +195,16 @@ extern char g_EventTypes[NUM_EVENT_TYPES][EVENT_MAX_STRING_LENGTH + 1];
 class AnimInfo
 {
 public:
-    int   GetNAnims() const;
-    float GetAnimsWeight() const;
+    int   GetNAnims() const { return nAnims; }
+    float GetAnimsWeight() const { return animsWeight; }
 
-    const char* GetName() const;
-    float       GetWeight() const;
+    const char* GetName() const { return name.c_str(); }
+    float       GetWeight() const { return weight; }
 
-    float GetBlendTime() const;
-    int   GetNFrames() const;
-    int   GetLoopFrame() const;
-    int   GetEndFrameOffset() const;
+    float GetBlendTime() const { return blendTime; }
+    int   GetNFrames() const { return nFrames; }
+    int   GetLoopFrame() const { return iLoopFrame; }
+    int   GetEndFrameOffset() const { return endFrameOffset; }
 
     // Key
     void GetRawKey(int iFrame, int iBone, AnimKey& Key) const;
@@ -203,56 +214,58 @@ public:
     void GetInterpKeys(float Frame, AnimKey* pKey, int nBones) const;
 
     // Misc
-    Radian      GetTotalMoveDir() const;
-    Radian      GetTotalYaw() const;
-    Radian      GetHandleAngle() const;
-    Vector3     GetTotalTranslation() const;
-    const BBox& GetBBox() const;
-    int         GetFPS() const;
+    Radian      GetTotalMoveDir() const { return (float)totalMoveDir * (R_360 / 65535.0f); }
+    Radian      GetTotalYaw() const { return (float)totalYaw * (R_360 / 65535.0f); }
+    Radian      GetHandleAngle() const { return (float)handleAngle * (R_360 / 65535.0f); }
+    Vector3     GetTotalTranslation() const { return totalTranslation; }
+    const BBox& GetBBox() const { return bbox; }
+    int         GetFPS() const { return fps; }
     float       GetSpeed() const;
     float       GetYawRate() const;
 
     // Flags
-    bool DoesLoop() const;
-    bool HasMasks() const;
-    bool AccumHorizMotion() const;
-    bool AccumVertMotion() const;
-    bool AccumYawMotion() const;
-    bool Gravity() const;
-    bool WorldCollision() const;
-    bool ChainCyclesInteger() const;
-    bool BlendFrames() const;
-    bool BlendLoop() const;
-    bool IsBoneMasked(int iBone) const;
+    bool DoesLoop() const { return ((flags & ANIM_DATA_FLAG_LOOPING) != 0); }
+    bool HasMasks() const { return ((flags & ANIM_DATA_FLAG_HAS_MASKS) != 0); }
+    bool AccumHorizMotion() const { return ((flags & ANIM_DATA_FLAG_ACCUM_HORIZ_MOTION) != 0); }
+    bool AccumVertMotion() const { return ((flags & ANIM_DATA_FLAG_ACCUM_VERT_MOTION) != 0); }
+    bool AccumYawMotion() const { return ((flags & ANIM_DATA_FLAG_ACCUM_YAW_MOTION) != 0); }
+    bool Gravity() const { return ((flags & ANIM_DATA_FLAG_GRAVITY) != 0); }
+    bool WorldCollision() const { return ((flags & ANIM_DATA_FLAG_WORLD_COLLISION) != 0); }
+    bool ChainCyclesInteger() const { return ((flags & ANIM_DATA_FLAG_CHAIN_CYCLES_INTEGER) != 0); }
+    bool BlendFrames() const { return ((flags & ANIM_DATA_FLAG_BLEND_FRAMES) != 0); }
+    bool BlendLoop() const { return ((flags & ANIM_DATA_FLAG_BLEND_LOOP) != 0); }
+    bool IsBoneMasked(int iBone) const { return animKeys.IsBoneMasked(*parentGroup, iBone); }
 
     // Chain
-    int GetChainFramesMin() const;
-    int GetChainFramesMax() const;
-    int GetChainAnim() const;
-    int GetChainFrame() const;
+    int GetChainFramesMin() const { return nChainFramesMin; }
+    int GetChainFramesMax() const { return nChainFramesMax; }
+    int GetChainAnim() const { return iChainAnim; }
+    int GetChainFrame() const { return iChainFrame; }
 
     // Animated bone info
-    int GetAnimBoneMinIndex() const;
-    int GetAnimBoneMaxIndex() const;
+    int GetAnimBoneMinIndex() const { return iAnimBoneMin; }
+    int GetAnimBoneMaxIndex() const { return iAnimBoneMax; }
 
     // Props
-    int  GetNProps() const;
+    int  GetNProps() const { return nProps; }
     int  GetPropChannel(const char* pChannelName) const;
     void GetPropRawKey(int iChannel, int iFrame, AnimKey& Key) const;
     void GetPropInterpKey(int iChannel, float Frame, AnimKey& Key) const;
     int  GetPropParentBoneIndex(int iChannel) const;
 
     // Events
-    int         GetNEvents() const;
-    anim_event& GetEvent(int iEvent) const;
-    bool        IsEventActive(int iEvent, float Frame) const;
-    bool        IsEventActive(int iEvent, float CurrFrame, float PrevFrame) const;
+    int         GetNEvents() const { return nEvents; }
+    anim_event& GetEvent(int eventIdx) const;
+    bool        IsEventActive(int eventIdx, float Frame) const;
+    bool        IsEventActive(int eventIdx, float CurrFrame, float PrevFrame) const;
     bool        IsEventTypeActive(int Type, float Frame) const;
     bool        IsEventTypeActive(int Type, float CurrFrame, float PrevFrame) const;
-    void        SetEventData(int iEvent, const event_data& ED);
+    void        SetEventData(int eventIdx, const event_data& ED);
     float       FindLipSyncEventStartFrame() const;
 
 public:
+    AnimGroup* parentGroup;
+
     Vector3     totalTranslation; // Total movement
     BBox        bbox;             // BBox of all verts pushed thu anim
     int         nAnims;
@@ -572,10 +585,10 @@ public:
     const AnimBone& GetBone(int iBone) const;
     int             GetNBones() const { return numBones; }
     int             GetBoneIndex(const char* pBoneName, bool FindAnywhere = false) const;
-    int             GetBoneParent(int iBone) const;
+    int             GetBoneParent(int iBone) const { return bones[iBone].iParent; }
     void            ComputeBoneL2W(int iBone, const Matrix4& L2W, AnimKey* pKey, Matrix4& BoneL2W) const;
     void            ComputeBonesL2W(const Matrix4& L2W, AnimKey* pKey, int nBones, Matrix4* BoneL2W, bool bApplyTheBindPose = true) const;
-    const Matrix4&  GetBoneBindInvMatrix(int iBone) const;
+    const Matrix4&  GetBoneBindInvMatrix(int iBone) const { return bones[iBone].bindMatrixInv; }
     Vector3         GetEventPos(int iBone, const Vector3& Offset, AnimKey* pKey) const;
     const BBox&     GetBBox() const { return bbox; }
     Radian3         GetEventRot(int iBone, const Vector3& Offset, AnimKey* pKey) const;
@@ -603,9 +616,15 @@ public:
     int numEvents;
     int numKeyBlocks;
 
+    std::vector<anim_event>   events;
     std::vector<AnimBone>     bones;
     std::vector<AnimInfo>     anims;
     std::vector<AnimKeyBlock> keyBlocks;
 
     typedef ResourceHandle<AnimGroup> handle;
 };
+
+inline anim_event& AnimInfo::GetEvent(int eventIdx) const
+{
+    return parentGroup->events[iEvent + eventIdx];
+}
