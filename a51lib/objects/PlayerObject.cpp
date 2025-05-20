@@ -92,6 +92,8 @@ const object_desc& player::GetTypeDesc() const
     return s_player_desc;
 }
 
+bool    player::s_bPlayerDied( false );
+
 static const float k_PainParticleDisplace = 20.0f;
 static const float s_NotifyTime = 1.f;
 static const float k_Modfactor = 2.5f;

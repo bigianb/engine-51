@@ -117,7 +117,7 @@ void LevelLoader::loadLevelThreadFunction()
         // Reset the static player member variable that indicates death state.
         // this is used by the state manager to determine if any pre-level
         // cinematics can be played.
-        //  player::s_bPlayerDied = FALSE;
+        player::s_bPlayerDied = false;
     }
 
     //    m_VoiceID   = 0;

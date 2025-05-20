@@ -1,6 +1,15 @@
 #include "Property.h"
 
+#include <vector>
 #include <cassert>
+
+extern const char* const  k_EnumEndStringConst    = "LAST_ENUM_STRING_90210";
+extern const int    k_MaxEnumInTable        = 10000;
+char         g_EnumStringOut[255]    = {0};
+
+prop_query              g_PropQuery;
+std::vector<prop_container>  g_PropContainer;
+prop_enum               g_PropEnum;
 
 void prop_interface::OnLoad(text_in& TextIn)
 {

@@ -101,9 +101,12 @@ set(OBJECTS_SOURCES
         objects/Pickup.h
         objects/Player.h
         objects/PlayerCombat.cpp
+        objects/PlayerInput.cpp
         objects/PlayerLoco.cpp
         objects/PlayerLoco.h
         objects/PlayerObject.cpp
+        objects/PlayerOnline.cpp
+        objects/PlayerPhysics.cpp
         objects/PlayerState.cpp
         objects/PlaySurface.cpp
         objects/PlaySurface.h
@@ -164,6 +167,7 @@ target_sources(a51lib PRIVATE
         DFSFile.h
         EventMgr.cpp
         EventMgr.h
+        GameGlobals.cpp
         Guid.cpp
         Guid.h
         Helpers.cpp
