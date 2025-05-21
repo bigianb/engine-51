@@ -38,7 +38,7 @@ public:
 
     struct zone
     {
-        BBox     BBox; // BBox containing the hold zone
+        BBox     bbox; // BBox containing the hold zone
         uint32_t Flags;
         int      nPortals;       // How many portals does this zone has
         int      iPortal2Portal; // start index to the array of indices to portals
@@ -54,7 +54,7 @@ public:
     //---------------------------------------------------------------------
     struct portal
     {
-        BBox     BBox;     // BBox
+        BBox     bbox;     // BBox
         Vector3  Edges[4]; // A portal is always a square.
         plane    Plane;    // Plane of the actual portal.
         guid     Guid;
@@ -75,14 +75,14 @@ public:
         void        SetMainZone(uint8_t Zone) { iCurrentZone = Zone; }
         void        SetZone2(uint8_t Zone) { iTempZone = Zone; }
         void        SetPosition(const Vector3& Pos) { LastPosition = Pos; }
-        void        SetBBox(const BBox& aBBox) { BBox = aBBox; }
-        const BBox& GetBBox() { return BBox; }
+        void        SetBBox(const BBox& aBBox) { bbox = aBBox; }
+        const BBox& GetBBox() { return bbox; }
 
     protected:
         Vector3 LastPosition; // Last Know position.
         zone_id iCurrentZone; // Current Zone that the tracker is in
         zone_id iTempZone;    // Temporary zone which the object may also be in
-        BBox    BBox;         // Local Space BBox
+        BBox    bbox;         // Local Space BBox
 
         friend class zone_mgr;
     };

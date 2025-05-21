@@ -208,7 +208,7 @@ void decal_mgr::Init()
 
 void decal_mgr::Kill()
 {
-    UnloadStaticDecals();
+    // IJB UnloadStaticDecals();
     m_RegisteredDefs.Clear();
 
     ClearDynamicQueue();

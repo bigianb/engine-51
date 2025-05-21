@@ -116,7 +116,16 @@ struct BBox
         }
     }
 
-    bool Intersect(const Vector3& Point) const;
+    bool Intersect(const Vector3& Point) const
+    {
+        return ((Point.GetX() <= max.GetX()) &&
+                (Point.GetY() <= max.GetY()) &&
+                (Point.GetZ() <= max.GetZ()) &&
+                (Point.GetX() >= min.GetX()) &&
+                (Point.GetY() >= min.GetY()) &&
+                (Point.GetZ() >= min.GetZ()));
+    }
+
     bool Intersect(const BBox& bb) const
     {
         if (bb.min.x > max.x) {

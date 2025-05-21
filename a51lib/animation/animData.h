@@ -31,6 +31,8 @@
 #define STREAM_FLG_MASK ((1 << STREAM_FLG_NBITS) - 1)
 #define STREAM_OFT_MASK ((1 << STREAM_OFT_NBITS) - 1)
 
+#define STREAM_FLAG_MASKED 1
+
 #define ANIM_DATA_FLAG_LOOPING (1 << 0)
 #define ANIM_DATA_FLAG_HAS_MASKS (1 << 1)
 #define ANIM_DATA_FLAG_ACCUM_HORIZ_MOTION (1 << 2)
@@ -251,7 +253,10 @@ public:
     int  GetPropChannel(const char* pChannelName) const;
     void GetPropRawKey(int iChannel, int iFrame, AnimKey& Key) const;
     void GetPropInterpKey(int iChannel, float Frame, AnimKey& Key) const;
-    int  GetPropParentBoneIndex(int iChannel) const;
+    int  GetPropParentBoneIndex(int iChannel) const
+    {
+        return -1; // IJB parentGroup->m_pProp[m_iProp + iChannel].m_iBone;
+    }
 
     // Events
     int         GetNEvents() const { return nEvents; }
@@ -528,6 +533,8 @@ public:
 
 public:
     void grabKey(const uint8_t* data, int totalFrames, int frame, AnimKey& Key) const;
+    void GetInterpKey(uint8_t* pData, int nFrames, int iFrame, float T, AnimKey& Key) const;
+    uint32_t GetFlags() const;
 };
 
 class AnimKeyBlock
@@ -582,7 +589,7 @@ public:
     void            GetL2W(const Matrix4& L2W, float Frame, int iAnim, Matrix4* pBoneL2W) const;
 
     // Skeleton related calls
-    const AnimBone& GetBone(int iBone) const;
+    const AnimBone& GetBone(int idx) const { return bones[idx]; }
     int             GetNBones() const { return numBones; }
     int             GetBoneIndex(const char* pBoneName, bool FindAnywhere = false) const;
     int             GetBoneParent(int iBone) const { return bones[iBone].iParent; }

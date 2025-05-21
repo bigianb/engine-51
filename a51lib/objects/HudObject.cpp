@@ -40,7 +40,8 @@ const object_desc& HudObject::GetTypeDesc() const
     return s_HudObject_Desc;
 }
 
-HudObject::HudObject(ObjectManager* om) : Object(om)
+HudObject::HudObject(ObjectManager* om)
+    : Object(om)
 {
     std::cout << "Initializing HUD" << std::endl;
 
@@ -275,11 +276,10 @@ void HudObject::OnAdvanceLogic(float DeltaTime)
     if (m_TimerActive) {
         if (m_TimerTime <= 0.0f) {
             // Trigger Guid
-            //Object* pObject = g_ObjMgr.GetObjectByGuid(m_TimerTriggerGuid);
-            //if( pObject )
-            //{
-            //    pObject->OnActivate(true);
-            //s}
+            Object* pObject = objectManager->GetObjectByGuid(m_TimerTriggerGuid);
+            if (pObject) {
+                pObject->OnActivate(true);
+            }
 
             // Time is at zero stop the clock.
             m_TimerActive = false;
@@ -360,120 +360,83 @@ void HudObject::OnRender(void)
 */
 }
 
-void HudObject::InitHud( )
+void HudObject::InitHud()
 {
     m_NumHuds = 1;
-/*
-    int i = 0;
-    slot_id PlayerSlot = g_ObjMgr.GetFirst( Object::TYPE_PLAYER );
+    /*
+        int i = 0;
+        slot_id PlayerSlot = g_ObjMgr.GetFirst( Object::TYPE_PLAYER );
 
-    // If a player hasn't been created yet, abort.
-    if( PlayerSlot == SLOT_NULL )
-        return;
+        // If a player hasn't been created yet, abort.
+        if( PlayerSlot == SLOT_NULL )
+            return;
 
-    while( PlayerSlot != SLOT_NULL )
-    {
-        assert( i < m_NumHuds );
-
-        // Get the players view port.
-        player* pPlayer = (player*)g_ObjMgr.GetObjectBySlot( PlayerSlot );
-
-        if( 
-            (pPlayer != NULL)                     && // Is the player valid?
-            (pPlayer->GetLocalSlot() != -1) )         // Is the player local?
+        while( PlayerSlot != SLOT_NULL )
         {
-            player_hud& PlayerHud   = m_PlayerHuds[ i ]; 
-            PlayerHud.m_PlayerSlot  = PlayerSlot;
-            PlayerHud.m_LocalSlot   = pPlayer->GetLocalSlot();
+            assert( i < m_NumHuds );
 
-            PlayerHud.m_NetSlot     = pPlayer->net_GetSlot();            
-            PlayerHud.m_Active      = TRUE;
+            // Get the players view port.
+            player* pPlayer = (player*)g_ObjMgr.GetObjectBySlot( PlayerSlot );
 
-            // Find out what portion of the screen the player owns.
-            //rect m_ViewDimensions;
-            view& rView = pPlayer->GetView();
-            rView.GetViewport( m_ViewDimensions );
-
-            // Set Hud dimensions!
-            switch( m_NumHuds )
+            if(
+                (pPlayer != NULL)                     && // Is the player valid?
+                (pPlayer->GetLocalSlot() != -1) )         // Is the player local?
             {
-                // One player.
-                case 1:
-                    PlayerHud.m_XPos    = LEFTMARGIN    + 2.0f;
-                    PlayerHud.m_YPos    = TOPMARGIN     + 2.0f;
-                    PlayerHud.m_Width   = m_ViewDimensions.GetWidth()  - LEFTMARGIN - RIGHTMARGIN - 4.0f;
-                    PlayerHud.m_Height  = m_ViewDimensions.GetHeight() - TOPMARGIN  - BOTTOMMARGIN - 4.0f;
-                    break;
+                player_hud& PlayerHud   = m_PlayerHuds[ i ];
+                PlayerHud.m_PlayerSlot  = PlayerSlot;
+                PlayerHud.m_LocalSlot   = pPlayer->GetLocalSlot();
 
+                PlayerHud.m_NetSlot     = pPlayer->net_GetSlot();
+                PlayerHud.m_Active      = TRUE;
 
-                // Two players.
-                case 2:
-                    switch( PlayerHud.m_LocalSlot )
-                    {
-                        // Top Player.
-                        case 0:
-                            PlayerHud.m_XPos    = m_ViewDimensions.Min.X + LEFTMARGIN    + 2.0f;
-                            PlayerHud.m_YPos    = m_ViewDimensions.Min.Y + TOPMARGIN     + 2.0f;
-                            PlayerHud.m_Width   = m_ViewDimensions.GetWidth()  - LEFTMARGIN - RIGHTMARGIN - 4.0f;
-                            PlayerHud.m_Height  = m_ViewDimensions.GetHeight() - TOPMARGIN  - 4.0f;
-                            break;
+                // Find out what portion of the screen the player owns.
+                //rect m_ViewDimensions;
+                view& rView = pPlayer->GetView();
+                rView.GetViewport( m_ViewDimensions );
 
-                        // Bottom Player.
-                        case 1:
-                            PlayerHud.m_XPos    = m_ViewDimensions.Min.X + LEFTMARGIN    + 2.0f;
-                            PlayerHud.m_YPos    = m_ViewDimensions.Min.Y + 2.0f;
-                            PlayerHud.m_Width   = m_ViewDimensions.GetWidth()  - LEFTMARGIN - RIGHTMARGIN - 4.0f;
-                            PlayerHud.m_Height  = m_ViewDimensions.GetHeight() - BOTTOMMARGIN - 4.0f;
-                            break;
-
-                        default:
-                            break;
-                    }
-                    break;
-
-                // Three/Four players.
-                case 3:
+                // Set Hud dimensions!
+                switch( m_NumHuds )
                 {
-                    switch( PlayerHud.m_LocalSlot )
-                    {
-                        // Top-left player.
-                    case 0:
-                        PlayerHud.m_XPos    = m_ViewDimensions.Min.X       + LEFTMARGIN + 2.0f;
-                        PlayerHud.m_YPos    = m_ViewDimensions.Min.Y       +  TOPMARGIN + 2.0f;
-                        PlayerHud.m_Width   = m_ViewDimensions.GetWidth()  - LEFTMARGIN - 4.0f;
-                        PlayerHud.m_Height  = m_ViewDimensions.GetHeight() -  TOPMARGIN - 4.0f;
-                        break;
-
-                        // Top-right player.
+                    // One player.
                     case 1:
-                        PlayerHud.m_XPos    = m_ViewDimensions.Min.X                      + 2.0f;
-                        PlayerHud.m_YPos    = m_ViewDimensions.Min.Y       +    TOPMARGIN + 2.0f;
-                        PlayerHud.m_Width   = m_ViewDimensions.GetWidth () -  RIGHTMARGIN - 4.0f;
-                        PlayerHud.m_Height  = m_ViewDimensions.GetHeight() -    TOPMARGIN - 4.0f;
-                        break;
-
-                        // Bottom player.
-                    case 2:
-                        PlayerHud.m_XPos    = m_ViewDimensions.Min.X + LEFTMARGIN    + 2.0f;
-                        PlayerHud.m_YPos    = m_ViewDimensions.Min.Y + 2.0f;
+                        PlayerHud.m_XPos    = LEFTMARGIN    + 2.0f;
+                        PlayerHud.m_YPos    = TOPMARGIN     + 2.0f;
                         PlayerHud.m_Width   = m_ViewDimensions.GetWidth()  - LEFTMARGIN - RIGHTMARGIN - 4.0f;
-                        PlayerHud.m_Height  = m_ViewDimensions.GetHeight() - BOTTOMMARGIN - 4.0f;
-                        break;                        
-                    default:
+                        PlayerHud.m_Height  = m_ViewDimensions.GetHeight() - TOPMARGIN  - BOTTOMMARGIN - 4.0f;
                         break;
-                    }
-                    break;
-                }
-                case 4:
-                {
-                    //f32 X    = m_ViewDimensions.Min.X;
-                    //f32 Y    = m_ViewDimensions.Min.Y;
-                    //f32 MidX = m_ViewDimensions.Min.X + ((m_ViewDimensions.Min.X + m_ViewDimensions.Max.X)/2.0f);
-                    //f32 MidY = m_ViewDimensions.Min.Y + ((m_ViewDimensions.Min.Y + m_ViewDimensions.Max.Y)/2.0f);
 
-                    switch( PlayerHud.m_LocalSlot )
+
+                    // Two players.
+                    case 2:
+                        switch( PlayerHud.m_LocalSlot )
+                        {
+                            // Top Player.
+                            case 0:
+                                PlayerHud.m_XPos    = m_ViewDimensions.Min.X + LEFTMARGIN    + 2.0f;
+                                PlayerHud.m_YPos    = m_ViewDimensions.Min.Y + TOPMARGIN     + 2.0f;
+                                PlayerHud.m_Width   = m_ViewDimensions.GetWidth()  - LEFTMARGIN - RIGHTMARGIN - 4.0f;
+                                PlayerHud.m_Height  = m_ViewDimensions.GetHeight() - TOPMARGIN  - 4.0f;
+                                break;
+
+                            // Bottom Player.
+                            case 1:
+                                PlayerHud.m_XPos    = m_ViewDimensions.Min.X + LEFTMARGIN    + 2.0f;
+                                PlayerHud.m_YPos    = m_ViewDimensions.Min.Y + 2.0f;
+                                PlayerHud.m_Width   = m_ViewDimensions.GetWidth()  - LEFTMARGIN - RIGHTMARGIN - 4.0f;
+                                PlayerHud.m_Height  = m_ViewDimensions.GetHeight() - BOTTOMMARGIN - 4.0f;
+                                break;
+
+                            default:
+                                break;
+                        }
+                        break;
+
+                    // Three/Four players.
+                    case 3:
                     {
-                        // Top-left player.
+                        switch( PlayerHud.m_LocalSlot )
+                        {
+                            // Top-left player.
                         case 0:
                             PlayerHud.m_XPos    = m_ViewDimensions.Min.X       + LEFTMARGIN + 2.0f;
                             PlayerHud.m_YPos    = m_ViewDimensions.Min.Y       +  TOPMARGIN + 2.0f;
@@ -481,7 +444,7 @@ void HudObject::InitHud( )
                             PlayerHud.m_Height  = m_ViewDimensions.GetHeight() -  TOPMARGIN - 4.0f;
                             break;
 
-                        // Top-right player.
+                            // Top-right player.
                         case 1:
                             PlayerHud.m_XPos    = m_ViewDimensions.Min.X                      + 2.0f;
                             PlayerHud.m_YPos    = m_ViewDimensions.Min.Y       +    TOPMARGIN + 2.0f;
@@ -489,88 +452,151 @@ void HudObject::InitHud( )
                             PlayerHud.m_Height  = m_ViewDimensions.GetHeight() -    TOPMARGIN - 4.0f;
                             break;
 
-                        // Bottom-left player.
+                            // Bottom player.
                         case 2:
-                            PlayerHud.m_XPos    = m_ViewDimensions.Min.X       +   LEFTMARGIN + 2.0f;
-                            PlayerHud.m_YPos    = m_ViewDimensions.Min.Y                      + 2.0f;
-                            PlayerHud.m_Width   = m_ViewDimensions.GetWidth()  -   LEFTMARGIN - 4.0f;
+                            PlayerHud.m_XPos    = m_ViewDimensions.Min.X + LEFTMARGIN    + 2.0f;
+                            PlayerHud.m_YPos    = m_ViewDimensions.Min.Y + 2.0f;
+                            PlayerHud.m_Width   = m_ViewDimensions.GetWidth()  - LEFTMARGIN - RIGHTMARGIN - 4.0f;
                             PlayerHud.m_Height  = m_ViewDimensions.GetHeight() - BOTTOMMARGIN - 4.0f;
                             break;
-
-                        // Bottom-right player (or not).
-                        case 3:
-                            PlayerHud.m_XPos    = m_ViewDimensions.Min.X                      + 2.0f;
-                            PlayerHud.m_YPos    = m_ViewDimensions.Min.Y                      + 2.0f;
-                            PlayerHud.m_Width   = m_ViewDimensions.GetWidth () -  RIGHTMARGIN - 4.0f;
-                            PlayerHud.m_Height  = m_ViewDimensions.GetHeight() - BOTTOMMARGIN - 4.0f;
-                            break;
-
                         default:
                             break;
+                        }
+                        break;
                     }
-                    break;
+                    case 4:
+                    {
+                        //f32 X    = m_ViewDimensions.Min.X;
+                        //f32 Y    = m_ViewDimensions.Min.Y;
+                        //f32 MidX = m_ViewDimensions.Min.X + ((m_ViewDimensions.Min.X + m_ViewDimensions.Max.X)/2.0f);
+                        //f32 MidY = m_ViewDimensions.Min.Y + ((m_ViewDimensions.Min.Y + m_ViewDimensions.Max.Y)/2.0f);
+
+                        switch( PlayerHud.m_LocalSlot )
+                        {
+                            // Top-left player.
+                            case 0:
+                                PlayerHud.m_XPos    = m_ViewDimensions.Min.X       + LEFTMARGIN + 2.0f;
+                                PlayerHud.m_YPos    = m_ViewDimensions.Min.Y       +  TOPMARGIN + 2.0f;
+                                PlayerHud.m_Width   = m_ViewDimensions.GetWidth()  - LEFTMARGIN - 4.0f;
+                                PlayerHud.m_Height  = m_ViewDimensions.GetHeight() -  TOPMARGIN - 4.0f;
+                                break;
+
+                            // Top-right player.
+                            case 1:
+                                PlayerHud.m_XPos    = m_ViewDimensions.Min.X                      + 2.0f;
+                                PlayerHud.m_YPos    = m_ViewDimensions.Min.Y       +    TOPMARGIN + 2.0f;
+                                PlayerHud.m_Width   = m_ViewDimensions.GetWidth () -  RIGHTMARGIN - 4.0f;
+                                PlayerHud.m_Height  = m_ViewDimensions.GetHeight() -    TOPMARGIN - 4.0f;
+                                break;
+
+                            // Bottom-left player.
+                            case 2:
+                                PlayerHud.m_XPos    = m_ViewDimensions.Min.X       +   LEFTMARGIN + 2.0f;
+                                PlayerHud.m_YPos    = m_ViewDimensions.Min.Y                      + 2.0f;
+                                PlayerHud.m_Width   = m_ViewDimensions.GetWidth()  -   LEFTMARGIN - 4.0f;
+                                PlayerHud.m_Height  = m_ViewDimensions.GetHeight() - BOTTOMMARGIN - 4.0f;
+                                break;
+
+                            // Bottom-right player (or not).
+                            case 3:
+                                PlayerHud.m_XPos    = m_ViewDimensions.Min.X                      + 2.0f;
+                                PlayerHud.m_YPos    = m_ViewDimensions.Min.Y                      + 2.0f;
+                                PlayerHud.m_Width   = m_ViewDimensions.GetWidth () -  RIGHTMARGIN - 4.0f;
+                                PlayerHud.m_Height  = m_ViewDimensions.GetHeight() - BOTTOMMARGIN - 4.0f;
+                                break;
+
+                            default:
+                                break;
+                        }
+                        break;
+                    }
+
+                    default:
+                        ASSERT( FALSE );
+                        break;
                 }
 
-                default:
-                    ASSERT( FALSE );
-                    break;
+                PlayerHud.m_CenterX = ((f32)m_ViewDimensions.Min.X+(m_ViewDimensions.GetWidth())/2.0f);
+                PlayerHud.m_CenterY = ((f32)m_ViewDimensions.Min.Y+(m_ViewDimensions.GetHeight())/2.0f);
+
+                // Ok, now lets initialize the hud elements.
+                {
+                    // Centered.
+                    PlayerHud.m_Reticle.m_XPos  = PlayerHud.m_CenterX;
+                    PlayerHud.m_Reticle.m_YPos  = PlayerHud.m_CenterY;
+
+                    PlayerHud.m_Damage.m_XPos   = PlayerHud.m_CenterX;
+                    PlayerHud.m_Damage.m_YPos   = PlayerHud.m_CenterY;
+
+                    PlayerHud.m_Icon.m_XPos     = PlayerHud.m_CenterX;
+                    PlayerHud.m_Icon.m_YPos     = PlayerHud.m_CenterY;
+
+                    // Top left.
+                    PlayerHud.m_Text.m_XPos     = PlayerHud.m_XPos;
+                    PlayerHud.m_Text.m_YPos     = PlayerHud.m_YPos;
+
+                    // Bottom left.
+                    PlayerHud.m_Health.m_XPos   = PlayerHud.m_XPos;
+                    PlayerHud.m_Health.m_YPos   = PlayerHud.m_Height + PlayerHud.m_YPos;
+
+                    PlayerHud.m_Vote.m_XPos     = 210;
+                    PlayerHud.m_Vote.m_YPos     = 332;
+
+                    // Bottom right.
+                    PlayerHud.m_Ammo.m_XPos     = PlayerHud.m_XPos + PlayerHud.m_Width;
+                    PlayerHud.m_Ammo.m_YPos     = PlayerHud.m_YPos + PlayerHud.m_Height;
+
+                    PlayerHud.m_Scanner.m_XPos  = PlayerHud.m_XPos + PlayerHud.m_Width;
+                    PlayerHud.m_Scanner.m_YPos  = PlayerHud.m_YPos + PlayerHud.m_Height;
+
+                    // Top right.
+                    PlayerHud.m_InfoBox.m_XPos  = PlayerHud.m_XPos + PlayerHud.m_Width;
+                    PlayerHud.m_InfoBox.m_YPos  = PlayerHud.m_YPos;
+
+                    // Sniper
+                    PlayerHud.m_Sniper.m_ViewDimensions = m_ViewDimensions;
+
+                    PlayerHud.m_Text.SetMaxWidth( s32(PlayerHud.m_Width) - 4 );
+                }
+
+
+                i++;
             }
 
-            PlayerHud.m_CenterX = ((f32)m_ViewDimensions.Min.X+(m_ViewDimensions.GetWidth())/2.0f);
-            PlayerHud.m_CenterY = ((f32)m_ViewDimensions.Min.Y+(m_ViewDimensions.GetHeight())/2.0f);
-
-            // Ok, now lets initialize the hud elements.
-            {
-                // Centered.
-                PlayerHud.m_Reticle.m_XPos  = PlayerHud.m_CenterX;
-                PlayerHud.m_Reticle.m_YPos  = PlayerHud.m_CenterY;
-
-                PlayerHud.m_Damage.m_XPos   = PlayerHud.m_CenterX;
-                PlayerHud.m_Damage.m_YPos   = PlayerHud.m_CenterY;
-
-                PlayerHud.m_Icon.m_XPos     = PlayerHud.m_CenterX;
-                PlayerHud.m_Icon.m_YPos     = PlayerHud.m_CenterY;
-
-                // Top left.
-                PlayerHud.m_Text.m_XPos     = PlayerHud.m_XPos;
-                PlayerHud.m_Text.m_YPos     = PlayerHud.m_YPos;               
-
-                // Bottom left.
-                PlayerHud.m_Health.m_XPos   = PlayerHud.m_XPos;
-                PlayerHud.m_Health.m_YPos   = PlayerHud.m_Height + PlayerHud.m_YPos;
-
-                PlayerHud.m_Vote.m_XPos     = 210;
-                PlayerHud.m_Vote.m_YPos     = 332;
-
-                // Bottom right.
-                PlayerHud.m_Ammo.m_XPos     = PlayerHud.m_XPos + PlayerHud.m_Width;
-                PlayerHud.m_Ammo.m_YPos     = PlayerHud.m_YPos + PlayerHud.m_Height;
-
-                PlayerHud.m_Scanner.m_XPos  = PlayerHud.m_XPos + PlayerHud.m_Width;
-                PlayerHud.m_Scanner.m_YPos  = PlayerHud.m_YPos + PlayerHud.m_Height;
-
-                // Top right.
-                PlayerHud.m_InfoBox.m_XPos  = PlayerHud.m_XPos + PlayerHud.m_Width;
-                PlayerHud.m_InfoBox.m_YPos  = PlayerHud.m_YPos;
-
-                // Sniper
-                PlayerHud.m_Sniper.m_ViewDimensions = m_ViewDimensions;
-
-                PlayerHud.m_Text.SetMaxWidth( s32(PlayerHud.m_Width) - 4 );
-            }
-
-
-            i++;
+            // Get the next player.
+            PlayerSlot = g_ObjMgr.GetNext( PlayerSlot ) ;
         }
-
-        // Get the next player.
-        PlayerSlot = g_ObjMgr.GetNext( PlayerSlot ) ;
-    }
-*/
+    */
     m_Initialized = true;
 }
 
-BBox HudObject::GetLocalBBox( ) const
+BBox HudObject::GetLocalBBox() const
 {
-    return BBox( GetPosition(), 50.0f );
+    return BBox(GetPosition(), 50.0f);
+}
+
+void HudObject::SetupLetterBox(bool On, float SlideTime)
+{
+    // We don't want any nasty division by zero bugs!
+    if (SlideTime == 0.0f) {
+        m_LetterBoxCurrTime = 1.0f;
+        m_LetterBoxTotalTime = 1.0f;
+    }
+
+    float CurrPercentage = m_LetterBoxCurrTime / m_LetterBoxTotalTime;
+
+    // If its on already, just change the effective speed of sliding.
+    if (On == m_bLetterBoxOn) {
+        m_LetterBoxCurrTime = SlideTime * CurrPercentage;
+        m_LetterBoxTotalTime = SlideTime;
+    }
+
+    // Looks like we have to reverse its direction too.
+    else {
+        CurrPercentage = 1.0f - CurrPercentage;
+    }
+
+    m_LetterBoxCurrTime = SlideTime * CurrPercentage;
+    m_LetterBoxTotalTime = SlideTime;
+    m_bLetterBoxOn = On;
 }

@@ -54,3 +54,43 @@ void x_ClosestPtsOnLineSegs(const Vector3& StartA, const Vector3& EndA, // IN
 
     x_ClosestPtsOnLineSegs(StartA, EndA, StartB, EndB, PtOnA, PtOnB, TA, TB);
 }
+
+float Vector3::ClosestPointToRectangle(const Vector3& P0, // Origin from the edges.
+                                       const Vector3& E0,
+                                       const Vector3& E1,
+                                       Vector3&       OutClosestPoint) const
+{
+    Vector3 kDiff = P0 - *this;
+    float   fA00 = E0.LengthSquared();
+    float   fA11 = E1.LengthSquared();
+    float   fB0 = kDiff.Dot(E0);
+    float   fB1 = kDiff.Dot(E1);
+    float   fS = -fB0;
+    float   fT = -fB1;
+    float   fSqrDist = kDiff.LengthSquared();
+
+    if (fS < 0.0f) {
+        fS = 0.0f;
+    } else if (fS <= fA00) {
+        fS /= fA00;
+        fSqrDist += fB0 * fS;
+    } else {
+        fS = 1.0f;
+        fSqrDist += fA00 + 2.0f * fB0;
+    }
+
+    if (fT < 0.0f) {
+        fT = 0.0f;
+    } else if (fT <= fA11) {
+        fT /= fA11;
+        fSqrDist += fB1 * fT;
+    } else {
+        fT = 1.0f;
+        fSqrDist += fA11 + 2.0f * fB1;
+    }
+
+    // Set the closest point
+    OutClosestPoint = P0 + (E0 * fS) + (E1 * fT);
+
+    return abs(fSqrDist);
+}

@@ -12,7 +12,10 @@ set(ANIM_SOURCES
         animation/animData.cpp
         animation/animData.h
         animation/animDecompress.cpp
+        animation/animGroup.cpp
         animation/AnimEvent.cpp
+        animation/AnimInfo.cpp
+        animation/AnimKeyData.cpp
         animation/AnimPlayer.cpp
         animation/AnimPlayer.h
         animation/AnimTrack.cpp
@@ -167,6 +170,14 @@ target_sources(a51lib PRIVATE
         DFSFile.h
         EventMgr.cpp
         EventMgr.h
+        fx/fx_Ctrl.cpp
+        fx/fx_Effect.cpp
+        fx/fx_Element.cpp
+        fx/fx_Handle.cpp
+        fx/fx_Mgr_insert.h
+        fx/fx_Mgr_private.h
+        fx/fx_Mgr.cpp
+        fx/fx_Mgr.h
         GameGlobals.cpp
         Guid.cpp
         Guid.h
@@ -274,6 +285,8 @@ target_sources(a51lib PRIVATE
         xfiles/xfs.h
         xfiles/xHandle.h
         xfiles/xHandleArray.h
+        zoneManager/ZoneManager.cpp
+        zoneManager/ZoneManager.h
 
 	${GLTF_SOURCES}
         ${ANIM_SOURCES}

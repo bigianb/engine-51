@@ -1,15 +1,16 @@
 #include "Property.h"
+#include "xfiles/xfs.h"
 
 #include <vector>
 #include <cassert>
 
-extern const char* const  k_EnumEndStringConst    = "LAST_ENUM_STRING_90210";
-extern const int    k_MaxEnumInTable        = 10000;
-char         g_EnumStringOut[255]    = {0};
+extern const char* const k_EnumEndStringConst = "LAST_ENUM_STRING_90210";
+extern const int         k_MaxEnumInTable = 10000;
+char                     g_EnumStringOut[255] = {0};
 
-prop_query              g_PropQuery;
-std::vector<prop_container>  g_PropContainer;
-prop_enum               g_PropEnum;
+prop_query                  g_PropQuery;
+std::vector<prop_container> g_PropContainer;
+prop_enum                   g_PropEnum;
 
 void prop_interface::OnLoad(text_in& TextIn)
 {
@@ -711,4 +712,166 @@ int prop_container::GetDataSize() const
     }
 
     return 0;
+}
+
+const char* prop_enum::node::GetName() const
+{
+    return m_Name;
+}
+uint32_t prop_enum::node::GetType() const
+{
+    return m_Type;
+}
+const char* prop_enum::node::GetComment() const
+{
+    return m_pComment;
+}
+void prop_enum::node::SetFlags(uint32_t Flags)
+{
+    m_Type |= Flags;
+}
+
+prop_enum::node::node()
+{
+    m_Name[0] = 0;
+}
+
+int prop_enum::PushPath(const char* pPath)
+{
+    assert(pPath);
+    int i;
+    int Old = m_iRootPath;
+
+    for (i = 0; (m_RootPath[m_iRootPath + i] = pPath[i]); i++) {
+        assert(i < 256);
+    }
+
+    m_iRootPath += i;
+    return Old;
+}
+
+void prop_enum::PopPath(int iPath)
+{
+    m_iRootPath = iPath;
+    m_RootPath[m_iRootPath] = 0;
+}
+
+const char* prop_enum::GetRootPath()
+{
+    return m_RootPath;
+}
+
+prop_enum::prop_enum()
+{
+    m_RootPath[0] = 0;
+    m_iRootPath = 0;
+}
+
+/*
+void prop_enum::_PropEnumBool    ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_BOOL    ); }
+void prop_enum::_PropEnumInt     ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_INT     ); }
+void prop_enum::_PropEnumFloat   ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_FLOAT   ); }
+void prop_enum::_PropEnumVector2 ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_VECTOR2 ); }
+void prop_enum::_PropEnumVector3 ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_VECTOR3 ); }
+void prop_enum::_PropEnumRotation( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_ROTATION); }
+void prop_enum::_PropEnumAngle   ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_ANGLE   ); }
+void prop_enum::_PropEnumBBox    ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_BBOX    ); }
+void prop_enum::_PropEnumGuid    ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_GUID    ); }
+void prop_enum::_PropEnumColor   ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_COLOR   ); }
+void prop_enum::_PropEnumString  ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_STRING  ); }
+void prop_enum::_PropEnumButton  ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_BUTTON  ); }
+void prop_enum::_PropEnumHeader  ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_HEADER  ); }
+*/
+
+int prop_enum::GetCount()
+{
+    return m_lList.size();
+}
+void prop_enum::Clear()
+{
+    m_lList.clear();
+}
+prop_enum::node& prop_enum::operator[](int Index)
+{
+    return m_lList[Index];
+}
+
+int prop_enum::node::GetEnumCount() const
+{
+    int nEnums = 0;
+    for (int i = 0; m_String[i]; i++) {
+        for (; m_String[i]; i++)
+            ;
+        nEnums++;
+    }
+    return nEnums;
+}
+
+const char* prop_enum::node::GetEnumType(int Index) const
+{
+    int nEnums = 0;
+    for (int i = 0; m_String[i]; i++) {
+        if (nEnums == Index) {
+            return &m_String[i];
+        }
+        for (; m_String[i]; i++)
+            ;
+        nEnums++;
+    }
+    return NULL;
+}
+
+void prop_enum::_PropEnumEnum(const char* pName, const char* pEnum, uint32_t Flags)
+{
+    assert(pEnum);
+
+    node& Node = m_lList.emplace_back();
+
+    Node.Set((const char*)xfs("%s%s", m_RootPath, pName), "", Flags | PROP_TYPE_ENUM);
+
+    int Len = 0;
+    while ((pEnum[Len] != 0) || (pEnum[Len + 1] != 0)) {
+        Len++;
+    }
+    /* IJB
+    Node.m_String.SetLength(Len + 1);
+    memmove(&Node.m_String[0], pEnum, Len + 2);
+    */
+}
+
+void prop_enum::_PropEnumFileName(const char* pName, const char* pExt, uint32_t Flags)
+
+{
+    node& Node = m_lList.emplace_back();
+    Node.Set((const char*)xfs("%s%s", m_RootPath, pName), "", Flags | PROP_TYPE_FILENAME);
+
+    assert(pExt);
+    //assert(strlen(pExt) < X_MAX_PATH);
+    Node.m_String = pExt;
+}
+
+void prop_enum::_PropEnumExternal(const char* pName, const char* TypeInfo, uint32_t Flags)
+{
+    assert(TypeInfo);
+
+    node& Node = m_lList.emplace_back();
+    Node.Set((const char*)xfs("%s%s", m_RootPath, pName), "", Flags | PROP_TYPE_EXTERNAL);
+
+    int Len = 0;
+    while ((TypeInfo[Len] != 0) || (TypeInfo[Len + 1] != 0)) {
+        Len++;
+    }
+    /* IJB
+    Node.m_String.SetLength(Len + 1);
+    memmove(&Node.m_String[0], TypeInfo, Len + 2);
+*/
+}
+
+void prop_enum::node::Set(const char* pString, const char* pComment, uint32_t aFlags)
+{
+    assert(pString);
+    assert(strlen(pString) < 128);
+    strcpy(m_Name, pString);
+    m_Type = aFlags;
+    m_pComment = pComment;
 }

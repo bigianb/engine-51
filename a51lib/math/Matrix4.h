@@ -193,6 +193,12 @@ public:
         M(2, 3) = T;
     }
 
+    void Rotate(const Radian3& Rotation)
+    {
+        Matrix4 RM(Rotation);
+        *this = RM * *this;
+    }
+
     void RotateX(Radian Rx)
     {
         if (Rx == 0) {
