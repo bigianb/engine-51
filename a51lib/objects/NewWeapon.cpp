@@ -28,7 +28,8 @@ int new_weapon::m_OrigScopeVramId = -1;
 int new_weapon::m_ScopeRefCount = 0;
 int new_weapon::m_ScopeTextureVramId = -1;
 
-extern bool s_bDegradeAim;
+// IJB extern bool s_bDegradeAim;
+bool s_bDegradeAim = false;
 
 //=========================================================================
 // CONSTS

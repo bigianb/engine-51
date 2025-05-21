@@ -54,7 +54,7 @@ static corpse_material_enum_pair s_CorpseMaterialEnumPair[] =
         corpse_material_enum_pair(k_EnumEndStringConst, Object::MAT_TYPE_NULL)};
 enum_table<int> s_CorpseMaterialEnum(s_CorpseMaterialEnumPair);
 
-extern bool g_level_loading;
+//extern bool g_level_loading;
 extern bool g_bBloodEnabled;
 extern bool g_bRagdollsEnabled;
 
@@ -512,12 +512,13 @@ bool corpse::Initialize(const char* pGeomName,
 
 bool corpse::InitializeEditorPlaced(void)
 {
+/* IJB
     // Skip if loading since the static world is not yet loaded and corpses will fall forever! -
     // the main app or editor will call this function again after loading.
     if (g_level_loading) {
         return false;
     }
-/* IJB
+
     // Valid?
     if ((!GetSkinInst().GetSkinGeomName()) || (!GetSkinInst().GetSkinGeom()) || (m_AnimGroupName == -1) || (m_AnimName == -1)) {
         return false;

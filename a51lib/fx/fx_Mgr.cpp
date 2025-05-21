@@ -99,14 +99,14 @@ fx_element_reg::fx_element_reg(const char*           pName,
 
     fx_mgr::m_NElementTypes += 1;
 }
-extern int fx_Plane;
-extern int fx_Sprite;
-extern int fx_Sphere;
-extern int fx_Cylinder;
-extern int fx_SPEmitter;
-extern int fx_ShockWave;
-extern int fx_LinearKeyCtrl;
-extern int fx_SmoothKeyCtrl;
+// extern int fx_Plane;
+// extern int fx_Sprite;
+// extern int fx_Sphere;
+// extern int fx_Cylinder;
+// extern int fx_SPEmitter;
+// extern int fx_ShockWave;
+// extern int fx_LinearKeyCtrl;
+// extern int fx_SmoothKeyCtrl;
 
 fx_mgr::fx_mgr()
 {
@@ -129,14 +129,14 @@ fx_mgr::fx_mgr()
     s_DefaultBounds.Clear();
 
     // Damn linker!
-    fx_Plane = 0;
-    fx_Sprite = 0;
-    fx_Sphere = 0;
-    fx_Cylinder = 0;
-    fx_SPEmitter = 0;
-    fx_ShockWave = 0;
-    fx_LinearKeyCtrl = 0;
-    fx_SmoothKeyCtrl = 0;
+    // fx_Plane = 0;
+    // fx_Sprite = 0;
+    // fx_Sphere = 0;
+    // fx_Cylinder = 0;
+    // fx_SPEmitter = 0;
+    // fx_ShockWave = 0;
+    // fx_LinearKeyCtrl = 0;
+    // fx_SmoothKeyCtrl = 0;
 }
 
 //==============================================================================

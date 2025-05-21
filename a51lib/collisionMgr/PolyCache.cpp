@@ -16,6 +16,8 @@ int g_n32Clusters = POLYCACHE_MAX_32_CLUSTERS;
 Vector3    s_InvalidateMarker[128];
 int        s_nInvalidateMarkers = 0;
 
+poly_cache g_PolyCache;
+
 #define DO_LOGGING (0)
 
 guid POLYCACHE_INVALIDATE_GUID[32] = {0};

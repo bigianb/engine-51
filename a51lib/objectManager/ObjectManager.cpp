@@ -72,6 +72,8 @@ bool object_desc::OnProperty(prop_query& I)
     return true;
 }
 
+
+
 ObjectManager::ObjectManager()
 {
     m_InLoop = false;

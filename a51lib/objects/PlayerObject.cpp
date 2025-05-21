@@ -1502,12 +1502,11 @@ void player::OnExitFreeCam(Vector3& NewPos)
     m_Physics.SetPosition(NewPos);
 
     // Grab the current view orientation, clear any death states
-#if !defined(X_EDITOR)
+
     g_View.GetPitchYaw(m_Pitch, m_Yaw);
     SetAnimState(ANIM_STATE_IDLE);
     EndDeath();
     GetView().SetRotation(Radian3(m_Pitch, m_Yaw, R_0));
-#endif
 }
 
 //===========================================================================

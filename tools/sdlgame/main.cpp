@@ -6,6 +6,9 @@
 #include "../../a51lib/levels/LevelLoader.h"
 #include "../../a51lib/objectManager/ObjectManager.h"
 #include "system/SDL_Renderer.h"
+#include "../../a51lib/view/View.h"
+
+view g_View;
 
 struct Context
 {

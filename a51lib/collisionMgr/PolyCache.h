@@ -133,8 +133,10 @@ public:
     //  Public Functions
     //------------------------------------------------------------------------------
 public:
-    poly_cache(ObjectManager* pObjMgr);
+    poly_cache(ObjectManager* pObjMgr = nullptr);
     ~poly_cache();
+
+    void setObjectManager(ObjectManager* pObjMgr) { objectManager = pObjMgr; }
 
     void Init(int n8Clusters,
               int n16Clusters,
@@ -195,10 +197,10 @@ public:
                              const guid*    pIgnoreList = NULL,
                              int            nIgnores = 0);
 
-    cluster* GetNextClusterFromRayWalk(void);
+    cluster* GetNextClusterFromRayWalk();
 
 private:
-    bool         StepRayClusterWalker(void);
+    bool         StepRayClusterWalker();
     Object::type m_ThisType;
     uint32_t     m_TheseAttributes;
     uint32_t     m_NotTheseAttributes;

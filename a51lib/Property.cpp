@@ -756,32 +756,27 @@ void prop_enum::PopPath(int iPath)
     m_RootPath[m_iRootPath] = 0;
 }
 
-const char* prop_enum::GetRootPath()
-{
-    return m_RootPath;
-}
-
 prop_enum::prop_enum()
 {
     m_RootPath[0] = 0;
     m_iRootPath = 0;
 }
 
-/*
-void prop_enum::_PropEnumBool    ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_BOOL    ); }
-void prop_enum::_PropEnumInt     ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_INT     ); }
-void prop_enum::_PropEnumFloat   ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_FLOAT   ); }
-void prop_enum::_PropEnumVector2 ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_VECTOR2 ); }
-void prop_enum::_PropEnumVector3 ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_VECTOR3 ); }
-void prop_enum::_PropEnumRotation( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_ROTATION); }
-void prop_enum::_PropEnumAngle   ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_ANGLE   ); }
-void prop_enum::_PropEnumBBox    ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_BBOX    ); }
-void prop_enum::_PropEnumGuid    ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_GUID    ); }
-void prop_enum::_PropEnumColor   ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_COLOR   ); }
-void prop_enum::_PropEnumString  ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_STRING  ); }
-void prop_enum::_PropEnumButton  ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_BUTTON  ); }
-void prop_enum::_PropEnumHeader  ( const char* pName, uint32_t Flags ) { m_lList.Append().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_HEADER  ); }
-*/
+
+void prop_enum::_PropEnumBool    ( const char* pName, uint32_t Flags ) { m_lList.emplace_back().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_BOOL    ); }
+void prop_enum::_PropEnumInt     ( const char* pName, uint32_t Flags ) { m_lList.emplace_back().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_INT     ); }
+void prop_enum::_PropEnumFloat   ( const char* pName, uint32_t Flags ) { m_lList.emplace_back().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_FLOAT   ); }
+void prop_enum::_PropEnumVector2 ( const char* pName, uint32_t Flags ) { m_lList.emplace_back().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_VECTOR2 ); }
+void prop_enum::_PropEnumVector3 ( const char* pName, uint32_t Flags ) { m_lList.emplace_back().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_VECTOR3 ); }
+void prop_enum::_PropEnumRotation( const char* pName, uint32_t Flags ) { m_lList.emplace_back().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_ROTATION); }
+void prop_enum::_PropEnumAngle   ( const char* pName, uint32_t Flags ) { m_lList.emplace_back().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_ANGLE   ); }
+void prop_enum::_PropEnumBBox    ( const char* pName, uint32_t Flags ) { m_lList.emplace_back().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_BBOX    ); }
+void prop_enum::_PropEnumGuid    ( const char* pName, uint32_t Flags ) { m_lList.emplace_back().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_GUID    ); }
+void prop_enum::_PropEnumColor   ( const char* pName, uint32_t Flags ) { m_lList.emplace_back().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_COLOR   ); }
+void prop_enum::_PropEnumString  ( const char* pName, uint32_t Flags ) { m_lList.emplace_back().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_STRING  ); }
+void prop_enum::_PropEnumButton  ( const char* pName, uint32_t Flags ) { m_lList.emplace_back().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_BUTTON  ); }
+void prop_enum::_PropEnumHeader  ( const char* pName, uint32_t Flags ) { m_lList.emplace_back().Set( (const char*)xfs("%s%s",m_RootPath,pName), "", Flags|PROP_TYPE_HEADER  ); }
+
 
 int prop_enum::GetCount()
 {

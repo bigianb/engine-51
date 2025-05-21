@@ -5,9 +5,12 @@
 #include "../objects/Object.h"
 #include "CollisionPrimatives.h"
 #include "../objectManager/ObjectManager.h"
+#include "PolyCache.h"
 
 class poly_cache;
 class PlaysurfaceMgr;
+
+extern poly_cache g_PolyCache;
 
 //==============================================================================
 
@@ -355,6 +358,7 @@ public:
     void setObjectManager(ObjectManager* pObjectManager)
     {
         objectManager = pObjectManager;
+        g_PolyCache.setObjectManager(pObjectManager);   // IJB Hack
     }
 
     void setPlaysurfaceManager(PlaysurfaceMgr* psm)

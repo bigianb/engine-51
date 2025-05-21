@@ -305,8 +305,8 @@ public:
 
         friend class prop_enum;
     };
-    prop_enum(void);
-    virtual ~prop_enum(void) {};
+    prop_enum();
+    virtual ~prop_enum() {};
 
 #define PropEnumHeader(a, b, c) _PropEnumHeader(a, c)
 #define PropEnumBool(a, b, c) _PropEnumBool(a, c)
@@ -351,7 +351,7 @@ public:
     //void            SetCapacity     ( int Capacity ) { m_lList.SetCapacity( Capacity ); }
 
 protected:
-    const char* GetRootPath(void);
+    const char* GetRootPath() { return m_RootPath; }
 
 protected:
     std::vector<node> m_lList;
