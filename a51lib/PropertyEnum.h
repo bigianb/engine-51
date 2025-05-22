@@ -3,7 +3,7 @@
 #include <vector>
 #include <cassert>
 
-extern const char* k_EnumEndStringConst;
+extern const char* const k_EnumEndStringConst;
 extern const int   k_MaxEnumInTable;
 extern char        g_EnumStringOut[255];
 
