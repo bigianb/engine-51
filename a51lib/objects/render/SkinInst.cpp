@@ -50,7 +50,7 @@ static struct skin_loader : public rsc_loader
 } s_Skin_Geom_Loader;
 */
 
-skin_inst::skin_inst( ) :
+skin_inst::skin_inst(ResourceManager* rm) : m_hSkinGeom(rm),
     render_inst(),
     m_MinAmbient(0,0,0,255),
     m_OtherAmbientAmount(0.4f)
@@ -227,7 +227,7 @@ void skin_inst::SetUpSkinGeom( std::string fileName)
     if( pSkinGeom )
     {
         // Register the instance with the Render Manager
-        m_hInst = render::RegisterSkinInstance( *pSkinGeom );
+        m_hInst = render::RegisterSkinInstance( *pSkinGeom, m_hSkinGeom.resourceManager);
     }
 }
 

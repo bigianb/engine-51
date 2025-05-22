@@ -159,6 +159,8 @@ struct private_geom
 
 struct texture_projection
 {
+    texture_projection() : Texture(nullptr){}
+
     Matrix4         L2W;
     Radian          FOV;
     float           Length;
@@ -189,9 +191,9 @@ static int                          s_LoHashMark; // below this needs sorting
 static int                          s_HiHashMark; // above this is a duplicate key (no need to sort)
 static int16_t                      s_HashTable[kMaxRenderedInstances];
 static std::vector<sort_struct>     s_lSortData;
-static xharray<private_geom>        s_lRegisteredGeoms;
-static xharray<private_instance>    s_lRegisteredInst;
-static material_array               s_lRegisteredMaterials;
+static xharray<private_geom>*        s_lRegisteredGeoms = nullptr;
+static xharray<private_instance>*    s_lRegisteredInst = nullptr;
+static material_array*              s_lRegisteredMaterials = nullptr;
 static std::vector<render_instance> s_lRenderInst;
 static std::vector<distortion_info> s_lDistortionInfo;
 
@@ -255,15 +257,15 @@ inline bool IsAlphaMaterial(material_type Type)
 static uint32_t           HashFn(uint32_t SortKey);
 static render_instance&   AddToHashHybrid(uint32_t SortKey);
 static xhandle            FindMaterial(material& Material);
-static void               RegisterMaterials(Geom&);
+static void               RegisterMaterials(Geom&, ResourceManager*);
 static void               UnregisterMaterials(Geom&);
-static void               RegisterGeom(Geom&);
+static void               RegisterGeom(Geom&, ResourceManager*);
 static uint32_t           GetRenderOrder(material_type Type);
 static void               ComputeBaseSortKeys(Geom&, geom_type Type);
 static void               UnregisterGeom(Geom&);
-static void               RegisterRigidGeom(RigidGeom&);
+static void               RegisterRigidGeom(RigidGeom&, ResourceManager* rm);
 static void               UnregisterRigidGeom(RigidGeom&);
-static void               RegisterSkinGeom(RigidGeom&);
+static void               RegisterSkinGeom(RigidGeom&, ResourceManager* rm);
 static void               UnregisterSkinGeom(RigidGeom&);
 static render::hgeom_inst AddPrivateInstance(Geom&, geom_type Type);
 static void               RemovePrivateInstance(render::hgeom_inst hInst);
@@ -351,11 +353,11 @@ static render_instance& AddToHashHybrid(uint32_t SortKey)
 
 static xhandle FindMaterial(material& mat)
 {
-    for (int i = 0; i < s_lRegisteredMaterials.GetCount(); i++) {
-        material& M = s_lRegisteredMaterials[i];
+    for (int i = 0; i < s_lRegisteredMaterials->GetCount(); i++) {
+        material& M = (*s_lRegisteredMaterials)[i];
 
         if (M == mat) {
-            return s_lRegisteredMaterials.GetHandleByIndex(i);
+            return s_lRegisteredMaterials->GetHandleByIndex(i);
         }
     }
 
@@ -364,11 +366,11 @@ static xhandle FindMaterial(material& mat)
 
 //=============================================================================
 
-static void RegisterMaterials(Geom& geom)
+static void RegisterMaterials(Geom& geom, ResourceManager* rm)
 {
     // Register all the materials in the geom
     for (int iMat = 0; iMat < geom.numMaterials; iMat++) {
-        material Mat;
+        material Mat(rm);
 
         // get the next material used by the geom
         Geom::Material& GeomMat = geom.materials[iMat];
@@ -439,14 +441,14 @@ static void RegisterMaterials(Geom& geom)
                 // which will fragment memory, and we are possibly going over
                 // the max number of materials that will fit within the sort
                 // key. This could cause material corruptions.
-                assert(s_lRegisteredMaterials.GetCount() < kMaxRegisteredMaterials);
-                material& NewMat = s_lRegisteredMaterials.Add(Handle);
+                assert(s_lRegisteredMaterials->GetCount() < kMaxRegisteredMaterials);
+                material& NewMat = s_lRegisteredMaterials->Add(Handle);
                 NewMat = Mat;
             }
 
             // finally, we can add a ref to this material, and let the geometry know its
             // material handle
-            material& FinalMat = s_lRegisteredMaterials(Handle);
+            material& FinalMat = (*s_lRegisteredMaterials)(Handle);
             FinalMat.AddRef();
 
             // let the geometry know where its registered material can be found
@@ -468,10 +470,10 @@ static void UnregisterMaterials(Geom& geom)
 
         for (int iVMat = 0; iVMat < GeomMat.nVirtualMats; iVMat++) {
             xhandle   Handle = geom.virtualMaterials[GeomMat.iVirtualMat + iVMat].MatHandle;
-            material& Mat = s_lRegisteredMaterials(Handle);
+            material& Mat = (*s_lRegisteredMaterials)(Handle);
             Mat.Release();
             if (Mat.GetRefCount() == 0) {
-                s_lRegisteredMaterials.DeleteByHandle(Handle);
+                s_lRegisteredMaterials->DeleteByHandle(Handle);
             }
         }
     }
@@ -479,20 +481,20 @@ static void UnregisterMaterials(Geom& geom)
 
 //=============================================================================
 
-static void RegisterGeom(Geom& geom)
+static void RegisterGeom(Geom& geom, ResourceManager* rm)
 {
     // register the geometry
     assert(geom.m_hGeom == HNULL);
     assert(geom.GetRefCount() == 0);
-    assert(s_lRegisteredGeoms.GetCount() < kMaxRegisteredGeoms);
-    private_geom& RegGeom = s_lRegisteredGeoms.Add(geom.m_hGeom);
+    assert(s_lRegisteredGeoms->GetCount() < kMaxRegisteredGeoms);
+    private_geom& RegGeom = s_lRegisteredGeoms->Add(geom.m_hGeom);
 
     // this pointer isn't really needed, but will be nice for sanity checking
     // later on
     RegGeom.pGeom = &geom;
 
     // register the materials this geometry uses
-    RegisterMaterials(geom);
+    RegisterMaterials(geom, rm);
 }
 
 //=============================================================================
@@ -555,16 +557,16 @@ static void UnregisterGeom(Geom& geom)
     UnregisterMaterials(geom);
 
     // unregister the geom
-    assert(s_lRegisteredGeoms(geom.m_hGeom).pGeom == &geom);
-    s_lRegisteredGeoms.DeleteByHandle(geom.m_hGeom);
+    assert((*s_lRegisteredGeoms)(geom.m_hGeom).pGeom == &geom);
+    s_lRegisteredGeoms->DeleteByHandle(geom.m_hGeom);
     geom.m_hGeom = HNULL;
 }
 
 //=============================================================================
 
-static void RegisterRigidGeom(RigidGeom& geom)
+static void RegisterRigidGeom(RigidGeom& geom, ResourceManager* rm)
 {
-    RegisterGeom(geom);
+    RegisterGeom(geom, rm);
     ComputeBaseSortKeys(geom, TYPE_RIGID);
     //platform_RegisterRigidGeom(geom);
 }
@@ -579,9 +581,9 @@ static void UnregisterRigidGeom(RigidGeom& geom)
 
 //=============================================================================
 
-static void RegisterSkinGeom(SkinGeom& geom)
+static void RegisterSkinGeom(SkinGeom& geom, ResourceManager* rm)
 {
-    RegisterGeom(geom);
+    RegisterGeom(geom, rm);
     ComputeBaseSortKeys(geom, TYPE_SKIN);
     //platform_RegisterSkinGeom(geom);
 }
@@ -603,8 +605,8 @@ static render::hgeom_inst AddPrivateInstance(Geom& geom, geom_type Type)
 
     // add the instance
     render::hgeom_inst Handle;
-    assert(s_lRegisteredInst.GetCount() < kMaxRegisteredInstances);
-    private_instance& Inst = s_lRegisteredInst.Add(Handle);
+    assert(s_lRegisteredInst->GetCount() < kMaxRegisteredInstances);
+    private_instance& Inst = s_lRegisteredInst->Add(Handle);
     Inst.pGeom = &geom;
     Inst.Type = Type;
 
@@ -617,11 +619,11 @@ static render::hgeom_inst AddPrivateInstance(Geom& geom, geom_type Type)
 static void RemovePrivateInstance(render::hgeom_inst hInst)
 {
     // decrement the geom's ref count
-    private_instance& Inst = s_lRegisteredInst(hInst);
+    private_instance& Inst = (*s_lRegisteredInst)(hInst);
     Inst.pGeom->Release();
 
     // delete the instance
-    s_lRegisteredInst.DeleteByHandle(hInst);
+    s_lRegisteredInst->DeleteByHandle(hInst);
 }
 
 //=============================================================================
@@ -762,16 +764,21 @@ int render::GetHardwareBufferSize(void)
 
 //=============================================================================
 
-void render::Init()
+void render::Init(ResourceManager* rm)
 {
     s_PulseTime = 0.0f;
 
-    s_lRegisteredGeoms.Clear();
-    s_lRegisteredGeoms.GrowListBy(kMaxRegisteredGeoms);
-    s_lRegisteredInst.Clear();
-    s_lRegisteredInst.GrowListBy(kMaxRegisteredInstances);
-    s_lRegisteredMaterials.Clear();
-    s_lRegisteredMaterials.GrowListBy(kMaxRegisteredMaterials);
+    s_lRegisteredGeoms = new xharray<private_geom>(rm);
+    s_lRegisteredGeoms->Clear();
+    s_lRegisteredGeoms->GrowListBy(kMaxRegisteredGeoms);
+
+    s_lRegisteredInst = new xharray<private_instance>(rm);
+    s_lRegisteredInst->Clear();
+    s_lRegisteredInst->GrowListBy(kMaxRegisteredInstances);
+
+    s_lRegisteredMaterials = new material_array(rm);
+    s_lRegisteredMaterials->Clear();
+    s_lRegisteredMaterials->GrowListBy(kMaxRegisteredMaterials);
    // s_lRenderInst.Clear();
    // s_lRenderInst.SetCapacity(kMaxRenderedInstances);
    // s_lRenderInst.SetCount(kMaxRenderedInstances);
@@ -791,12 +798,12 @@ void render::Kill(void)
 {
     //platform_Kill();
 
-    assert(s_lRegisteredGeoms.GetCount() == 0);
-    assert(s_lRegisteredInst.GetCount() == 0);
-    assert(s_lRegisteredMaterials.GetCount() == 0);
-    s_lRegisteredGeoms.Clear();
-    s_lRegisteredInst.Clear();
-    s_lRegisteredMaterials.Clear();
+    assert(s_lRegisteredGeoms->GetCount() == 0);
+    assert(s_lRegisteredInst->GetCount() == 0);
+    assert(s_lRegisteredMaterials->GetCount() == 0);
+    s_lRegisteredGeoms->Clear();
+    s_lRegisteredInst->Clear();
+    s_lRegisteredMaterials->Clear();
   //  s_lRenderInst.Clear();
   //  s_lSortData.Clear();
 }
@@ -808,7 +815,7 @@ void render::Update(float DeltaTime)
     s_PulseTime += DeltaTime;
 
     // update all uv animations
-    s_lRegisteredMaterials.Update(DeltaTime);
+    s_lRegisteredMaterials->Update(DeltaTime);
 }
 
 //=============================================================================
@@ -920,17 +927,17 @@ void render::SetDistortionMaterial(int BlendMode, bool ZTestEnabled)
 
 //=============================================================================
 
-render::hgeom_inst render::RegisterRigidInstance(RigidGeom& geom)
+render::hgeom_inst render::RegisterRigidInstance(RigidGeom& geom, ResourceManager* rm)
 {
     assert(!s_InRenderBegin && !s_InShadowBegin && !s_InRawBegin);
 
     // register the geom if that hasn't been done yet
     if (geom.GetRefCount() == 0) {
-        RegisterRigidGeom(geom);
+        RegisterRigidGeom(geom, rm);
     }
 
     // safety check
-    assert(s_lRegisteredGeoms(geom.m_hGeom).pGeom == &geom);
+    assert((*s_lRegisteredGeoms)(geom.m_hGeom).pGeom == &geom);
 
     // add the instance
     render::hgeom_inst Handle = AddPrivateInstance(geom, TYPE_RIGID);
@@ -948,7 +955,7 @@ void render::UnregisterRigidInstance(hgeom_inst hInst)
     // do we need to unregister the geom?
     bool bUnregisterGeom = false;
     ;
-    private_instance& Inst = s_lRegisteredInst(hInst);
+    private_instance& Inst = (*s_lRegisteredInst)(hInst);
     assert(Inst.Type == TYPE_RIGID);
     if (Inst.pGeom->GetRefCount() == 1) {
         bUnregisterGeom = true;
@@ -966,17 +973,17 @@ void render::UnregisterRigidInstance(hgeom_inst hInst)
 
 //=============================================================================
 
-render::hgeom_inst render::RegisterSkinInstance(SkinGeom& geom)
+render::hgeom_inst render::RegisterSkinInstance(SkinGeom& geom, ResourceManager* rm)
 {
     assert(!s_InRenderBegin && !s_InShadowBegin && !s_InRawBegin);
 
     // register the geom if that hasn't been done yet
     if (geom.GetRefCount() == 0) {
-        RegisterSkinGeom(geom);
+        RegisterSkinGeom(geom, rm);
     }
 
     // safety check
-    assert(s_lRegisteredGeoms(geom.m_hGeom).pGeom == &geom);
+    assert((*s_lRegisteredGeoms)(geom.m_hGeom).pGeom == &geom);
 
     // add the instance
     render::hgeom_inst Handle = AddPrivateInstance(geom, TYPE_SKIN);
@@ -994,7 +1001,7 @@ void render::UnregisterSkinInstance(hgeom_inst hInst)
     // do we need to unregister the geom?
     bool bUnregisterGeom = false;
     ;
-    private_instance& Inst = s_lRegisteredInst(hInst);
+    private_instance& Inst = (*s_lRegisteredInst)(hInst);
     assert(Inst.Type == TYPE_SKIN);
     if (Inst.pGeom->GetRefCount() == 1) {
         bUnregisterGeom = true;
@@ -1018,7 +1025,7 @@ const Geom* render::GetGeom(hgeom_inst hInst)
         return NULL;
     }
 
-    private_instance& Inst = s_lRegisteredInst(hInst);
+    private_instance& Inst = (*s_lRegisteredInst)(hInst);
     return Inst.pGeom;
 }
 
@@ -1100,7 +1107,7 @@ void render::BeginNormalRender()
     s_lDistortionInfo.clear();
 
     // sort the materials
-    s_lRegisteredMaterials.Sort();
+    s_lRegisteredMaterials->Sort();
 
     // safety check
     //assert(eng_InBeginEnd());
@@ -1115,7 +1122,7 @@ void render::BeginNormalRender()
     // clear out texture and shadow projections
     s_bDoTextureProjection = false;
     s_nShadowProjections = 0;
-    texture::handle Handle;
+    //texture::handle Handle;
     //platform_SetProjectedTexture(Handle);
 
     //platform_BeginNormalRender();
@@ -1180,7 +1187,7 @@ void render::EndNormalRender()
                     pCurrentGeom = nullptr;
                 }
 
-                material& Mat = s_lRegisteredMaterials[Inst.SortKey.MatIndex];
+                material& Mat = (*s_lRegisteredMaterials)[Inst.SortKey.MatIndex];
                 assert((Mat.m_Type != Material_Distortion) &&
                        (Mat.m_Type != Material_Distortion_PerPolyEnv));
 
@@ -1335,7 +1342,7 @@ void render::EndCustomRender()
                 pCurrentGeom = nullptr;
             }
 
-            material& Mat = s_lRegisteredMaterials[Inst.SortKey.MatIndex];
+            material& Mat = (*s_lRegisteredMaterials)[Inst.SortKey.MatIndex];
         //    platform_ActivateMaterial(Mat);
             CurrentSortData.MatIndex = Inst.SortKey.MatIndex;
         } else if ((CurrentSortData.RenderOrder == ORDER_DISTORTION) &&
@@ -1353,13 +1360,13 @@ void render::EndCustomRender()
             if (Inst.OverrideMat) {
                 const distortion_info& DistortInfo = s_lDistortionInfo[(int)Inst.SortKey.MatIndex];
                 if (DistortInfo.MatIndex != 0xffffffff) {
-                    material& Mat = s_lRegisteredMaterials[DistortInfo.MatIndex];
+                    material& Mat = (*s_lRegisteredMaterials)[DistortInfo.MatIndex];
         //            platform_ActivateDistortionMaterial(&Mat, DistortInfo.NormalRot);
                 } else {
         //            platform_ActivateDistortionMaterial(NULL, DistortInfo.NormalRot);
                 }
             } else {
-                material& Mat = s_lRegisteredMaterials[Inst.SortKey.MatIndex];
+                material& Mat = (*s_lRegisteredMaterials)[Inst.SortKey.MatIndex];
         //        platform_ActivateMaterial(Mat);
             }
 
@@ -1457,7 +1464,7 @@ void render::AddRigidInstanceSimple(hgeom_inst     hInst,
     assert(s_InRenderBegin);
     //assert(pL2W->IsValid());
     // grab the useful pointers out
-    private_instance& RegisteredInst = s_lRegisteredInst(hInst);
+    private_instance& RegisteredInst = (*s_lRegisteredInst)(hInst);
     assert(RegisteredInst.Type == TYPE_RIGID);
     RigidGeom* pGeom = (RigidGeom*)RegisteredInst.pGeom;
 
@@ -1494,7 +1501,7 @@ void render::AddRigidInstanceSimple(hgeom_inst     hInst,
             // figure out the sort key
             sortkey SortKey;
             SortKey.Bits = SubMesh.baseSortKey;
-            SortKey.MatIndex = s_lRegisteredMaterials.GetIndexByHandle(hMat);
+            SortKey.MatIndex = s_lRegisteredMaterials->GetIndexByHandle(hMat);
 
             // fill in the basic render instance info
             render_instance& Inst = AddToHashHybrid(SortKey.Bits);
@@ -1503,7 +1510,7 @@ void render::AddRigidInstanceSimple(hgeom_inst     hInst,
             Inst.Alpha = 255;
 
             // get scrolling uv information
-            GetUVOffset(Inst.UOffset, Inst.VOffset, pGeom, s_lRegisteredMaterials(hMat));
+            GetUVOffset(Inst.UOffset, Inst.VOffset, pGeom, (*s_lRegisteredMaterials)(hMat));
 
             // fill in the rigid geom instance info
             Inst.Data.Rigid.pGeom = pGeom;
@@ -1536,7 +1543,7 @@ void render::AddRigidInstance(hgeom_inst     hInst,
     //assert(pL2W->IsValid());
 
     // grab the useful pointers out
-    private_instance& RegisteredInst = s_lRegisteredInst(hInst);
+    private_instance& RegisteredInst = (*s_lRegisteredInst)(hInst);
     assert(RegisteredInst.Type == TYPE_RIGID);
     RigidGeom* pGeom = (RigidGeom*)RegisteredInst.pGeom;
 
@@ -1599,7 +1606,7 @@ void render::AddRigidInstance(hgeom_inst     hInst,
             SortKey.GeomSubMesh = iSubMesh;
             SortKey.GeomHandle = pGeom->m_hGeom;
             SortKey.GeomType = 0;
-            SortKey.MatIndex = s_lRegisteredMaterials.GetIndexByHandle(hMat);
+            SortKey.MatIndex = s_lRegisteredMaterials->GetIndexByHandle(hMat);
             SortKey.RenderOrder = GetRenderOrder((material_type)Material.type);
             if ((Flags & render::FADING_ALPHA) && (SortKey.RenderOrder < ORDER_FADING_ALPHA)) {
                 SortKey.RenderOrder = ORDER_FADING_ALPHA;
@@ -1620,7 +1627,7 @@ void render::AddRigidInstance(hgeom_inst     hInst,
             Inst.Alpha = Alpha;
 
             // get scrolling uv information
-            GetUVOffset(Inst.UOffset, Inst.VOffset, pGeom, s_lRegisteredMaterials(hMat));
+            GetUVOffset(Inst.UOffset, Inst.VOffset, pGeom, (*s_lRegisteredMaterials)(hMat));
 
             // fill in the rigid geom instance info
             Inst.Data.Rigid.pGeom = pGeom;
@@ -1684,7 +1691,7 @@ void render::AddRigidInstance(hgeom_inst     hInst,
     //assert(pL2W->IsValid());
 
     // grab the useful pointers out
-    private_instance& RegisteredInst = s_lRegisteredInst(hInst);
+    private_instance& RegisteredInst = (*s_lRegisteredInst)(hInst);
     assert(RegisteredInst.Type == TYPE_RIGID);
     RigidGeom* pGeom = (RigidGeom*)RegisteredInst.pGeom;
 
@@ -1753,7 +1760,7 @@ void render::AddRigidInstance(hgeom_inst     hInst,
             SortKey.GeomSubMesh = iSubMesh;
             SortKey.GeomHandle = pGeom->m_hGeom;
             SortKey.GeomType = 0;
-            SortKey.MatIndex = s_lRegisteredMaterials.GetIndexByHandle(hMat);
+            SortKey.MatIndex = s_lRegisteredMaterials->GetIndexByHandle(hMat);
             SortKey.RenderOrder = GetRenderOrder((material_type)Material.type);
             if ((Flags & render::FADING_ALPHA) && (SortKey.RenderOrder < ORDER_FADING_ALPHA)) {
                 SortKey.RenderOrder = ORDER_FADING_ALPHA;
@@ -1774,7 +1781,7 @@ void render::AddRigidInstance(hgeom_inst     hInst,
             Inst.Alpha = Alpha;
 
             // get scrolling uv information
-            GetUVOffset(Inst.UOffset, Inst.VOffset, pGeom, s_lRegisteredMaterials(hMat));
+            GetUVOffset(Inst.UOffset, Inst.VOffset, pGeom, (*s_lRegisteredMaterials)(hMat));
 
             // fill in the rigid geom instance info
             Inst.Data.Rigid.pGeom = pGeom;
@@ -1836,7 +1843,7 @@ void render::AddSkinInstance(hgeom_inst     hInst,
     assert(s_InRenderBegin);
 
     // grab the useful pointers out
-    private_instance& RegisteredInst = s_lRegisteredInst(hInst);
+    private_instance& RegisteredInst = (*s_lRegisteredInst)(hInst);
     assert(RegisteredInst.Type == TYPE_SKIN);
     SkinGeom* pGeom = (SkinGeom*)RegisteredInst.pGeom;
 
@@ -1882,7 +1889,7 @@ void render::AddSkinInstance(hgeom_inst     hInst,
             SortKey.GeomSubMesh = iSubMesh;
             SortKey.GeomHandle = pGeom->m_hGeom;
             SortKey.GeomType = 1;
-            SortKey.MatIndex = s_lRegisteredMaterials.GetIndexByHandle(hMat);
+            SortKey.MatIndex = s_lRegisteredMaterials->GetIndexByHandle(hMat);
             SortKey.RenderOrder = GetRenderOrder((material_type)Material.type);
             if ((Flags & render::FADING_ALPHA) && (SortKey.RenderOrder < ORDER_FADING_ALPHA)) {
                 SortKey.RenderOrder = ORDER_FADING_ALPHA;
@@ -1901,7 +1908,7 @@ void render::AddSkinInstance(hgeom_inst     hInst,
             Inst.OverrideMat = false;
 
             // get scrolling uv information
-            GetUVOffset(Inst.UOffset, Inst.VOffset, pGeom, s_lRegisteredMaterials(hMat));
+            GetUVOffset(Inst.UOffset, Inst.VOffset, pGeom, (*s_lRegisteredMaterials)(hMat));
 
             // fill in the alpha
             Inst.Alpha = Ambient.a;
@@ -1921,7 +1928,7 @@ void render::AddSkinInstance(hgeom_inst     hInst,
             }
 
 #ifdef TARGET_PC
-            private_geom& PrivateGeom = s_lRegisteredGeoms(pGeom->m_hGeom);
+            private_geom& PrivateGeom = (*s_lRegisteredGeoms)(pGeom->m_hGeom);
             Inst.hDList = PrivateGeom.SkinDList[(int)SubMesh.iDList];
 #endif
 
@@ -1960,7 +1967,7 @@ void render::AddSkinInstanceDistorted(hgeom_inst     hInst,
     assert(s_InRenderBegin);
 
     // grab the useful pointers out
-    private_instance& RegisteredInst = s_lRegisteredInst(hInst);
+    private_instance& RegisteredInst = (*s_lRegisteredInst)(hInst);
     assert(RegisteredInst.Type == TYPE_SKIN);
     SkinGeom* pGeom = (SkinGeom*)RegisteredInst.pGeom;
 
@@ -2008,7 +2015,7 @@ void render::AddSkinInstanceDistorted(hgeom_inst     hInst,
                 // will break any cases where we've mixed distortion materials within
                 // a single piece of geometry. This shouldn't ever happen, but if
                 // it does, then we need a DefaultInfo per material.
-                DefaultInfo.MatIndex = s_lRegisteredMaterials.GetIndexByHandle(hMat);
+                DefaultInfo.MatIndex = s_lRegisteredMaterials->GetIndexByHandle(hMat);
             }
 
             // build the sort key
@@ -2027,7 +2034,7 @@ void render::AddSkinInstanceDistorted(hgeom_inst     hInst,
             Inst.OverrideMat = true;
 
             // get scrolling uv information
-            GetUVOffset(Inst.UOffset, Inst.VOffset, pGeom, s_lRegisteredMaterials(hMat));
+            GetUVOffset(Inst.UOffset, Inst.VOffset, pGeom, (*s_lRegisteredMaterials)(hMat));
 
             // fill in the alpha
             Inst.Alpha = Ambient.a;
@@ -2041,7 +2048,7 @@ void render::AddSkinInstanceDistorted(hgeom_inst     hInst,
             Inst.pLighting = pLighting;
 
 #ifdef TARGET_PC
-            private_geom& PrivateGeom = s_lRegisteredGeoms(pGeom->m_hGeom);
+            private_geom& PrivateGeom = (*s_lRegisteredGeoms)(pGeom->m_hGeom);
             Inst.hDList = PrivateGeom.SkinDList[(int)SubMesh.iDList];
 #endif
         }
@@ -2170,7 +2177,7 @@ void render::EndPostEffects()
 material& render::GetMaterial(hgeom_inst hInst, int iSubMesh)
 {
     // grab the useful pointers out
-    private_instance& RegisteredInst = s_lRegisteredInst(hInst);
+    private_instance& RegisteredInst = (*s_lRegisteredInst)(hInst);
 
     Geom* pGeom = RegisteredInst.pGeom;
     assert(pGeom);
@@ -2181,7 +2188,7 @@ material& render::GetMaterial(hgeom_inst hInst, int iSubMesh)
     xhandle         hMat = pGeom->virtualMaterials[Material.iVirtualMat].MatHandle;
     assert((hMat >= 0) && (hMat < kMaxRegisteredMaterials));
 
-    return s_lRegisteredMaterials(hMat);
+    return (*s_lRegisteredMaterials)(hMat);
 }
 
 //=============================================================================
@@ -2214,7 +2221,7 @@ texture* render::GetVTexture(const Geom* pGeom,
     const Geom::Material&         GeomMat = pGeom->materials[iMaterial];
     const Geom::VirtualMaterial& GeomVMat = pGeom->virtualMaterials[GeomMat.iVirtualMat + VMatOffset];
     xhandle                       hMat = GeomVMat.MatHandle;
-    material&                     Mat = s_lRegisteredMaterials(hMat);
+    material&                     Mat = (*s_lRegisteredMaterials)(hMat);
 
     return Mat.m_DiffuseMap.getPointer();
 }
@@ -2501,7 +2508,7 @@ void render::AddSkinCaster(render::hgeom_inst hInst,
                            uint64_t           ProjMask)
 {
     // grab the useful pointers out
-    private_instance& RegisteredInst = s_lRegisteredInst(hInst);
+    private_instance& RegisteredInst = (*s_lRegisteredInst)(hInst);
     assert(RegisteredInst.Type == TYPE_SKIN);
     SkinGeom* pGeom = (SkinGeom*)RegisteredInst.pGeom;
 
@@ -2570,7 +2577,7 @@ void render::AddRigidReceiverSimple(render::hgeom_inst hInst,
     //assert(pL2W->IsValid());
 
     // grab the useful pointers out
-    private_instance& RegisteredInst = s_lRegisteredInst(hInst);
+    private_instance& RegisteredInst = (*s_lRegisteredInst)(hInst);
     assert(RegisteredInst.Type == TYPE_RIGID);
     RigidGeom* pGeom = (RigidGeom*)RegisteredInst.pGeom;
 

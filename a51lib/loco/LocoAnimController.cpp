@@ -4,8 +4,9 @@
 //=========================================================================
 // FUNCTIONS
 //=========================================================================
-loco_anim_controller::loco_anim_controller()
-    : m_iAnim(-1)
+loco_anim_controller::loco_anim_controller(ResourceManager* rm)
+    : m_hAnimGroup(rm)
+    , m_iAnim(-1)
     , // Index of current anim
     m_iAnimType(-1)
     , // Index that was passed into "SetAnim" call
@@ -785,17 +786,16 @@ void loco_anim_controller::AdditiveMixKeys(const info& Info, int iAnim, float Fr
         // Add delta on top of current keys
         pDestKey[i].rotation = AddKey.rotation * pDestKey[i].rotation;
         pDestKey[i].translation = AddKey.translation + pDestKey[i].translation;
-
     }
 }
 
 //=========================================================================
 
-void loco_anim_controller::MaskedMixKeys(const info&     Info,
-                                         int             iAnim,
-                                         float           Frame,
+void loco_anim_controller::MaskedMixKeys(const info&           Info,
+                                         int                   iAnim,
+                                         float                 Frame,
                                          const Geom::BoneMask& BoneMasks,
-                                         AnimKey*        pDestKey)
+                                         AnimKey*              pDestKey)
 {
     //CONTEXT(" loco_anim_controller::MaskedMixKeys") ;
 
@@ -853,13 +853,13 @@ void loco_anim_controller::MaskedMixKeys(const info&     Info,
 
 //=========================================================================
 
-void loco_anim_controller::MaskedMixKeys(const info&     Info,
-                                         int             iAnim,
-                                         float           Frame,
+void loco_anim_controller::MaskedMixKeys(const info&           Info,
+                                         int                   iAnim,
+                                         float                 Frame,
                                          const Geom::BoneMask& CurrentBoneMasks,
                                          const Geom::BoneMask& BlendBoneMasks,
-                                         float           BoneBlend,
-                                         AnimKey*        pDestKey)
+                                         float                 BoneBlend,
+                                         AnimKey*              pDestKey)
 {
     //CONTEXT(" loco_anim_controller::MaskedMixKeys") ;
 

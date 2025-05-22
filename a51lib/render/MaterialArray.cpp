@@ -11,8 +11,9 @@
 // Implementation
 //=============================================================================
 
-material_array::material_array()
-    : m_Sorted(false)
+material_array::material_array(ResourceManager* rm)
+    : resourceManager(rm)
+    , m_Sorted(false)
     , m_Capacity(false)
     , m_nNodes(0)
     , m_pNodes(nullptr)
@@ -205,7 +206,7 @@ material& material_array::Add(xhandle& hHandle)
     hHandle.Handle = iHandle;
 
     // construct the node info
-    new(&m_pNodes[m_nNodes].Item) material;
+    new(&m_pNodes[m_nNodes].Item) material(resourceManager);
     m_pNodes[m_nNodes].Handle.Handle = iHandle;
     m_nNodes++;
 

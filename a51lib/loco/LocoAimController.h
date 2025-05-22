@@ -7,7 +7,7 @@ class loco_aim_controller : public loco_mask_controller
 {
 public:
     // Functions
-    loco_aim_controller();
+    loco_aim_controller(ResourceManager* rm);
 
     void SetBlendFactor(float wSide, float wUpDown, float BlendSpeed = 0.5f);
     void ApplyDeltaHoriz(float Delta);

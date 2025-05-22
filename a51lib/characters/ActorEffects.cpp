@@ -12,8 +12,9 @@
 
 //#include "..\Support\Sound\EventSoundEmitter.hpp"
 
-actor_effects::actor_effects()
+actor_effects::actor_effects(ResourceManager* pRM)
 {
+    resourceManager = pRM;
     for (int i = 0; i < FX_MAX; i++) {
         m_bActive[i] = false;
         m_AudioID[i] = 0;
@@ -183,7 +184,7 @@ void actor_effects::InitBasicEffect(effect_type    Type,
         return;
     }
 
-    ResourceHandle<char> Resource;
+    ResourceHandle<char> Resource(resourceManager);
     Resource.setName(pEffectName);
 
     char* pPtr = Resource.getPointer();
@@ -224,7 +225,7 @@ void actor_effects::InitFryEffect(effect_type Type,
     if (pParent && pParent->IsKindOf(actor::GetRTTI())) {
         actor* pActor = (actor*)pParent;
 
-        ResourceHandle<char> Resource;
+        ResourceHandle<char> Resource(resourceManager);
         Resource.setName(pEffectName);
 
         // Need the parent actor loco player.
@@ -298,7 +299,7 @@ void actor_effects::InitCloakEffect(effect_type Type,
         KillEffect(FX_CLOAK_PAIN);
     }
 
-    ResourceHandle<char> Resource;
+    ResourceHandle<char> Resource(resourceManager);
     Resource.setName(pEffectName);
 
     assert(pParent && pParent->IsKindOf(actor::GetRTTI()));

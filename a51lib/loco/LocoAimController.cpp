@@ -1,7 +1,7 @@
 #include "Loco.h"
 
-loco_aim_controller::loco_aim_controller()
-    : loco_mask_controller()
+loco_aim_controller::loco_aim_controller(ResourceManager* rm)
+    : loco_mask_controller(rm)
     ,
 
     m_wSide(0.0f)

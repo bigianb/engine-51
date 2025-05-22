@@ -18,11 +18,11 @@
 // go through the interface provided in Render.hpp
 //=============================================================================
 
-
+class ResourceManager;
 class material_array
 {
 public:
-         material_array ();
+         material_array (ResourceManager* rm);
         ~material_array ();
 
     void        Sort                ();
@@ -59,6 +59,8 @@ protected:
     int         m_nNodes;
     node_info*  m_pNodes;       // indexes have a direct mapping into this array
     int*        m_pIndices;     // handles have a direct mapping into this array
+
+    ResourceManager* resourceManager;
 };
 
 //=============================================================================

@@ -10,7 +10,7 @@ class play_surface : public Object
 public:
     CREATE_RTTI(play_surface, Object, Object)
 
-    play_surface(ObjectManager* om);
+    play_surface(ObjectManager* om, ResourceManager* rm);
     ~play_surface();
 
     BBox GetLocalBBox() const override;

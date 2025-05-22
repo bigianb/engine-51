@@ -3,6 +3,8 @@
 #include "Texture.h"
 #include "Material_Prefs.h"
 
+class ResourceManager;
+
 class material
 {
 public:
@@ -18,7 +20,7 @@ public:
         int8_t  StartFrame;   // starting frame for this animation
     };
 
-    material();
+    material(ResourceManager* rm);
     ~material();
     bool operator==(const material& RHS) const;
 

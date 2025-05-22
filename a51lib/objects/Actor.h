@@ -262,7 +262,7 @@ public:
     };
 
 public:
-    actor(ObjectManager* pObjectManager);
+    actor(ObjectManager* pObjectManager, ResourceManager* rm);
     virtual ~actor();
 
     // Property functions
@@ -414,7 +414,7 @@ public:
     floor_properties& GetFloorProperties() { return m_FloorProperties; }
     Colour            GetFloorColor() { return m_FloorProperties.GetColor(); }
     uint32_t          GetFloorMaterial() { return m_FloorProperties.GetMaterial(); }
-    float GetFloorIntensity();
+    float             GetFloorIntensity();
 
     // AI related functions
     virtual Radian  GetSightYaw() const; // Get direction head is facing
@@ -452,10 +452,10 @@ public:
     virtual eHitType OverrideFlinchType(eHitType hitType) { return hitType; }
     const pain&      GetPainThatKilledUs() { return m_PainThatKilledUs; }
     corpse_pain&     GetCorpseDeathPain() { return m_CorpseDeathPain; }
-    eHitType     GetHitType(const pain& Pain);
-    virtual void UpdateFellFromAltitude() {}
-    virtual void TakeFallPain() {}
-    virtual bool IgnorePain(const pain& Pain)
+    eHitType         GetHitType(const pain& Pain);
+    virtual void     UpdateFellFromAltitude() {}
+    virtual void     TakeFallPain() {}
+    virtual bool     IgnorePain(const pain& Pain)
     {
         (void)Pain;
         return false;
@@ -527,7 +527,7 @@ public:
 
     //    virtual render_inst*        GetRenderInstPtr() { return &m_SkinInst; }
     AnimGroup::handle* GetAnimGroupHandlePtr() override { return &m_hAnimGroup; }
-    virtual Vector3            GetBonePos(int BoneIndex);
+    virtual Vector3    GetBonePos(int BoneIndex);
 
     const char* GetLogicalName() override { return "ACTOR"; }
 
@@ -601,16 +601,16 @@ protected:
     inven_item m_CurrentWeaponItem; // Current weapon item, see inventory2.hpp for mapping
 
     // Pain
-    int   m_LastAnimPainID;
-    int   m_LastMeleeEventID;
-    int   m_CurrentPainEventID; // the id of our current pain events.
-    float m_BigPainTakenTime;
-    pain  m_PainThatKilledUs; // info from the pain that killed us.
-    float m_TimeSinceLastPain;
+    int         m_LastAnimPainID;
+    int         m_LastMeleeEventID;
+    int         m_CurrentPainEventID; // the id of our current pain events.
+    float       m_BigPainTakenTime;
+    pain        m_PainThatKilledUs; // info from the pain that killed us.
+    float       m_TimeSinceLastPain;
     corpse_pain m_CorpseDeathPain; // Last pain applied to corpse
-    float m_SafeFallAltitude;
-    float m_DeathFallAltitude;
-    float m_FellFromAltitude; // where did we start falling?
+    float       m_SafeFallAltitude;
+    float       m_DeathFallAltitude;
+    float       m_FellFromAltitude; // where did we start falling?
 
     // Conversation/audio properties
     ResourceHandle<char> m_hAudioPackage; // Audio resource for this Object.
@@ -641,7 +641,7 @@ protected:
     float m_LastTimeStaggered;
 
     // Rendering
-    floor_properties   m_FloorProperties;
+    floor_properties  m_FloorProperties;
     skin_inst         m_SkinInst;            // Render instance
     AnimGroup::handle m_hAnimGroup;          // Animation group handle
     float             m_TimeSinceLastRender; // Last time character was rendered
@@ -705,6 +705,8 @@ protected:
 
     float   m_InactiveTime;
     Vector3 m_RecentPosition;
+
+    ResourceManager* resourceManager;
 
     friend class save_mgr;
     friend class check_point_mgr;

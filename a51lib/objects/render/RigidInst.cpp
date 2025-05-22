@@ -2,8 +2,9 @@
 #include "RigidInst.h"
 #include "../../resourceManager/ResourceManager.h"
 
-rigid_inst::rigid_inst()
+rigid_inst::rigid_inst(ResourceManager* rm)
     : render_inst()
+    , m_hRigidGeom(rm)
     , m_pRigidColor(nullptr)
     , m_nColors(0)
     , m_iColor(0)
@@ -40,9 +41,9 @@ void rigid_inst::SetColorTable(const void* pColorTable, int iColor, int nColors)
 }
 
 
-void rigid_inst::LoadColorTable(const char* pFileName)
+void rigid_inst::LoadColorTable(const char* pFileName, ResourceManager* rm)
 {
-    ResourceHandle<color_info> hRigidColor;
+    ResourceHandle<color_info> hRigidColor(rm);
     hRigidColor.setName(pFileName);
 
     color_info* pInfo = hRigidColor.getPointer();
@@ -187,7 +188,7 @@ bool rigid_inst::SetUpRigidGeom(const char* pFileName)
 
     if (pRigidGeom) {
         // Register the instance with the Render Manager
-        m_hInst = render::RegisterRigidInstance(*pRigidGeom);
+        m_hInst = render::RegisterRigidInstance(*pRigidGeom, m_hRigidGeom.resourceManager);
         return true;
     }
 

@@ -37,9 +37,9 @@ public:
     {
     }
 
-    Object* Create(ObjectManager* om, collision_mgr* cm)
+    Object* Create(ObjectManager* om, collision_mgr* cm, ResourceManager* rm)
     {
-        return new play_surface(om);
+        return new play_surface(om, rm);
     }
 
     //-------------------------------------------------------------------------
@@ -69,7 +69,7 @@ const object_desc& play_surface::GetObjectType()
     return s_PlaySurface_Desc;
 }
 
-play_surface::play_surface(ObjectManager* om) : Object(om)
+play_surface::play_surface(ObjectManager* om, ResourceManager* rm) : Object(om), m_Inst(rm)
 {
 }
 

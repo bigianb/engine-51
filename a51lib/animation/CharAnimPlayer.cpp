@@ -4,7 +4,7 @@
 #include "../xfiles/scratchMem.h"
 #include "../render/Geom.h"
 
-char_anim_player::char_anim_player()
+char_anim_player::char_anim_player(ResourceManager* rm) : m_hAnimGroup(rm), m_AnimTrack(rm)
 {
     int i;
 

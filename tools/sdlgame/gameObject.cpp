@@ -63,7 +63,7 @@ bool GameObject::init()
     
     ObjectRegistrarInterface* objectRegistrar = new ObjectRegistrar();
     spatial_dbase* spatialDatabase = new spatial_dbase();
-    objectManager->Init(objectRegistrar, spatialDatabase, collisionManager);
+    objectManager->Init(objectRegistrar, spatialDatabase, collisionManager, resourceManager);
     delete objectRegistrar;
     engine = new SDLEngine();
     engine->init();

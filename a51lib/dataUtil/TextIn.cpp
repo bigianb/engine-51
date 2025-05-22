@@ -41,31 +41,32 @@ bool text_in::ReportError(const char* pStr, ...)
 
     if (m_Record.Name[0]) {
         snprintf(s_Error, 512, "%s(%d) : error : In Record %s, %s\n",
-                m_Tokenizer.GetFilename(),
-                m_Tokenizer.GetLineNumber(),
-                GetHeaderName(),
-                Buff);
+                 m_Tokenizer.GetFilename(),
+                 m_Tokenizer.GetLineNumber(),
+                 GetHeaderName(),
+                 Buff);
     } else {
         snprintf(s_Error, 512, "%s(%d) : error : %s\n",
-                m_Tokenizer.GetFilename(),
-                m_Tokenizer.GetLineNumber(),
-                Buff);
+                 m_Tokenizer.GetFilename(),
+                 m_Tokenizer.GetLineNumber(),
+                 Buff);
     }
 
-    std::cout << s_Error << std::endl;;
+    std::cout << s_Error << std::endl;
+    ;
 
     return false;
 }
 
-void text_in::OpenText( const char* pText )
+void text_in::OpenText(const char* pText)
 {
     // Reset the class
-    m_nValidFields   = 0;
+    m_nValidFields = 0;
     m_Record.nFields = 0;
     m_Record.Name[0] = 0;
 
-    m_Tokenizer.SetDelimeter( ":,[]{}()<>" );
-    m_Tokenizer.OpenText( pText );
+    m_Tokenizer.SetDelimeter(":,[]{}()<>");
+    m_Tokenizer.OpenText(pText);
 }
 
 bool text_in::ReadAllFields()
@@ -344,32 +345,25 @@ bool text_in::ReadFields()
 
                 guid GUID = 0;
 
-                //
-                // Take from guid.cpp
-                //
-                /* TODO
-                {
-                    GUID.Guid = 0;
-                    const char* pGUID = m_Tokenizer.String();
+                const char* pGUID = m_Tokenizer.String();
 
-                    while (*pGUID) {
-                        char c = *pGUID;
-                        pGUID++;
+                while (*pGUID) {
+                    char c = *pGUID;
+                    pGUID++;
 
-                        if (c == ':') {
-                            continue;
-                        }
-                        uint32_t v = 0;
-                        if (c > '9') {
-                            v = (c - 'A') + 10;
-                        } else {
-                            v = (c - '0');
-                        }
-
-                        GUID.Guid <<= 4;
-                        GUID.Guid |= (v & 0xF);
+                    if (c == ':') {
+                        continue;
                     }
-                }*/
+                    uint32_t v = 0;
+                    if (c > '9') {
+                        v = (c - 'A') + 10;
+                    } else {
+                        v = (c - '0');
+                    }
+
+                    GUID <<= 4;
+                    GUID |= (v & 0xF);
+                }
 
                 Data.Guid[Data.nGuids++] = GUID;
 
@@ -409,8 +403,8 @@ bool text_in::GetField(const char* pFieldName, ...)
     // Verify that all is good in the first line
     //
     if (m_RecordLineNumber == 1) {
-        int   Index = -1;
-        int   j;
+        int         Index = -1;
+        int         j;
         const char* pType = strstr(pFieldName, ":");
 
         if (pType == nullptr) {
@@ -517,7 +511,7 @@ bool text_in::GetField(const char* pFieldName, ...)
         data&  Data = m_pData[m_FieldMatch[m_RecordTypeNumber].Index];
         field& Field = m_Record.Field[m_FieldMatch[m_RecordTypeNumber].Index];
         // Make sure we're giving the correct data.
-        /* TODO: 
+        /* TODO:
         if (xstring(pFieldName).Find(xstring(Field.Name)) == -1) {
             return false;
         }
@@ -663,8 +657,8 @@ bool text_in::GetRadian3(const char* pName, Radian3& Orient)
 {
     char buf[64];
     snprintf(buf, 64, "%s:fff", pName);
-    float  P, Y, R;
-    bool Result = GetField(buf, &P, &Y, &R);
+    float P, Y, R;
+    bool  Result = GetField(buf, &P, &Y, &R);
 
     Orient.pitch = DEG_TO_RAD(P);
     Orient.yaw = DEG_TO_RAD(Y);

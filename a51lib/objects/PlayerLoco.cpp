@@ -69,8 +69,8 @@ void player_loco_move::OnEnter(void)
     loco_move::OnEnter();
 }
 
-player_loco::player_loco(ObjectManager* pObjectManager, collision_mgr* collisionManager)
-    : loco(pObjectManager, collisionManager)
+player_loco::player_loco(ObjectManager* pObjectManager, collision_mgr* collisionManager, ResourceManager* rm)
+    : loco(pObjectManager, collisionManager, rm)
     , m_PlayAnim(*this)
     , m_Idle(*this)
     , m_Move(*this)
@@ -1035,7 +1035,7 @@ void player_loco::UpdateAnims(float DeltaTime,
     }
 
     // Turn off if playing grenade toss
-    loco_additive_controller& AddCont = m_AdditiveController[0];
+    loco_additive_controller& AddCont = m_AdditiveController1;
     if ((AddCont.GetAnimTypeIndex() == GetAnimIndex(loco::ANIM_GRENADE)) && (AddCont.GetWeight() > 0.0f)) {
         bAimer = false;
         bIK = false;

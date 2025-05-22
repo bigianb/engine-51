@@ -2,8 +2,8 @@
 
 #include <cassert>
 
-loco_motion_controller::loco_motion_controller(void)
-    : loco_anim_controller()
+loco_motion_controller::loco_motion_controller(ResourceManager* rm)
+    : loco_anim_controller(rm)
     , m_iMotionProp(-1)
     , // Index to motion prop or -1 if none
     m_Yaw(0)
@@ -19,7 +19,7 @@ loco_motion_controller::loco_motion_controller(void)
 
 //=========================================================================
 
-loco_motion_controller::~loco_motion_controller(void)
+loco_motion_controller::~loco_motion_controller()
 {
 }
 
@@ -27,7 +27,7 @@ loco_motion_controller::~loco_motion_controller(void)
 // Misc functions
 //=========================================================================
 
-void loco_motion_controller::Clear(void)
+void loco_motion_controller::Clear()
 {
     // Call base class
     loco_anim_controller::Clear();

@@ -51,7 +51,7 @@ public:
     };
 
 public:
-    anim_track_controller();
+    anim_track_controller(ResourceManager *);
     virtual ~anim_track_controller();
 
     // Sets location of animation data package

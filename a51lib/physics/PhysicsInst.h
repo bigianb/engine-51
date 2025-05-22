@@ -18,7 +18,7 @@ class physics_inst
 {
 public:
     // Constructor/destructor
-    physics_inst();
+    physics_inst(ResourceManager* );
     ~physics_inst();
 
     // Initialization functions

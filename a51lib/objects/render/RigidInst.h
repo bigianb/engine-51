@@ -6,7 +6,7 @@
 class rigid_inst : public render_inst
 {
 public:
-    rigid_inst();
+    rigid_inst(ResourceManager*);
     ~rigid_inst();
 
     virtual void OnEnumProp(prop_enum& List);
@@ -24,7 +24,7 @@ public:
     std::string GetRigidGeomName() const;
 
     void         SetColorTable(const void* pColorTable, int iColor, int nColors);
-    virtual void LoadColorTable(const char* pFileName);
+    virtual void LoadColorTable(const char* pFileName, ResourceManager* );
 
     void Render(const Matrix4* pL2W, uint32_t Flags);
     void Render(const Matrix4* pL2W, uint32_t Flags, uint64_t Mask);

@@ -26,8 +26,8 @@ class loco_char_anim_player : public base_player
     //=====================================================================
 public:
     // Constructor/destructor
-    loco_char_anim_player(void);
-    virtual ~loco_char_anim_player(void);
+    loco_char_anim_player(ResourceManager* rm);
+    virtual ~loco_char_anim_player();
 
     // Animation functions
 
@@ -161,8 +161,8 @@ private:
     // Cached matrices functions
     void           GetInterpKeys(const Matrix4& L2W, AnimKey* pKey);
     const Matrix4& GetCachedL2W(int iBone);
-    const Matrix4* GetCachedL2Ws(void);
-    void           UpdateCachedL2Ws(void);
+    const Matrix4* GetCachedL2Ws();
+    void           UpdateCachedL2Ws();
 
     //=====================================================================
     // PUBLIC DATA

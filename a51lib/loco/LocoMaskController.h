@@ -6,7 +6,7 @@ class loco_mask_controller : public loco_anim_controller
 {
 public:
     // Constructs a loco_mask_controller object.
-    loco_mask_controller();
+    loco_mask_controller(ResourceManager* rm);
 
     // Destroys a loco_mask_controller object, handles cleanup and de-allocation.
     virtual ~loco_mask_controller();

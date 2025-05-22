@@ -89,7 +89,7 @@ public:
 
     // Functions
 public:
-    player_loco(ObjectManager* pObjectManager, collision_mgr* collisionManager);
+    player_loco(ObjectManager* pObjectManager, collision_mgr* collisionManager, ResourceManager* rm);
     void OnInit(const Geom* pGeom, const char* pAnimFileName, guid ObjectGuid = 0) override;
     bool SetWeapon(inven_item InvenWeapon) override;
     void         UpdateAnims(float DeltaTime,

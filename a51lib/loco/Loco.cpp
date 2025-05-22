@@ -387,7 +387,7 @@ Hierarchy: 54 Bones
 // MOVE STYLE INFO
 //==============================================================================
 
-loco::move_style_info::move_style_info()
+loco::move_style_info::move_style_info(ResourceManager* rm) : m_hAnimGroup(rm)
 {
     // Clear anims
     memset(m_iAnims, -1, sizeof(m_iAnims));
@@ -431,7 +431,7 @@ void loco::move_style_info::InitDefaults(move_style_info_default& Default)
 
 //==============================================================================
 
-loco::move_style_info_default::move_style_info_default()
+loco::move_style_info_default::move_style_info_default(ResourceManager* rm) : m_hAnimGroup(rm)
 {
     // Clear anims
     memset(m_iAnims, -1, sizeof(m_iAnims));
@@ -471,7 +471,7 @@ loco_play_anim::loco_play_anim(loco& Loco)
 
 //==============================================================================
 
-void loco_play_anim::OnEnter(void)
+void loco_play_anim::OnEnter()
 {
     // Record previous state (unless we are already playing an anim)
     if ((m_Base.m_pActive) && (m_Base.m_pActive->m_State != loco::STATE_PLAY_ANIM)) {
@@ -617,13 +617,6 @@ bool loco_play_anim::PlayAnim(const AnimGroup::handle& hAnimGroup, int iAnim, fl
     return true;
 }
 
-//==============================================================================
-
-//==============================================================================
-// IDLE STATE
-//==============================================================================
-
-//==============================================================================
 loco_idle::loco_idle(loco& Loco)
     : loco_state(Loco, loco::STATE_IDLE)
     , m_Timer(0.0f)
@@ -1330,9 +1323,17 @@ loco::move_style loco::GetMoveStyleByName(const char* pName)
 
 //=============================================================================
 
-loco::loco(ObjectManager* pObjectManager, collision_mgr* collisionManager)
-    : m_bDead(false)
-    , // true if character is dead
+loco::loco(ObjectManager* pObjectManager, collision_mgr* collisionManager, ResourceManager* rm)
+    : m_bDead(false),
+    resourceManager(rm),
+    m_Player(rm),
+    m_AdditiveController1(rm),
+    m_AdditiveController2(rm),
+    m_AimController(rm),
+    m_MaskController(rm),
+    m_hAnimGroup(rm),
+    m_MoveStyleInfo(rm),
+    m_MoveStyleInfoDefault(rm),
     m_Physics(pObjectManager, collisionManager),
     objectManager(pObjectManager),
     m_bLocoIsStuck(false)
@@ -1531,8 +1532,8 @@ void loco::OnInit(const Geom* pGeom, const char* pAnimFileName, guid ObjectGuid)
     m_Player.SetLoco(this);                         // Track0,1 = current and blend controller
     m_Player.SetTrack(2, &m_MaskController);        // Reload anim controller
    // m_Player.SetTrack(3, &m_LipSyncController);     // Lip sync controller
-    m_Player.SetTrack(4, &m_AdditiveController[0]); // Additive controller0
-    m_Player.SetTrack(5, &m_AdditiveController[1]); // Additive controller1
+    m_Player.SetTrack(4, &m_AdditiveController1); // Additive controller0
+    m_Player.SetTrack(5, &m_AdditiveController2); // Additive controller1
     m_Player.SetTrack(6, &m_AimController);         // Aim controller
  //   m_Player.SetTrack(7, &m_EyeController);         // Additive eye controller
     m_Player.SetAnimGroup(m_hAnimGroup);
@@ -2558,7 +2559,7 @@ bool loco::PlayAnim(const char* pAnimGroup, const char* pAnim, float BlendTime, 
         return PlayMaskedAnim(pAnimGroup, pAnim, BlendTime, Flags);
     } else {
         // Setup group
-        AnimGroup::handle hAnimGroup;
+        AnimGroup::handle hAnimGroup(resourceManager);
         hAnimGroup.setName(pAnimGroup);
 
         // Play the anim
@@ -2686,7 +2687,7 @@ loco_additive_controller& loco::GetAdditiveController(uint32_t AnimFlags)
     assert(iController >= 0);
     assert(iController < 2);
     loco_additive_controller& Controller = m_AdditiveController[iController];
-
+    // IJB now uses m_AdditiveController 1 and 2
     return Controller;
 }
 */

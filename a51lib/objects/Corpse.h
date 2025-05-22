@@ -47,7 +47,7 @@ public:
     // Public functions
     //=========================================================================
 public:
-    corpse(ObjectManager* om);
+    corpse(ObjectManager* om, ResourceManager* rm);
     virtual ~corpse();
 
     static void LimitCount(ObjectManager* om);

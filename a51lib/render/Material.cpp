@@ -1,11 +1,17 @@
 #include "Material.h"
 
-material::material( void )
+material::material(ResourceManager* rm) : m_DiffuseMap(rm),
+    m_EnvironmentMap(rm),
+    m_DetailMap(rm),
+    m_Type(0),
+    m_DetailScale(1.0f),
+    m_FixedAlpha(1.0f),
+    m_Flags(0),
+    m_RefCount(0)
 {
-    m_RefCount = 0;
 }
 
-material::~material( void )
+material::~material()
 {
 }
 

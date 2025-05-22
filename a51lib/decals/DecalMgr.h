@@ -5,6 +5,7 @@
 #include "../xfiles/xHandleArray.h"
 
 struct RigidGeom;
+class ResourceManager;
 
 class decal_mgr
 {
@@ -30,18 +31,19 @@ public:
     //==========================================================================
     // Construction/destruction, initialization
     //==========================================================================
-            decal_mgr   ( void );
-            ~decal_mgr  ( void );
-    void    Init        ( void );
-    void    Kill        ( void );
+    // TODO IJB: default param is wrong but needed for global static instance.
+            decal_mgr   (ResourceManager* = nullptr);
+            ~decal_mgr  ();
+    void    Init        ();
+    void    Kill        ();
 
     //==========================================================================
     // load/unload functions
     //==========================================================================
-    void    ClearDynamicQueue   ( void );
-    void    ResetDynamicDecals  ( void );
+    void    ClearDynamicQueue   ();
+    void    ResetDynamicDecals  ();
     void    LoadStaticDecals    ( const char* FileName );
-    void    UnloadStaticDecals  ( void );
+    void    UnloadStaticDecals  ();
 
     //==========================================================================
     // Methods for rendering decals
@@ -55,7 +57,7 @@ public:
                                       const Matrix4&          L2W,
                                       bool                   Wireframe );
 
-    void    OnRender                ( void );
+    void    OnRender                ();
     void    OnUpdate                ( float DeltaTime );
 
     //==========================================================================
@@ -308,7 +310,7 @@ protected:
             uint32_t     Zone;
         };
 
-                    static_data ( void );
+                    static_data ();
         //            static_data ( fileio& File );
         //void        FileIO      ( fileio& File );
 
@@ -330,9 +332,9 @@ protected:
     //==========================================================================
     struct registration_info
     {
-        registration_info   ( void );
-        ~registration_info  ( void );
-        void Kill( void );
+        registration_info   (ResourceManager*);
+        ~registration_info  ();
+        void Kill();
 
         void AllocVertList          ( int nVerts );
         void GrowStaticVertListBy   ( int nVerts );

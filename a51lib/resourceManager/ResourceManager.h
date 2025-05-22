@@ -37,7 +37,7 @@ private:
 class ResourceHandleBase
 {
 public:
-    ResourceHandleBase(ResourceManager* mgr = nullptr)
+    ResourceHandleBase(ResourceManager* mgr)
     {
         data = -1;
         resourceManager = mgr;

@@ -22,7 +22,7 @@ public:
     {
     }
 
-    Object* Create(ObjectManager* om, collision_mgr* cm)
+    Object* Create(ObjectManager* om, collision_mgr* cm, ResourceManager*)
     {
         return new HudObject(om);
     }

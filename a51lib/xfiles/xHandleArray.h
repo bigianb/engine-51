@@ -7,7 +7,7 @@ template <class T>
 class xharray
 {
 public:
-    xharray();
+    xharray(ResourceManager* rm);
     ~xharray();
     int GetCount() const;
 
@@ -32,6 +32,7 @@ public:
     const xharray<T>& operator=(const xharray<T>& Array);
 
 protected:
+    ResourceManager* resourceManager;
     int      m_Capacity;
     int      m_nNodes;
     xhandle* m_pHandle;
@@ -45,8 +46,9 @@ inline int xharray<T>::CalcGrowth()
 }
 
 template <class T>
-inline xharray<T>::xharray()
+inline xharray<T>::xharray(ResourceManager* rm)
 {
+    resourceManager = rm;
     m_Capacity = 0;
     m_nNodes = 0;
     m_pHandle = nullptr;
@@ -111,9 +113,10 @@ void xharray<T>::GrowListBy(int nNodes)
     m_Capacity += nNodes;
 
     //
-    // Allocate the new arrays
+    // Allocate the new arrays (avoid using the constructor as it needs the ResourceManager)
     //
-    pNewList = new T[m_Capacity];
+    void *raw_memory = operator new[](m_Capacity * sizeof(T));
+    pNewList = static_cast<T *>(raw_memory);
     assert(pNewList);
 
     pNewHandle = new xhandle[m_Capacity];

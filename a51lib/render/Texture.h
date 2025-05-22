@@ -6,7 +6,7 @@
 class texture
 {
 public:
-    texture(void);
+    texture();
 
     static void GetStats(int* pNumTextureLoaded, int* pTextureMemorySize);
 

@@ -13,7 +13,7 @@ namespace render
 {
 
     // startup and shutdown routines
-    void Init();
+    void Init(ResourceManager* );
     void Kill();
 
     // update routines (needed for uv and texture animation)
@@ -69,9 +69,9 @@ namespace render
     // data registration routines
     typedef xhandle hgeom_inst;
 
-    hgeom_inst      RegisterRigidInstance(RigidGeom& geom);
+    hgeom_inst      RegisterRigidInstance(RigidGeom& geom, ResourceManager* rm);
     void            UnregisterRigidInstance(hgeom_inst hInst);
-    hgeom_inst      RegisterSkinInstance(SkinGeom& geom);
+    hgeom_inst      RegisterSkinInstance(SkinGeom& geom, ResourceManager* rm);
     void            UnregisterSkinInstance(hgeom_inst hInst);
     const Geom*     GetGeom(hgeom_inst hInst);
 

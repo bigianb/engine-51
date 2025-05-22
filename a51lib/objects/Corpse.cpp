@@ -108,7 +108,7 @@ static struct corpse_desc : public object_desc
     {
     }
 
-    virtual Object* Create(ObjectManager* om, collision_mgr*) { return new corpse(om); }
+    virtual Object* Create(ObjectManager* om, collision_mgr*, ResourceManager* rm) { return new corpse(om, rm); }
 
 } s_CorpseDesc;
 
@@ -132,8 +132,10 @@ const object_desc& corpse::GetObjectType()
 
 //=========================================================================
 
-corpse::corpse(ObjectManager* om)
+corpse::corpse(ObjectManager* om, ResourceManager* rm)
     : Object(om)
+    , m_PhysicsInst(rm)
+    , m_hBloodDecalPackage(rm)
     , m_OriginGuid(0)
     , m_bActive(false)
     , m_bCreatedBlood(false)

@@ -5,7 +5,7 @@
 class loco_motion_controller : public loco_anim_controller
 {
 public:
-    loco_motion_controller();
+    loco_motion_controller(ResourceManager* rm);
     virtual ~loco_motion_controller();
 
     // Misc functions

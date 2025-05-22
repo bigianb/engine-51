@@ -25,7 +25,7 @@ class dual_weapon_anim_controller : public track_controller
 {
 
 public:
-    dual_weapon_anim_controller(ObjectManager* om);
+    dual_weapon_anim_controller(ObjectManager* om, ResourceManager* rm);
     virtual ~dual_weapon_anim_controller() {}
 
     // Initializes
@@ -167,7 +167,7 @@ public:
 
     CREATE_RTTI(new_weapon, Object, Object)
 
-    new_weapon(ObjectManager* pObjectManager);
+    new_weapon(ObjectManager* pObjectManager, ResourceManager*);
 
     virtual ~new_weapon();
 
@@ -418,7 +418,8 @@ public:
     //this is a structure that contains ammunition information
     struct ammo
     {
-        ammo();
+        // TODO IJB: remove this default parameter
+        ammo(ResourceManager* = nullptr);
 
         void OnEnumProp(prop_enum& List);
         bool OnProperty(prop_query& rPropQuery);

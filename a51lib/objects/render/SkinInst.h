@@ -7,7 +7,7 @@
 class skin_inst : public render_inst
 {
 public:
-    skin_inst();
+    skin_inst(ResourceManager* = nullptr);
     ~skin_inst();
 
     void        OnEnumProp(prop_enum& List) override;

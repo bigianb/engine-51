@@ -16,7 +16,7 @@ static struct particle_event_emitter_desc : public object_desc
 
     //---------------------------------------------------------------------
 
-    virtual Object* Create(ObjectManager* om, collision_mgr*)
+    virtual Object* Create(ObjectManager* om, collision_mgr*, ResourceManager*)
     {
         return new particle_event_emitter(om);
     }

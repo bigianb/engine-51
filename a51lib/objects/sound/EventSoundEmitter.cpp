@@ -32,7 +32,7 @@ static struct event_sound_emitter_desc : public object_desc
 
     //---------------------------------------------------------------------
 
-    virtual Object* Create(ObjectManager* om, collision_mgr*)
+    virtual Object* Create(ObjectManager* om, collision_mgr*, ResourceManager*)
     {
         return new event_sound_emitter(om);
     }

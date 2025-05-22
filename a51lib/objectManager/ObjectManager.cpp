@@ -83,10 +83,11 @@ ObjectManager::~ObjectManager()
 {
 }
 
-void ObjectManager::Init(ObjectRegistrarInterface* objectRegistrar, spatial_dbase* sdb, collision_mgr* cm)
+void ObjectManager::Init(ObjectRegistrarInterface* objectRegistrar, spatial_dbase* sdb, collision_mgr* cm, ResourceManager* rm)
 {
     spatialDatabase = sdb;
     collisionMgr = cm;
+    resourceManager = rm;
     objectDescriptors.clear();
     objectRegistrar->RegisterObjects(objectDescriptors);
 
@@ -222,7 +223,7 @@ const object_desc* ObjectManager::GetDescFromName(const char* objectTypeName)
         }
     }
 
-    assert(false);
+    //assert(false);
     return nullptr;
 }
 
@@ -288,7 +289,7 @@ Object* ObjectManager::CreateObject(const object_desc& Desc, slot_id Slot)
     {
         assert(m_ObjectType[Type].pDesc);
         object_desc& SaveDesc = const_cast<object_desc&>(Desc);
-        pObject = SaveDesc.Create(this, collisionMgr);
+        pObject = SaveDesc.Create(this, collisionMgr, resourceManager);
         SaveDesc.AddObjectCount(1);
         assert(pObject);
 

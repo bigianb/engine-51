@@ -9,7 +9,7 @@
 #define MAX_CLOAK_POINTS   11   // Various clocking effects.
 
 class actor;
-
+class ResourceManager;
 //==============================================================================
 
 class actor_effects
@@ -35,7 +35,7 @@ public:
             FX_FIRST = 0,
         };
 
-                    actor_effects       ();
+                    actor_effects       (ResourceManager* pRM);
                    ~actor_effects       ();
 
         void        Init                ();
@@ -99,4 +99,5 @@ const   Vector3         GetBonePosition ( Object* pParent, int iBone );
         fx_bone         m_FryBone     [ MAX_FRY_POINTS   ];
         fx_bone         m_CloakBone   [ MAX_CLOAK_POINTS ];
 
+        ResourceManager* resourceManager;
 };

@@ -6,9 +6,9 @@ struct xhandle
 {
     int Handle;
 
-    inline xhandle                  ( void  )      {}
+    inline xhandle                  (   )      {}
     inline xhandle                  ( int I )      { Handle = I;             }
-    inline operator const int       ( void ) const { return Handle;          }
-    inline bool          IsNonNull ( void ) const { return Handle != HNULL; }
-    inline bool          IsNull    ( void ) const { return Handle == HNULL; }    
+    inline operator const int       (  ) const { return Handle;          }
+    inline bool          IsNonNull (  ) const { return Handle != HNULL; }
+    inline bool          IsNull    (  ) const { return Handle == HNULL; }    
 };

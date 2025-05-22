@@ -52,8 +52,9 @@ inline Vector3 GetTriNormal(const Vector3& P0,
 // Implementation
 //==============================================================================
 
-decal_mgr::registration_info::registration_info()
-    : m_nVertsAllocated(0)
+decal_mgr::registration_info::registration_info(ResourceManager* rm)
+    : m_Bitmap(rm)
+    , m_nVertsAllocated(0)
     , m_Start(0)
     , m_End(0)
     , m_Blank(0)
@@ -65,9 +66,7 @@ decal_mgr::registration_info::registration_info()
     , m_Flags(0)
     , m_FadeoutTime(1.5f)
     , m_Color(255, 255, 255)
-    ,
-
-    m_nStaticVertsAlloced(0)
+    , m_nStaticVertsAlloced(0)
     , m_nStaticVerts(0)
     , m_pStaticPositions(nullptr)
     , m_pStaticUVs(nullptr)
@@ -169,10 +168,11 @@ void decal_mgr::registration_info::AllocVertList(int nVerts)
 
 //==============================================================================
 
-decal_mgr::decal_mgr()
+decal_mgr::decal_mgr(ResourceManager* rm)
     : m_DynamicQueueAddPos(0)
     , m_DynamicQueueReadPos(0)
     , m_pStaticData(nullptr)
+    , m_RegisteredDefs(rm)
 {
     for (int i = 0; i < DYNAMIC_QUEUE_SIZE; i++) {
         m_DynamicQueue[i].Valid = false;

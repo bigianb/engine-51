@@ -2,8 +2,8 @@
 #include <cassert>
 #include "../VectorMath.h"
 
-loco_mask_controller::loco_mask_controller() :
-        loco_anim_controller(),
+loco_mask_controller::loco_mask_controller(ResourceManager* rm) :
+        loco_anim_controller(rm),
         m_BlendInTime       ( 0.25f ),  // Time to blend anim in
         m_BlendOutTime      ( 0.25f ),  // Time to blend anim out
         m_pCurrentBoneMasks ( nullptr ),   // Current bone masks

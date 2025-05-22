@@ -3,8 +3,8 @@
 
 #include <cassert>
 
-loco_additive_controller::loco_additive_controller()
-    : loco_anim_controller()
+loco_additive_controller::loco_additive_controller(ResourceManager *rm)
+    : loco_anim_controller(rm)
 {
     m_BlendInTime = 0.1f;  // Time to blend anim in
     m_BlendOutTime = 0.1f; // Time to blend anim out

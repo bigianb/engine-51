@@ -304,7 +304,7 @@ public:
     //=========================================================================
 
 public:
-    player(ObjectManager* pObjectManager, collision_mgr* pCollisionMgr);
+    player(ObjectManager* pObjectManager, collision_mgr* pCollisionMgr, ResourceManager*);
     virtual ~player();
 
     // Object description.

@@ -15,7 +15,7 @@ class simple_anim_player : public base_player
 
     //-------------------------------------------------------------------------
 public:
-    simple_anim_player();
+    simple_anim_player(ResourceManager* rm);
     virtual ~simple_anim_player();
 
     void SetAnimGroup(const AnimGroup::handle& hGroup);

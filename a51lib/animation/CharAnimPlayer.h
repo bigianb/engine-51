@@ -82,7 +82,7 @@ class char_anim_player : public base_player
 
     //-------------------------------------------------------------------------
 public:
-    char_anim_player();
+    char_anim_player(ResourceManager* = nullptr);
     virtual ~char_anim_player();
 
     //

@@ -6,7 +6,7 @@ class loco_additive_controller : public loco_anim_controller
 {
 public:
     // Constructs a loco_additive_controller object.
-    loco_additive_controller();
+    loco_additive_controller(ResourceManager* rm);
 
     // Destroys a loco_additive_controller object, handles cleanup and de-allocation.
     virtual ~loco_additive_controller();

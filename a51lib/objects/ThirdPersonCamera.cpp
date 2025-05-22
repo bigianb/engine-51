@@ -19,7 +19,7 @@ static struct third_person_camera_desc : public object_desc
     {
     }
 
-    virtual Object* Create(ObjectManager* om, collision_mgr* cm) { return new third_person_camera(om, cm); }
+    virtual Object* Create(ObjectManager* om, collision_mgr* cm, ResourceManager*) { return new third_person_camera(om, cm); }
 
 } s_Third_Person_Camera;
 

@@ -16,7 +16,7 @@ track_controller::~track_controller()
 {
 }
 
-anim_track_controller::anim_track_controller()
+anim_track_controller::anim_track_controller(ResourceManager* rm) : m_hAnimGroup(rm)
 {
     m_pBlendKey = nullptr;
     Clear();

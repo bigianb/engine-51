@@ -77,7 +77,7 @@ public:
     {
     }
 
-    Object* Create(ObjectManager* om, collision_mgr* cm) { return new player(om, cm); }
+    Object* Create(ObjectManager* om, collision_mgr* cm, ResourceManager* rm) { return new player(om, cm, rm); }
 };
 
 static player_desc s_player_desc;
@@ -378,10 +378,13 @@ void player::LoadAimAssistTweaks()
 */
 }
 
-player::player(ObjectManager* pObjectManager, collision_mgr* pCollisionMgr)
-    : actor(pObjectManager)
-    , m_Loco(pObjectManager, pCollisionMgr)
+player::player(ObjectManager* pObjectManager, collision_mgr* pCollisionMgr, ResourceManager* rm)
+    : actor(pObjectManager, rm)
+    , m_Loco(pObjectManager, pCollisionMgr, rm)
     , m_Physics(pObjectManager, pCollisionMgr)
+    , m_AnimPlayer(rm)
+    , m_Skin(rm)
+    , m_AnimGroup(rm)
     , m_RespawnPosition(0, 0, 0)
     , m_RespawnZone(0)
     , m_ThirdPersonCameraGuid(0)

@@ -40,7 +40,7 @@ public:
     }
 
 protected:
-    virtual Object* Create(ObjectManager*, collision_mgr*) = 0;
+    virtual Object* Create(ObjectManager*, collision_mgr*, ResourceManager*) = 0;
     void            AddObjectCount(int n) const { m_ObjectCount += n; }
     virtual bool    OnBeginRender() { return CanRender() && m_CommonAttrBits & Object::ATTR_RENDERABLE; }
     virtual void    OnEndRender() {}
@@ -133,7 +133,7 @@ public:
 
     ObjectManager();
     ~ObjectManager();
-    void Init(ObjectRegistrarInterface* objectRegistrar, spatial_dbase*, collision_mgr* cm);
+    void Init(ObjectRegistrarInterface* objectRegistrar, spatial_dbase*, collision_mgr* cm, ResourceManager*);
     void Kill();
 
     xtick GetGameTime() const { return m_GameTime; };
@@ -309,6 +309,7 @@ private:
 
     spatial_dbase* spatialDatabase;
     collision_mgr* collisionMgr;
+    ResourceManager* resourceManager;
 
     xtick m_GameTime;
 };

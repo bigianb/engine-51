@@ -8,7 +8,7 @@ class projector_obj : public Object
 public:
     CREATE_RTTI(projector_obj, Object, Object)
 
-    projector_obj(ObjectManager* );
+    projector_obj(ObjectManager*, ResourceManager* );
     virtual ~projector_obj();
     BBox GetLocalBBox() const override;
     int  GetMaterial() const override { return MAT_TYPE_FLESH; }

@@ -74,7 +74,13 @@ int    actor::m_nActive = 0;
 // Actor class
 //=========================================================================
 
-actor::actor(ObjectManager* pObjectManager) : Object(pObjectManager)
+actor::actor(ObjectManager* pObjectManager, ResourceManager* rm)
+    : Object(pObjectManager)
+    , resourceManager(rm)
+    , m_hAudioPackage(rm)
+    ,m_hBloodDecalPackage(rm)
+    ,m_SkinInst(rm)
+    , m_hAnimGroup(rm)
     , m_pNextActive(nullptr)
     , m_pPrevActive(nullptr)
     , m_bIsActive(false)
@@ -599,7 +605,7 @@ actor_effects* actor::GetActorEffects(bool bCreate)
 {
     if (!m_pEffects && bCreate) {
         // create the actor effects
-        m_pEffects = new actor_effects;
+        m_pEffects = new actor_effects(resourceManager);;
         m_pEffects->Init();
     }
 
@@ -1769,7 +1775,7 @@ bool actor::IsAnimInPackage(const char* pAnimGroup, const char* pName)
         return false;
     }
 
-    AnimGroup::handle hAnimGroup;
+    AnimGroup::handle hAnimGroup(resourceManager);
     int               AnimIndex = -1;
     if (strlen(pAnimGroup) > 0) {
         hAnimGroup.setName(pAnimGroup);

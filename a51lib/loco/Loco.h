@@ -583,7 +583,8 @@ public:
     // Animation indices and blend times for move style
     struct move_style_info_default
     {
-        move_style_info_default();
+        // IJB: this default param is wrong
+        move_style_info_default(ResourceManager* = nullptr);
 
         // Anim group
         AnimGroup::handle m_hAnimGroup;
@@ -626,7 +627,7 @@ public:
         Radian m_IdleTurn180DeltaYawMax; // Max delta yaw threshold before playing idle turn 180 anim
 
         // Constructor (in loco.cpp)
-        move_style_info();
+        move_style_info(ResourceManager* rm);
 
         // Initializer
         void InitDefaults(move_style_info_default& Defaults);
@@ -686,7 +687,7 @@ public:
     static move_style  GetMoveStyleByName(const char* pName);
 
     // Position related functions
-    loco(ObjectManager* pObjectManager, collision_mgr* collisionManager);
+    loco(ObjectManager* pObjectManager, collision_mgr* collisionManager, ResourceManager* rm);
 
 
     const Matrix4* ComputeL2W();
@@ -939,12 +940,14 @@ public:
 protected:
     loco_aim_controller      m_AimController;         // Controller responsible for aiming
     loco_mask_controller     m_MaskController;        // Masked controller
-    loco_additive_controller m_AdditiveController[2]; // Additive controllers
+    loco_additive_controller m_AdditiveController1; // Additive controllers
+    loco_additive_controller m_AdditiveController2; // Additive controllers
 //    loco_lip_sync_controller m_LipSyncController;     // Lip sync controller
 //    loco_eye_controller      m_EyeController;         // Additive eye controller
     
 protected:
     ObjectManager* objectManager;
+    ResourceManager* resourceManager;
 
     uint32_t m_bDead : 1,                // true if character is dead
         m_bLocoIsStuck : 1,              // true if character has been stuck for a while

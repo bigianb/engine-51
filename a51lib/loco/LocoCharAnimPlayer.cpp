@@ -17,7 +17,11 @@ static const char* FLAG_ATTACH_BONE_NAME = "B_Flag";
 // LOCOMOTION CHARACTER ANIMATION PLAYER CLASS
 //=========================================================================
 
-loco_char_anim_player::loco_char_anim_player()
+loco_char_anim_player::loco_char_anim_player(ResourceManager* rm)
+    : m_hAnimGroup(rm)
+    , m_hRequestAnimGroup(rm)
+    , m_AnimCurrTrack(rm)
+    , m_AnimBlendTrack(rm)
 {
     int i;
 
@@ -246,7 +250,7 @@ void loco_char_anim_player::SetAnim(const AnimGroup::handle& hAnimGroup, int iAn
 
     // Blend aimer in/out?
     if (Flags & loco::ANIM_FLAG_TURN_OFF_AIMER) {
-      //  m_pLoco->GetAimController().SetWeight(0.0f, 0.2f);
+        //  m_pLoco->GetAimController().SetWeight(0.0f, 0.2f);
     }
 
     // Use blend time from animation if it's specified
@@ -276,8 +280,8 @@ void loco_char_anim_player::SetAnim(const AnimGroup::handle& hAnimGroup, int iAn
     // Owned by loco?
     if (m_pLoco) {
         // Tell loco about gravity and world collision
-    //    m_pLoco->m_Physics.SetLocoGravityOn(m_AnimCurrTrack.GetGravity());
-    //    m_pLoco->m_Physics.SetLocoCollisionOn(m_AnimCurrTrack.GetWorldCollision());
+        //    m_pLoco->m_Physics.SetLocoGravityOn(m_AnimCurrTrack.GetGravity());
+        //    m_pLoco->m_Physics.SetLocoCollisionOn(m_AnimCurrTrack.GetWorldCollision());
     }
 
     // Setup chain cycle count?
@@ -287,8 +291,9 @@ void loco_char_anim_player::SetAnim(const AnimGroup::handle& hAnimGroup, int iAn
         if (AnimInfo.ChainCyclesInteger()) {
             m_ChainCycles = x_floor(m_ChainCycles);
         }
-    } else */{
-     
+    } else */
+    {
+
         m_ChainCycles = -1.0f;
     }
 }
@@ -678,7 +683,7 @@ bool loco_char_anim_player::GetPropL2W(const char* pPropName, Matrix4& L2W)
     // Lookup info
     assert(GetAnimGroup());
     const AnimGroup& AnimGroup = *GetAnimGroup();
-    const AnimInfo& AnimInfo = m_AnimCurrTrack.GetAnimInfo();
+    const AnimInfo&  AnimInfo = m_AnimCurrTrack.GetAnimInfo();
 
     // Is this prop channel present?
     int PropChannel = AnimInfo.GetPropChannel(pPropName);
@@ -1022,16 +1027,16 @@ const Matrix4* loco_char_anim_player::GetCachedL2Ws()
 {
     // Update if needed
     UpdateCachedL2Ws();
-/*
-    // If cache is not good, exit
-    if (!m_CachedL2Ws.IsValid(m_nActiveBones)) {
-        return NULL;
-    }
+    /*
+        // If cache is not good, exit
+        if (!m_CachedL2Ws.IsValid(m_nActiveBones)) {
+            return NULL;
+        }
 
-    // Get cache data
-    return m_CachedL2Ws.GetMatrices();
-    */
-   return nullptr;
+        // Get cache data
+        return m_CachedL2Ws.GetMatrices();
+        */
+    return nullptr;
 }
 
 //=========================================================================

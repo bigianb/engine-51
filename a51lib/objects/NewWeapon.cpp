@@ -60,9 +60,9 @@ public:
     {
     }
 
-    Object* Create(ObjectManager* om, collision_mgr* cm)
+    Object* Create(ObjectManager* om, collision_mgr* cm, ResourceManager* rm)
     {
-        return new new_weapon(om);
+        return new new_weapon(om, rm);
     }
 };
 
@@ -86,11 +86,12 @@ const object_desc& new_weapon::GetObjectType(void)
 // WEAPON_DUAL_SMP_CONTROLLER
 //==============================================================================
 
-dual_weapon_anim_controller::dual_weapon_anim_controller(ObjectManager* om)
+dual_weapon_anim_controller::dual_weapon_anim_controller(ObjectManager* om, ResourceManager* rm)
     : m_iLWeaponBone(-1)
     , m_iRWeaponBone(-1)
     , m_WeaponGuid(0)
     , objectManager(om)
+    , m_hAnimGroup(rm)
 {
 }
 
@@ -176,25 +177,26 @@ void dual_weapon_anim_controller::MixKeys(AnimKey* pDestKey)
     }
 }
 
-new_weapon::ammo::ammo()
+
+new_weapon::ammo::ammo(ResourceManager* rm)
     : m_AmmoAmount(1)
     , m_AmmoMax(1)
     , m_AmmoPerClip(1)
     , m_ProjectileTemplateID(-1)
     , m_ProjectileType(new_weapon::PROJECTILE_UNDEFINED)
+    , m_Bitmap(rm)
 {
 }
 
 //==============================================================================
 
-new_weapon::new_weapon(ObjectManager* om)
+new_weapon::new_weapon(ObjectManager* om, ResourceManager* rm)
     : Object(om)
     , m_OwnerGuid(0)
     , m_Flags(~0)
     , m_Item(INVEN_NULL)
-    ,
-
-    m_CurrentRenderState(new_weapon::RENDER_STATE_NPC)
+    , m_Inst(rm)
+    , m_CurrentRenderState(new_weapon::RENDER_STATE_NPC)
     , m_EnableMuzzleFx(true)
     , m_ReticleCenterPixelOffset(8.0f)
     , m_AimDegradePrimary(0.0f)

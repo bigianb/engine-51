@@ -26,7 +26,7 @@ inline void ClampForce(Vector3& Force)
 // FUNCTIONS
 //==============================================================================
 
-physics_inst::physics_inst()
+physics_inst::physics_inst(ResourceManager* rm) : m_hAnimGroup(rm), m_SkinInst(rm)
 {
     m_bInitialized = false;
     m_bInAwakeList = false;
