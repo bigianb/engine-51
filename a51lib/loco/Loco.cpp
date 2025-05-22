@@ -1333,7 +1333,6 @@ loco::loco(ObjectManager* pObjectManager, collision_mgr* collisionManager, Resou
     m_MaskController(rm),
     m_hAnimGroup(rm),
     m_MoveStyleInfo(rm),
-    m_MoveStyleInfoDefault(rm),
     m_Physics(pObjectManager, collisionManager),
     objectManager(pObjectManager),
     m_bLocoIsStuck(false)

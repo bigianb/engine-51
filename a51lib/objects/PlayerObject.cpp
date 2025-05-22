@@ -784,7 +784,7 @@ void player::OnInit()
 
     if (UsingLoco()) {
         // loco MOVE_STYLE_WALK
-        loco::move_style_info_default Defaults;
+        loco::move_style_info_default Defaults(resourceManager);
         Defaults.m_IdleBlendTime = 0.2f;
         Defaults.m_MoveBlendTime = 0.2f;
         Defaults.m_FromPlayAnimBlendTime = 0.2f;

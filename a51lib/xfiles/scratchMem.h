@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <cassert>
 
 #define ALIGN_16(n) ((((size_t)(n)) + 15) & (-16))
