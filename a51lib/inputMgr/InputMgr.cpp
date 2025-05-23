@@ -230,8 +230,7 @@ void input_pad::OnEnumProp(prop_enum& List)
                     List.PropEnumString(xfs("InputPad\\LogicalMap[%d]\\Map[%d]", i, j), "A map is use to attach a physical device 'key' to a logical action", PROP_TYPE_HEADER);
                     List.PropEnumInt(xfs("InputPad\\LogicalMap[%d]\\Map[%d]\\iLogicalMapping", i, j), "This is use for save and load.", PROP_TYPE_DONT_SHOW);
                     List.PropEnumButton(xfs("InputPad\\LogicalMap[%d]\\Map[%d]\\DelMapping", i, j), "Deletes this mapping", PROP_TYPE_DONT_SAVE | PROP_TYPE_MUST_ENUM);
-                    List.PropEnumEnum(xfs("InputPad\\LogicalMap[%d]\\Map[%d]\\GadgetID", i, j), GetGadgetIDNames(iPlatform),
-                                      "This is the physical device which the logical action is map to", 0);
+//                    List.PropEnumEnum(xfs("InputPad\\LogicalMap[%d]\\Map[%d]\\GadgetID", i, j), GetGadgetIDNames(iPlatform), "This is the physical device which the logical action is map to", 0);
 
                     List.PropEnumBool(xfs("InputPad\\LogicalMap[%d]\\Map[%d]\\IsButton", i, j), "Tells whether the gadget in question is setup as a button", PROP_TYPE_MUST_ENUM);
                     List.PropEnumBool(xfs("InputPad\\LogicalMap[%d]\\Map[%d]\\IsTap", i, j), "Tells whether the gadget in question is setup as a button tap", PROP_TYPE_MUST_ENUM);
