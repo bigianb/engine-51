@@ -63,8 +63,10 @@ bool GameObject::init()
     
     ObjectRegistrarInterface* objectRegistrar = new ObjectRegistrar();
     spatial_dbase* spatialDatabase = new spatial_dbase();
+    spatialDatabase->Init(400.0f);
     objectManager->Init(objectRegistrar, spatialDatabase, collisionManager, resourceManager);
     delete objectRegistrar;
+
     engine = new SDLEngine();
     engine->init();
     guid_Init();
@@ -77,8 +79,6 @@ bool GameObject::init()
     levelLoader->mountDefaultFilesystems();
 
     /*
-     g_ObjMgr.Init();
-     g_SpatialDBase.Init( 400.0f );
      g_PostEffectMgr.Init();
      g_PlaySurfaceMgr.Init();
      g_DecalMgr.Init();
