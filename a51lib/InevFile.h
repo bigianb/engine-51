@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstring>
 #include <sstream>
+#include <cassert>
 #include <type_traits>
 
 #include "PlatformDef.h"
@@ -102,7 +103,8 @@ public:
     template <typename T>
     void readArray(T& ptr, int size)
     {
-        if (size == 0) {
+     //   assert(size >= 0);
+        if (size <= 0) {
             cursor += 4;
             return;
         }

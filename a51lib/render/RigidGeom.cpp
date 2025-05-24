@@ -9,6 +9,7 @@
 void RigidGeom::describe(std::ostringstream& ss)
 {
     Geom::describe(ss);
+    collision.describe(ss);
 }
 
 void RigidGeom::read(InevFile& inevFile)
@@ -18,7 +19,7 @@ void RigidGeom::read(InevFile& inevFile)
         return;
     }
     Geom::read(inevFile);
-
+    inevFile.skip(4); 
     inevFile.read(collision);
     inevFile.align16();
     inevFile.read(numDList);

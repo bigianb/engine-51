@@ -276,7 +276,7 @@ public:
     bool         readFile(uint8_t* fileData, int len);
     virtual void read(InevFile&);
 
-    void describe(std::ostringstream& ss);
+    virtual void describe(std::ostringstream& ss);
 
     int AddRef() { return ++m_RefCount; }
     int Release() { return --m_RefCount; }

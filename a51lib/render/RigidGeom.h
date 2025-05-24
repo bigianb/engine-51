@@ -80,10 +80,10 @@ public:
         Dlist_PC*   pPC;
     };
 
-    void read(InevFile&);
+    void read(InevFile&) override;
     void readXboxDemo(InevFile&);
 
-    void describe(std::ostringstream& ss);
+    void describe(std::ostringstream& ss) override;
 
     // Gets the number of vertices returned by getVerticesPUV.
     int getNumVertices(int meshNo);

@@ -15,6 +15,8 @@ struct CollisionData
     CollisionData();
     ~CollisionData();
 
+    void describe(std::ostringstream& ss);
+
     struct MatInfo
     {
         enum
@@ -39,6 +41,7 @@ struct CollisionData
         int16_t iOffset;
         MatInfo materialInfo;
 
+        void describe(std::ostringstream& ss);
         void read(InevFile&);
     };
 
@@ -60,7 +63,9 @@ struct CollisionData
         int16_t nQuads;
         int16_t iMesh;
         int16_t iBone;
-        void    read(InevFile&);
+
+        void describe(std::ostringstream& ss);
+        void read(InevFile&);
     };
 
     BBox         bbox; // Only valid for "zero pose".

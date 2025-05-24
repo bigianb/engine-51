@@ -1,6 +1,8 @@
 #include "CollisionVolume.h"
 #include "../InevFile.h"
 
+#include "../streamingOperators.h"
+
 void CollisionData::MatInfo::read(InevFile& inevFile)
 {
     inevFile.read(soundType);
@@ -81,3 +83,56 @@ CollisionData::~CollisionData()
     delete[] lowVectors;
     delete[] lowQuads;
 }
+
+void CollisionData::describe(std::ostringstream& ss)
+{
+    ss << "CollisionData:" << std::endl;
+    ss << "--------------" << std::endl;
+    ss << "  bbox: " << bbox << std::endl;
+    ss << "  numHighClusters: " << numHighClusters << std::endl;
+    ss << "  numHighIndices: " << numHighIndices << std::endl;
+    ss << "  numLowClusters: " << numLowClusters << std::endl;
+    ss << "  numLowVectors: " << numLowVectors << std::endl;
+    ss << "  numLowQuads: " << numLowQuads << std::endl;
+
+    for (int i = 0; i < numHighClusters; ++i) {
+        ss << "  HighCluster[" << i << "]:" << std::endl;
+        highClusters[i].describe(ss);
+    }
+
+    for (int i = 0; i < numLowClusters; ++i) {
+        ss << "  LowCluster[" << i << "]:" << std::endl;
+        lowClusters[i].describe(ss);
+    }
+}
+
+std::ostream& operator<<(std::ostream& os, const CollisionData::MatInfo& matInfo)
+{
+    os << "MatInfo: soundType=" << matInfo.soundType
+       << ", flags=" << matInfo.flags;
+    return os;
+}
+
+void CollisionData::HighCluster::describe(std::ostringstream& ss)
+{
+    ss << "    bbox: " << bbox << std::endl;
+    ss << "    nTris: " << nTris << std::endl;
+    ss << "    iMesh: " << iMesh << std::endl;
+    ss << "    iBone: " << iBone << std::endl;
+    ss << "    iDList: " << iDList << std::endl;
+    ss << "    iOffset: " << iOffset << std::endl;
+    ss << "    materialInfo: " << materialInfo << std::endl;
+}
+
+void CollisionData::LowCluster::describe(std::ostringstream& ss)
+{
+    ss << "    bbox: " << bbox << std::endl;
+    ss << "    iVectorOffset: " << iVectorOffset << std::endl;
+    ss << "    nPoints: " << nPoints << std::endl;
+    ss << "    nNormals: " << nNormals << std::endl;
+    ss << "    iQuadOffset: " << iQuadOffset << std::endl;
+    ss << "    nQuads: " << nQuads << std::endl;
+    ss << "    iMesh: " << iMesh << std::endl;
+    ss << "    iBone: " << iBone << std::endl;
+}
+
