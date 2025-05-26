@@ -47,12 +47,6 @@ void CollisionData::read(InevFile& inevFile)
     inevFile.read(bbox);
     inevFile.read(numHighClusters);
 
-    if(inevFile.isPC()){
-        // PC version 41 has an extra word here.
-        int pad;
-        inevFile.read(pad);
-    }
-
     inevFile.readArray(highClusters, numHighClusters);
     inevFile.read(numHighIndices);
     inevFile.readNativeArray(highIndexToVert0, numHighIndices);
