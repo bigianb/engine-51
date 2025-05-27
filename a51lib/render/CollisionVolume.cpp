@@ -17,6 +17,7 @@ void CollisionData::HighCluster::read(InevFile& inevFile)
     inevFile.read(iBone);
     inevFile.read(iDList);
     inevFile.read(iOffset);
+    inevFile.skip(2);
     materialInfo.read(inevFile);
 }
 
@@ -40,6 +41,7 @@ void CollisionData::LowCluster::read(InevFile& inevFile)
     inevFile.read(nQuads);
     inevFile.read(iMesh);
     inevFile.read(iBone);
+    inevFile.skip(2);
 }
 
 void CollisionData::read(InevFile& inevFile)
