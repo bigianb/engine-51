@@ -1,7 +1,7 @@
 #include "ObjectManager.h"
 #include "../spatialDBase/SpatialDBase.h"
 #include "../Guid.h"
-
+#include "../zoneManager/ZoneManager.h"
 #include <cassert>
 #include <cstring>
 #include <iostream>
@@ -71,8 +71,6 @@ bool object_desc::OnProperty(prop_query& I)
 
     return true;
 }
-
-
 
 ObjectManager::ObjectManager()
 {
@@ -897,4 +895,43 @@ void ObjectManager::SelectRay(uint32_t Attribute, const Vector3& RayStart, const
         // Get the next cell
         CI = spatialDatabase->GetNextInSearch(CI);
     }
+}
+
+void ObjectManager::Render(bool bDoPortalWalk, const view& PortalView, uint8_t StartZone)
+{
+    Render3dObjects(bDoPortalWalk, PortalView, StartZone);
+
+    // Render HUD
+    Render2dObjects();
+
+    // Render screen fades after the 2d stuff so that the hud will also fade
+    // eng_Begin( "Screen Fade" );
+    // g_PostEffectMgr.RenderScreenFade();
+    // eng_End();
+}
+
+void ObjectManager::Render3dObjects(bool bDoPortalWalk, const view& PortalView, uint8_t StartZone)
+{
+    if (g_ZoneMgr.GetPortalCount() == 0) {
+        bDoPortalWalk = false;
+    }
+    Render3dPrep(bDoPortalWalk, PortalView, StartZone);
+
+    // Handle the normal rendering
+    if (eng_Begin("3d Objects")) {
+        render::BeginNormalRender();
+        RenderNormalObjects();
+
+        if (g_bRenderPlaysurfaces) {
+            RenderPlaySurfaces();
+        }
+
+        g_LightMgr.EndLightCollection();
+        // Check if any types need their collision rendered
+        
+        render::EndNormalRender();
+        eng_End();
+    }
+
+    RenderSpecialObjects();
 }

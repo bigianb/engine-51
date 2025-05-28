@@ -146,6 +146,8 @@ public:
 
     void Render(bool DoPortalWalk, const view& PortalView, uint8_t StartZone);
 
+    void Render3dObjects(bool DoPortalWalk, const view& PortalView, uint8_t StartZone);
+
     void ReserveGuid(guid Guid);
     guid CreateObject(const char* objectTypeName);
     void CreateObject(const char* objectTypeName, guid Guid);

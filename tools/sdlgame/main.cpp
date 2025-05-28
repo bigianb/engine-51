@@ -100,7 +100,7 @@ int main(int argc, char** argv)
 */
             if (logicFramesAfterLoad > 10) {
                 uint8_t playerViewZone = 0;
-                //gameObject.objectManager->Render(true, g_View, playerViewZone);
+                gameObject.objectManager->Render(true, g_View, playerViewZone);
                 //g_ObjMgr.Render(TRUE,g_View,pPlayers[i]->GetPlayerViewZone());
             }
         }
