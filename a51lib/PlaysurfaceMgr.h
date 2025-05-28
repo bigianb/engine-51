@@ -6,6 +6,9 @@
 #include "render/CollisionVolume.h"
 #include "PlaysurfaceDB.h"
 #include "objects/render/RenderInst.h"
+#include "zoneManager/ZoneManager.h"
+
+class ObjectManager;
 
 struct Surface
 {
@@ -58,6 +61,13 @@ public:
     Surface* GetNextSurface();
 
     //---------------------------------------------------------------------
+    // Rendering routines
+    //---------------------------------------------------------------------
+    // Object manager for visibility testing
+    void RenderPlaySurfaces(ObjectManager* om);
+    void RenderPlaySurfacesCollision(bool bRenderHi);
+
+    //---------------------------------------------------------------------
     // Helpers to fake out the collision system
     //---------------------------------------------------------------------
     guid GetPlaySurfaceGuid() { return spatialDBase.GetCurrentGuid(); }
@@ -83,4 +93,8 @@ public:
 private:
     void ClearDBaseQueries();
     void readZoneInfo(DataReader& reader, ZoneInfo& zi);
+
+    void RenderZone(ObjectManager* objectManager, ZoneInfo&         Zone,
+                    zone_mgr::zone_id Zone1,
+                    zone_mgr::zone_id Zone2);
 };

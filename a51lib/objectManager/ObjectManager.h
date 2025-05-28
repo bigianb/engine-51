@@ -11,6 +11,7 @@ class spatial_dbase;
 class view;
 class ObjectManager;
 class collision_mgr;
+class PlaysurfaceMgr;
 
 class object_desc : public prop_interface
 {
@@ -133,7 +134,7 @@ public:
 
     ObjectManager();
     ~ObjectManager();
-    void Init(ObjectRegistrarInterface* objectRegistrar, spatial_dbase*, collision_mgr* cm, ResourceManager*);
+    void Init(ObjectRegistrarInterface* objectRegistrar, spatial_dbase*, collision_mgr* cm, ResourceManager*, PlaysurfaceMgr*);
     void Kill();
 
     xtick GetGameTime() const { return m_GameTime; };
@@ -148,6 +149,18 @@ public:
 
     void Render3dObjects(bool DoPortalWalk, const view& PortalView, uint8_t StartZone);
 
+protected:
+    void DoVisibilityTests(const view& View);
+    void CollectShadowCasters();
+    void CompleteVisAndShadowTests();
+    void CreateShadowMap();
+    void Render3dPrep(bool DoPortalWalk, const view& PortalView, uint8_t StartZone);
+    void RenderNormalObjects();
+    void RenderPlaySurfaces();
+    void Render2dObjects();
+    void RenderSpecialObjects();
+
+public:
     void ReserveGuid(guid Guid);
     guid CreateObject(const char* objectTypeName);
     void CreateObject(const char* objectTypeName, guid Guid);
@@ -304,14 +317,21 @@ private:
     slot_id m_FirstSearchResult;
     bool    m_InLoop;
     int     m_Sequence;
-    BBox    m_SafeBBox;
-    guid    m_ReservedGuid;
+
+    // Next 3 members are used for visibility checks
+    plane m_Plane[6 * 2];
+    int   m_PlaneMinIndex[6 * 2 * 3];
+    int   m_PlaneMaxIndex[6 * 2 * 3];
+
+    BBox m_SafeBBox;
+    guid m_ReservedGuid;
 
     int m_nLogicLoops;
 
-    spatial_dbase* spatialDatabase;
-    collision_mgr* collisionMgr;
+    spatial_dbase*   spatialDatabase;
+    collision_mgr*   collisionMgr;
     ResourceManager* resourceManager;
+    PlaysurfaceMgr*  playsurfaceManager;
 
     xtick m_GameTime;
 };

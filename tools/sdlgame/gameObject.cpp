@@ -45,7 +45,8 @@ bool GameObject::init()
     if (!renderer->init()){
         return false;
     }
-
+    render::Init(resourceManager, renderer);
+    
     fs = new FileSystem();
     resourceManager = new ResourceManager();
     resourceManager->setFilesystem(fs);
@@ -64,7 +65,7 @@ bool GameObject::init()
     ObjectRegistrarInterface* objectRegistrar = new ObjectRegistrar();
     spatial_dbase* spatialDatabase = new spatial_dbase();
     spatialDatabase->Init(400.0f);
-    objectManager->Init(objectRegistrar, spatialDatabase, collisionManager, resourceManager);
+    objectManager->Init(objectRegistrar, spatialDatabase, collisionManager, resourceManager, playsurfaceManager);
     delete objectRegistrar;
 
     engine = new SDLEngine();
@@ -104,9 +105,9 @@ bool GameObject::init()
 
     levelLoader->loadDFS("BOOT");
     levelLoader->loadDFS("PRELOAD");
-    /*
-        render::Init();
+    
 
+/*
         g_TracerMgr.Init();
         g_PhysicsMgr.Init();
 

@@ -2,6 +2,7 @@
 #include "../spatialDBase/SpatialDBase.h"
 #include "../Guid.h"
 #include "../zoneManager/ZoneManager.h"
+#include "../PlaysurfaceMgr.h"
 #include <cassert>
 #include <cstring>
 #include <iostream>
@@ -81,11 +82,12 @@ ObjectManager::~ObjectManager()
 {
 }
 
-void ObjectManager::Init(ObjectRegistrarInterface* objectRegistrar, spatial_dbase* sdb, collision_mgr* cm, ResourceManager* rm)
+void ObjectManager::Init(ObjectRegistrarInterface* objectRegistrar, spatial_dbase* sdb, collision_mgr* cm, ResourceManager* rm, PlaysurfaceMgr* psm)
 {
     spatialDatabase = sdb;
     collisionMgr = cm;
     resourceManager = rm;
+    playsurfaceManager = psm;
     objectDescriptors.clear();
     objectRegistrar->RegisterObjects(objectDescriptors);
 
@@ -918,20 +920,319 @@ void ObjectManager::Render3dObjects(bool bDoPortalWalk, const view& PortalView, 
     Render3dPrep(bDoPortalWalk, PortalView, StartZone);
 
     // Handle the normal rendering
-    if (eng_Begin("3d Objects")) {
-        render::BeginNormalRender();
-        RenderNormalObjects();
+    //    if (eng_Begin("3d Objects")) {
+    render::BeginNormalRender();
+    //RenderNormalObjects();
+    playsurfaceManager->RenderPlaySurfaces(this);
+    //g_LightMgr.EndLightCollection();
+    // Check if any types need their collision rendered
 
-        if (g_bRenderPlaysurfaces) {
-            RenderPlaySurfaces();
+    render::EndNormalRender();
+    //     eng_End();
+    // }
+
+    //RenderSpecialObjects();
+}
+
+void ObjectManager::Render2dObjects()
+{
+    // if( eng_Begin( "2d Objects" ) )
+    // {
+    // Go through all the object types that have the Draw 2D flags set on them.
+    for (int i = Object::TYPE_NULL; i < Object::TYPE_END_OF_LIST; i++) {
+        if (m_ObjectType[i].pDesc) {
+            if (m_ObjectType[i].pDesc->m_CommonAttrBits & Object::ATTR_DRAW_2D) {
+                // Go through all the object of this type from the list.
+                slot_id SlotID = m_ObjectType[i].FirstType;
+                while (SlotID != SLOT_NULL) {
+                    Object* pObj = GetObjectBySlot(SlotID);
+
+                    // Does this specific object have the Draw 2D flag set?
+                    if (pObj->GetAttrBits() & Object::ATTR_DRAW_2D) {
+                        pObj->OnRender();
+                    }
+
+                    SlotID = GetNext(SlotID);
+                }
+            }
+        }
+    }
+    //     eng_End();
+    // }
+}
+
+void ObjectManager::Render3dPrep(bool DoPortalWalk, const view& PortalView, uint8_t StartZone)
+{
+    // solves the shadow casting and general visibility, and preps the game for
+    // proper 3d rendering
+
+    // Update the OccluderMgr with the latest view
+    // IJB g_OccluderMgr.SetView( PortalView );
+
+    // create the list of visible objects and they're clipping flags
+    if (DoPortalWalk) {
+        g_ZoneMgr.PortalWalk(PortalView, StartZone);
+    } else {
+        g_ZoneMgr.PortalWalk(PortalView, 0);
+    }
+    DoVisibilityTests(PortalView);
+
+    // clear out our projector, caster, and receivers lists. they need to be
+    // recalculated at every frame
+    /* IJB
+    m_ShadowProjectors.Clear();
+    m_ShadowReceivers.Clear();
+    m_ShadowCasters.Clear();
+
+    // collect any shadow casters
+    if (m_bRenderShadows) {
+        CollectShadowCasters();
+    }
+    // finish up visibility tests and solve shadow receivers
+    CompleteVisAndShadowTests();
+    // finally, create the shadow map
+    if (m_bRenderShadows) {
+        CreateShadowMap();
+    }
+*/
+
+    // Clear the list of special render objects;
+    // IJB g_SpecialRenderObj.Delete(0, g_SpecialRenderObj.GetCount());
+
+    // clear the list of character lights...the rendering process will add them back in
+    // IJB g_LightMgr.ClearLights();
+
+    // set up the environment map
+    cubemap::handle Handle;
+    Handle.setName("DefaultEnvMap.envmap");
+    render::SetAreaCubeMap(Handle);
+}
+
+int ObjectManager::IsBoxInView(
+    const BBox& bbox,
+    uint32_t    CheckPlaneMask) const
+{
+    int          PlanesHit = 0;
+    const float* pF = (const float*)&bbox;
+    const int*   pMinI = m_PlaneMinIndex;
+    const int*   pMaxI = m_PlaneMaxIndex;
+    const plane* pPlane = m_Plane;
+    uint32_t     SkipPlaneMask = (~CheckPlaneMask) & 0b0111111;
+
+    for (int i = 0; i < 6; i++, pMinI += 3, pMaxI += 3, pPlane++) {
+        if (SkipPlaneMask & (1 << i)) {
+            continue;
         }
 
-        g_LightMgr.EndLightCollection();
-        // Check if any types need their collision rendered
-        
-        render::EndNormalRender();
-        eng_End();
+        // Compute max dist along normal
+        float MaxDist = pPlane->Normal.GetX() * pF[pMaxI[0]] +
+                        pPlane->Normal.GetY() * pF[pMaxI[1]] +
+                        pPlane->Normal.GetZ() * pF[pMaxI[2]] +
+                        pPlane->D;
+
+        // If outside plane, we are culled.
+        if (MaxDist < 0) {
+            return -1;
+        }
+
+        // Compute min dist along normal
+        float MinDist = pPlane->Normal.GetX() * pF[pMinI[0]] +
+                        pPlane->Normal.GetY() * pF[pMinI[1]] +
+                        pPlane->Normal.GetZ() * pF[pMinI[2]] +
+                        pPlane->D;
+
+        if (MinDist >= 0) {
+            SkipPlaneMask |= (1 << i);
+        }
     }
 
-    RenderSpecialObjects();
+    // If we have 6 bits set it means that we are completly inside the
+    // culling bounds So don't check for clipping.
+    if (SkipPlaneMask == 0b0111111) {
+        return 0;
+    }
+
+    //
+    // Check clipping planes (skip far plane)
+    //
+
+    for (int i = 0; i < 6 - 1; i++, pMinI += 3, pPlane++) {
+        if (SkipPlaneMask & (1 << i)) {
+            continue;
+        }
+
+        // Compute min dist along normal
+        float MinDist = pPlane->Normal.GetX() * pF[pMinI[0]] +
+                        pPlane->Normal.GetY() * pF[pMinI[1]] +
+                        pPlane->Normal.GetZ() * pF[pMinI[2]] +
+                        pPlane->D;
+
+        // We know that we must be inside or spanning plane
+        if (MinDist < 0) {
+            PlanesHit++;
+        }
+    }
+
+    // All points where inside of all the planes so don't clip
+    return PlanesHit;
+}
+
+void ObjectManager::DoVisibilityTests(const view& View)
+{
+    for (int i = 0; i < Object::TYPE_END_OF_LIST; i++) {
+        m_ObjectType[i].FirstVis = SLOT_NULL;
+        m_ObjectType[i].nVis = 0;
+    }
+    ResetSearchResult();
+
+    // Build the cull planes
+    int ClipX = 1800;
+    int ClipY = 1800;
+    View.GetViewPlanes(m_Plane[6 * 0 + 3],
+                       m_Plane[6 * 0 + 2],
+                       m_Plane[6 * 0 + 0],
+                       m_Plane[6 * 0 + 1],
+                       m_Plane[6 * 0 + 4],
+                       m_Plane[6 * 0 + 5],
+                       view::WORLD);
+
+    View.GetViewPlanes((float)(-ClipX),
+                       (float)(-ClipY),
+                       (float)(ClipX),
+                       (float)(ClipY),
+                       m_Plane[6 * 1 + 3],
+                       m_Plane[6 * 1 + 2],
+                       m_Plane[6 * 1 + 0],
+                       m_Plane[6 * 1 + 1],
+                       m_Plane[6 * 1 + 4],
+                       m_Plane[6 * 1 + 5],
+                       view::WORLD);
+
+    for (int i = 0; i < 6 * 2; i++) {
+        m_Plane[i].GetBBoxIndices(&m_PlaneMinIndex[i * 3], &m_PlaneMaxIndex[i * 3]);
+    }
+
+    // loop through renderable objects of each visible zone
+    int StartingZone = g_ZoneMgr.GetStartingZone();
+
+    int ZoneCount = g_ZoneMgr.GetZoneCount();
+
+    for (int i = 0; i < ZoneCount; i++) {
+        if ((i == 0) || g_ZoneMgr.IsZoneVisible(i)) {
+            for (int WhichZone = 0; WhichZone < 2; WhichZone++) {
+
+                slot_id SlotID = m_ObjectZone[i].FirstRenderable[WhichZone];
+
+                while (SlotID != SLOT_NULL) {
+                    // get a pointer to the object to be tested
+                    obj_slot& ObjSlot = m_ObjectSlot[SlotID];
+                    Object*   pObject = ObjSlot.pObject;
+
+                    // advance the slot id
+                    slot_id NextSlotID;
+
+                    NextSlotID = ObjSlot.NextRenderable[WhichZone];
+
+                    // have we already checked this object?
+                    if (ObjSlot.Sequence == m_Sequence) {
+                        SlotID = NextSlotID;
+                        continue;
+                    }
+
+                    assert(pObject);
+
+                    // perform zone manager visibility tests
+                    const BBox& bbox = pObject->GetBBox();
+                    if ((i != StartingZone) && !g_ZoneMgr.IsBBoxVisible(bbox, (zone_mgr::zone_id)pObject->GetZone1(), (zone_mgr::zone_id)pObject->GetZone2())) {
+                        SlotID = NextSlotID;
+                        continue;
+                    }
+
+                    // perform clipping tests
+                    int InView = IsBoxInView(bbox, 0b0111111);
+
+                    // Outside the view?
+                    if (InView == -1) {
+                        SlotID = NextSlotID;
+                        continue;
+                    }
+
+                    // completely in or needs clipping?
+                    if (InView == 0) {
+                        pObject->SetFlagBits(pObject->GetFlagBits() & ~Object::FLAG_CHECK_PLANES);
+                    } else {
+                        pObject->SetFlagBits((pObject->GetFlagBits() & ~Object::FLAG_CHECK_PLANES) | (1 << Object::FLAG_CHECK_PLANES_SHIFT));
+                    }
+
+                    // mark this object as needing to be rendered
+                    int ObjType = pObject->GetType();
+                    assert(ObjType > (int)Object::TYPE_NULL);
+                    ObjSlot.Sequence = m_Sequence;
+                    ObjSlot.NextVis = m_ObjectType[ObjType].FirstVis;
+                    m_ObjectType[ObjType].FirstVis = SlotID;
+                    m_ObjectType[ObjType].nVis++;
+
+                    // move to the next object
+                    SlotID = NextSlotID;
+                }
+            }
+        }
+    }
+
+    // Lights are a special case. It is too easy for lights to overlap zones,
+    // and it would be a pain in the butt to move all the lights into portals,
+    // so we'll always allow them to be rendered.
+    //for( i = (int)object::TYPE_CHARACTER_LIGHT; i <= (int)object::TYPE_DYNAMIC_LIGHT; i++ )
+
+    // Only allow this for character lights. Dynamic lights should still be zone
+    // based to avoid bleeding through walls.
+    int i = (int)Object::TYPE_CHARACTER_LIGHT;
+    {
+        slot_id SlotID = GetFirst((Object::type)i);
+        while (SlotID != SLOT_NULL) {
+            // get a pointer to the object to be tested
+            obj_slot& ObjSlot = m_ObjectSlot[SlotID];
+            Object*   pObject = ObjSlot.pObject;
+
+            // advance the slot id
+            slot_id NextSlotID;
+            NextSlotID = GetNext(SlotID);
+
+            // have we already checked this object?
+            if (ObjSlot.Sequence == m_Sequence) {
+                SlotID = NextSlotID;
+                continue;
+            }
+
+            assert(pObject);
+
+            // perform clipping tests
+            const BBox& bb = pObject->GetBBox();
+            int         InView = IsBoxInView(bb, 0b0111111);
+
+            // Outside the view?
+            if (InView == -1) {
+                SlotID = NextSlotID;
+                continue;
+            }
+
+            // completely in or needs clipping?
+            if (InView == 0) {
+                pObject->SetFlagBits(pObject->GetFlagBits() & ~Object::FLAG_CHECK_PLANES);
+            } else {
+                pObject->SetFlagBits((pObject->GetFlagBits() & ~Object::FLAG_CHECK_PLANES) | (1 << Object::FLAG_CHECK_PLANES_SHIFT));
+            }
+
+            // mark this object as needing to be rendered
+            int ObjType = i;
+            assert(ObjType > (int)Object::TYPE_NULL);
+            ObjSlot.Sequence = m_Sequence;
+            ObjSlot.NextVis = m_ObjectType[ObjType].FirstVis;
+            m_ObjectType[ObjType].FirstVis = SlotID;
+            m_ObjectType[ObjType].nVis++;
+
+            // move to the next object
+            SlotID = NextSlotID;
+        }
+    }
 }

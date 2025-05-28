@@ -42,6 +42,13 @@ public:
                       const Colour&  Color) override;
     void drawColourRect(const IntRect& pos, const Colour& colour, bool isAdditive) override;
 
+    void BeginRigidGeom(Geom* pGeom, int iSubMesh) override;
+    void RenderRigidInstance(render_instance& Inst) override;
+    void EndRigidGeom() override;
+    void BeginSkinGeom(Geom* pGeom, int iSubMesh) override;
+    void RenderSkinInstance(render_instance& Inst) override;
+    void EndSkinGeom() override;
+
 private:
     void flushTextureVertices();
     void flushColourVertices();

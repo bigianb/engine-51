@@ -1,6 +1,7 @@
 #include "PlaysurfaceMgr.h"
 #include "DataReader.h"
 #include "streamingOperators.h"
+#include "objectManager/ObjectManager.h"
 
 void PlaysurfaceMgr::readZoneInfo(DataReader& reader, ZoneInfo& zi)
 {
@@ -195,4 +196,90 @@ void PlaysurfaceMgr::CollectSurfaces(const Vector3& RayStart,
 Surface* PlaysurfaceMgr::GetNextSurface()
 {
     return spatialDBase.GetNextSurface();
+}
+
+void PlaysurfaceMgr::RenderPlaySurfaces(ObjectManager* objectManager)
+{
+    if (zones.size() == 0) {
+        return;
+    }
+
+    // mark playsurfaces that need to have lighting calculations done (going
+    // through the lights using the spatial dbase should be quicker than
+    // doing additional checks for all playsurfaces)
+    // IJB MarkLitPlaySurfaces();
+
+    // render the zones
+    RenderZone(objectManager, zones[0], 0, 0); // default zone is always visible
+    for (int i = 1; i < zones.size(); i++) {
+        if (g_ZoneMgr.IsZoneVisible(i)) {
+            RenderZone(objectManager, zones[i], i, 0);
+        }
+    }
+
+    // render the portals
+    for (int i = 0; i < portals.size(); i++) {
+        zone_mgr::portal& Portal = g_ZoneMgr.GetPortal(i);
+        if (g_ZoneMgr.IsZoneVisible(Portal.iZone[0]) ||
+            g_ZoneMgr.IsZoneVisible(Portal.iZone[1])) {
+            RenderZone(objectManager, portals[i], Portal.iZone[0], Portal.iZone[1]);
+        }
+    }
+}
+
+void PlaysurfaceMgr::RenderZone(ObjectManager* objectManager, ZoneInfo&         zoneInfo,
+                                zone_mgr::zone_id Zone1,
+                                zone_mgr::zone_id Zone2)
+{
+    // if this zone isn't loaded fully, we can't render it
+    // if (zoneInfo.Resolved == false) {
+    //     return;
+    // }
+
+    if (zoneInfo.numSurfaces == 0) {
+        return;
+    }
+
+    // use the starting zone to determine whether we should do a zone vis check
+    int  StartingZone = g_ZoneMgr.GetStartingZone();
+    bool bNotInStartingZone = !((Zone1 == StartingZone) || (Zone2 == StartingZone));
+
+    for (auto& surface : zoneInfo.surfaces) {
+        // check if this surface is in the zone
+        if (bNotInStartingZone && !g_ZoneMgr.IsBBoxVisible(surface.WorldBBox, Zone1, Zone2)) {
+            continue;
+        }
+
+        // check for clipping against the view frustum
+        int Vis = objectManager->IsBoxInView(surface.WorldBBox, 0b0111111);
+        if (Vis == -1) {
+            continue;
+        }
+
+        // check if we have a valid instance (bad data could cause this to get hit)
+        if (surface.RenderInst.IsNull()) {
+            continue;
+        }
+
+        // accumulate any other flags (Note that we don't use pSpadSurface because
+        // we have no guarantee that pSurface was flushed from the cache before
+        // our dma. That's okay becauses everything we access besides the render
+        // flags is constant.)
+        int Flags = surface.RenderFlags;
+
+        // to clip or not to clip?
+        if (Vis) {
+            Flags |= render::CLIPPED;
+        }
+
+        // render it
+        render::AddRigidInstanceSimple(surface.RenderInst,
+                                       (const uint16_t*)surface.pColor,
+                                       &surface.L2W,
+                                       surface.WorldBBox,
+                                       Flags);
+
+        // clear any accumulated flags for the next frame
+        surface.RenderFlags &= ~(render::CLIPPED | render::SHADOW_PASS | render::DO_SIMPLE_LIGHTING);
+    }
 }

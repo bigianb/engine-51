@@ -7,13 +7,94 @@
 #include "SkinGeom.h"
 #include "../Bitmap.h"
 #include "../xfiles/xHandle.h"
+
 #include <cassert>
+
+union sortkey
+{
+    struct
+    {
+        uint32_t GeomSubMesh : 8;
+        uint32_t GeomHandle : 9;
+        uint32_t GeomType : 1;
+        uint32_t MatIndex : 10;
+        uint32_t RenderOrder : 3;
+    };
+    uint32_t Bits;
+};
+
+union shad_sortkey
+{
+    struct
+    {
+        uint32_t ProjectorIndex : 6;
+        uint32_t GeomSubMesh : 8;
+        uint32_t GeomHandle : 9;
+        uint32_t GeomType : 1;
+        uint32_t ShadType : 1; // cast or receive
+    };
+    uint32_t Bits;
+};
+
+enum geom_type
+{
+    TYPE_RIGID = 0,
+    TYPE_SKIN,
+    TYPE_UNKNOWN
+};
+
+struct rigid_data
+{
+    RigidGeom*     pGeom;
+    const Matrix4* pL2W;
+    const void*    pColInfo;
+};
+
+struct skin_data
+{
+    SkinGeom*      pGeom;
+    const Matrix4* pBones;
+    uint32_t       Pad;
+};
+
+union instance_data
+{
+    rigid_data Rigid;
+    skin_data  Skin;
+};
+
+struct render_instance
+{
+    union
+    {
+        shad_sortkey ShadSortKey;
+        sortkey      SortKey;
+    };
+    uint32_t      Flags;
+    void*         pLighting;
+    instance_data Data;
+
+    uint8_t UOffset;
+    uint8_t VOffset;
+    uint8_t Alpha;
+    uint8_t OverrideMat; // such as distortion
+
+    // information for the hash table
+    int16_t Brother;
+    int16_t Next;
+
+#ifdef TARGET_PC
+    xhandle hDList;
+#endif // TARGET_PC
+};
+
+class Renderer;
 
 namespace render
 {
 
     // startup and shutdown routines
-    void Init(ResourceManager* );
+    void Init(ResourceManager*, Renderer* renderer );
     void Kill();
 
     // update routines (needed for uv and texture animation)

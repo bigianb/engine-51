@@ -2,6 +2,7 @@
 
 #include "../Colour.h"
 #include "../VectorMath.h"
+#include "../render/Render.h"
 
 #define DRAW_2D (1 << 0)             // Default: 3D
 #define DRAW_TEXTURED (1 << 1)       // Default: Not textured
@@ -58,10 +59,17 @@ public:
     virtual void drawColour(const Colour& colour) = 0;
     virtual void drawVertex(float x, float y, float z, float u, float v) = 0;
 
-    virtual void drawSpriteUV   ( const Vector3& Position,  // Hot spot (2D Left-Top), (3D Center)
-                          const Vector2& WH,        // (2D pixel W&H), (3D World W&H)
-                          const Vector2& UV0,       // Upper Left   UV  [0.0 - 1.0]
-                          const Vector2& UV1,       // Bottom Right UV  [0.0 - 1.0]
-                          const Colour &  Color ) = 0;
+    virtual void drawSpriteUV(const Vector3& Position, // Hot spot (2D Left-Top), (3D Center)
+                              const Vector2& WH,       // (2D pixel W&H), (3D World W&H)
+                              const Vector2& UV0,      // Upper Left   UV  [0.0 - 1.0]
+                              const Vector2& UV1,      // Bottom Right UV  [0.0 - 1.0]
+                              const Colour&  Color) = 0;
     virtual void drawColourRect(const IntRect& pos, const Colour& colour, bool isAdditive) = 0;
+
+    virtual void BeginRigidGeom(Geom* pGeom, int iSubMesh) = 0;
+    virtual void RenderRigidInstance(render_instance& Inst) = 0;
+    virtual void EndRigidGeom(void) = 0;
+    virtual void BeginSkinGeom(Geom* pGeom, int iSubMesh) = 0;
+    virtual void RenderSkinInstance(render_instance& Inst) = 0;
+    virtual void EndSkinGeom() = 0;
 };

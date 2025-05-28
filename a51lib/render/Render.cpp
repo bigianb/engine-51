@@ -8,6 +8,8 @@
 #include "MaterialArray.h"
 #undef RENDER_PRIVATE
 
+#include "../system/Renderer.h"
+
 #include <cassert>
 
 struct distortion_info
@@ -33,92 +35,6 @@ enum
     ORDER_ZPRIME = 5,
     ORDER_FADING_ALPHA = 6,
     ORDER_DISTORTION = 7
-};
-
-union sortkey
-{
-    struct
-    {
-        uint32_t GeomSubMesh : 8;
-        uint32_t GeomHandle : 9;
-        uint32_t GeomType : 1;
-        uint32_t MatIndex : 10;
-        uint32_t RenderOrder : 3;
-    };
-    uint32_t Bits;
-};
-
-union shad_sortkey
-{
-    struct
-    {
-        uint32_t ProjectorIndex : 6;
-        uint32_t GeomSubMesh : 8;
-        uint32_t GeomHandle : 9;
-        uint32_t GeomType : 1;
-        uint32_t ShadType : 1; // cast or receive
-    };
-    uint32_t Bits;
-};
-
-enum geom_type
-{
-    TYPE_RIGID = 0,
-    TYPE_SKIN,
-    TYPE_UNKNOWN
-};
-
-//=============================================================================
-
-struct rigid_data
-{
-    RigidGeom*     pGeom;
-    const Matrix4* pL2W;
-    const void*    pColInfo;
-};
-
-//=============================================================================
-
-struct skin_data
-{
-    SkinGeom*      pGeom;
-    const Matrix4* pBones;
-    uint32_t       Pad;
-};
-
-//=============================================================================
-
-union instance_data
-{
-    rigid_data Rigid;
-    skin_data  Skin;
-};
-
-//=============================================================================
-
-struct render_instance
-{
-    union
-    {
-        shad_sortkey ShadSortKey;
-        sortkey      SortKey;
-    };
-    uint32_t      Flags;
-    void*         pLighting;
-    instance_data Data;
-
-    uint8_t UOffset;
-    uint8_t VOffset;
-    uint8_t Alpha;
-    uint8_t OverrideMat; // such as distortion
-
-    // information for the hash table
-    int16_t Brother;
-    int16_t Next;
-
-#ifdef TARGET_PC
-    xhandle hDList;
-#endif // TARGET_PC
 };
 
 //=============================================================================
@@ -245,14 +161,6 @@ inline bool IsAlphaMaterial(material_type Type)
         return true;
     }
 }
-
-#ifdef TARGET_PC
-#include "Render\pc_Render.cpp"
-#endif
-
-//=============================================================================
-// Static declarations that we can put X_SECTION's on.
-//=============================================================================
 
 static uint32_t           HashFn(uint32_t SortKey);
 static render_instance&   AddToHashHybrid(uint32_t SortKey);
@@ -764,8 +672,13 @@ int render::GetHardwareBufferSize(void)
 
 //=============================================================================
 
-void render::Init(ResourceManager* rm)
+// Bit ugly but not as bad as a global.
+static Renderer* platformRenderer = nullptr;
+
+void render::Init(ResourceManager* rm, Renderer* renderer)
 {
+    platformRenderer = renderer;
+    
     s_PulseTime = 0.0f;
 
     s_lRegisteredGeoms = new xharray<private_geom>(rm);
@@ -1110,7 +1023,6 @@ void render::BeginNormalRender()
     s_lRegisteredMaterials->Sort();
 
     // safety check
-    //assert(eng_InBeginEnd());
     assert(!s_InRenderBegin && !s_InShadowBegin && !s_InRawBegin);
     s_InRenderBegin = true;
 
@@ -1134,7 +1046,6 @@ void render::EndNormalRender()
     s_CustomStart = s_LoHashMark;
 
     // safety check
-    //assert(eng_InBeginEnd());
     assert(s_InRenderBegin);
     s_InRenderBegin = false;
 
@@ -1212,7 +1123,7 @@ void render::EndNormalRender()
                 pCurrentGeom = Inst.Data.Rigid.pGeom;
                 CurrentType = TYPE_RIGID;
                 CurrentSortData.GeomSubMesh = Inst.SortKey.GeomSubMesh;
-             //   platform_BeginRigidGeom(pCurrentGeom, Inst.SortKey.GeomSubMesh);
+                platformRenderer->BeginRigidGeom(pCurrentGeom, Inst.SortKey.GeomSubMesh);
             } else if (Inst.SortKey.GeomType &&
                        ((pCurrentGeom != Inst.Data.Skin.pGeom) || (CurrentSortData.GeomSubMesh != Inst.SortKey.GeomSubMesh))) {
                 if (pCurrentGeom != nullptr) {

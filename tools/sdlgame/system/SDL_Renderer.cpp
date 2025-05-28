@@ -141,17 +141,17 @@ bool SDLRenderer::init()
              .enable_color_write_mask = false}}};
 
     SDL_GPUColorTargetDescription ctd_alpha[]{
-    {.format = SDL_GetGPUSwapchainTextureFormat(device, window),
-        .blend_state = {
-            .src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
-            .dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
-            .color_blend_op = SDL_GPU_BLENDOP_ADD,
-            .src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
-            .dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
-            .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
-            .color_write_mask = 0,
-            .enable_blend = true,
-            .enable_color_write_mask = false}}};
+        {.format = SDL_GetGPUSwapchainTextureFormat(device, window),
+         .blend_state = {
+             .src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+             .dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+             .color_blend_op = SDL_GPU_BLENDOP_ADD,
+             .src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+             .dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+             .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
+             .color_write_mask = 0,
+             .enable_blend = true,
+             .enable_color_write_mask = false}}};
 
     SDL_GPUVertexAttribute vba[]{
         {
@@ -404,14 +404,14 @@ void SDLRenderer::draw()
         colorTargetInfo.store_op = SDL_GPU_STOREOP_STORE;
 
         SDL_GPURenderPass* renderPass = SDL_BeginGPURenderPass(cmdbuf, &colorTargetInfo, 1, NULL);
-        
+
         for (auto& batch : batches) {
             SDL_BindGPUGraphicsPipeline(renderPass, batch.pipeline);
             SDL_GPUBufferBinding bb{.buffer = batch.vertexBuffer, .offset = 0};
             SDL_BindGPUVertexBuffers(renderPass, 0, &bb, 1);
             SDL_GPUBufferBinding bbi{.buffer = batch.indexBuffer, .offset = 0};
             SDL_BindGPUIndexBuffer(renderPass, &bbi, SDL_GPU_INDEXELEMENTSIZE_16BIT);
-            if (batch.texture != nullptr){
+            if (batch.texture != nullptr) {
                 SDL_GPUTextureSamplerBinding tsb{.texture = batch.texture, .sampler = pointSampler};
                 SDL_BindGPUFragmentSamplers(renderPass, 0, &tsb, 1);
             }
@@ -445,8 +445,8 @@ void SDLRenderer::drawColour(const Colour& colour)
 
 void SDLRenderer::drawVertex(float x, float y, float z, float u, float v)
 {
-    float wx = (x - 320.0f) / 320.0f;
-    float wy = (240.0f - y) / 240.0f;
+    float   wx = (x - 320.0f) / 320.0f;
+    float   wy = (240.0f - y) / 240.0f;
     Colour& c = currentColour;
     accumulatedVertices.push_back({wx, wy, z, u, v, c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 255.0f});
 }
@@ -569,11 +569,11 @@ void SDLRenderer::flushTextureVertices()
 
     // DRAW_BLEND_ADD takes precedence
     SDL_GPUGraphicsPipeline* pl = pipeline;
-    if ((drawFlags & DRAW_BLEND_ADD)){
+    if ((drawFlags & DRAW_BLEND_ADD)) {
         pl = pipeline;
-    } else if ((drawFlags & DRAW_BLEND_SUB)){
+    } else if ((drawFlags & DRAW_BLEND_SUB)) {
         assert(false);
-    } else if ((drawFlags & DRAW_USE_ALPHA)){
+    } else if ((drawFlags & DRAW_USE_ALPHA)) {
         pl = pipeline_tex_alpha;
     }
 
@@ -610,7 +610,7 @@ void SDLRenderer::flushColourVertices()
         device,
         &tbci);
 
-        PositionColourVertex* transferData = (PositionColourVertex*)SDL_MapGPUTransferBuffer(
+    PositionColourVertex* transferData = (PositionColourVertex*)SDL_MapGPUTransferBuffer(
         device,
         bufferTransferBuffer,
         false);
@@ -724,3 +724,10 @@ void SDLRenderer::setTexture(Bitmap* tex)
 
     gpuTextures[tex] = Texture;
 }
+
+void SDLRenderer::BeginRigidGeom(Geom* pGeom, int iSubMesh) {}
+void SDLRenderer::RenderRigidInstance(render_instance& Inst) {}
+void SDLRenderer::EndRigidGeom() {}
+void SDLRenderer::BeginSkinGeom(Geom* pGeom, int iSubMesh) {}
+void SDLRenderer::RenderSkinInstance(render_instance& Inst) {}
+void SDLRenderer::EndSkinGeom() {}
