@@ -316,6 +316,8 @@ private:
     void        describeMeshes(std::ostringstream& ss) const;
     void        describeMaterials(std::ostringstream& ss) const;
     void        describeBones(std::ostringstream& ss) const;
+    void        describeMaterialFlags(std::ostringstream& ss, int flags) const;
+    void        describeMaterialType(std::ostringstream& ss, int type) const;
     std::string lookupString(int offset) const;
 
 public:

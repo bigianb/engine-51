@@ -346,6 +346,130 @@ void Geom::describeProperies(std::ostringstream& ss) const
     }
 }
 
+void Geom::describeMaterialType(std::ostringstream& ss, int type) const
+{
+    switch (type) {
+    case 0:
+        ss << "Not Used";
+        break;
+    case 1:
+        ss << "Diff";
+        break;
+    case 2:
+        ss << "Alpha";
+        break;
+    case 3:
+        ss << "Diff per pixel env";
+        break;
+    case 4:
+        ss << "Diff per pixel illum";
+        break;
+    case 5:
+        ss << "Alpha per poly env";
+        break;
+    case 6:
+        ss << "Alpha per pixel illum";
+        break;
+    case 7:
+        ss << "Alpha per poly illum";
+        break;
+    case 8:
+        ss << "Distortion";
+        break;
+    case 9:
+        ss << "Distortion Per Poly Env";
+        break;
+    default:
+        ss << "Unknown type: " << type;
+        break;
+    }
+}
+
+void Geom::describeMaterialFlags(std::ostringstream& ss, int flags) const
+{
+    if (flags & Material::FLAG_DOUBLE_SIDED) {
+        ss << "FLAG_DOUBLE_SIDED";
+        flags &= ~Material::FLAG_DOUBLE_SIDED;
+        if (flags != 0) {
+            ss << " | ";
+        }
+    }
+    if (flags & Material::FLAG_HAS_ENV_MAP) {
+        ss << "FLAG_HAS_ENV_MAP";
+        flags &= ~Material::FLAG_HAS_ENV_MAP;
+        if (flags != 0) {
+            ss << " | ";
+        }
+    }
+    if (flags & Material::FLAG_HAS_DETAIL_MAP) {
+        ss << "FLAG_HAS_DETAIL_MAP";
+        flags &= ~Material::FLAG_HAS_DETAIL_MAP;
+        if (flags != 0) {
+            ss << " | ";
+        }
+    }
+    if (flags & Material::FLAG_ENV_WORLD_SPACE) {
+        ss << "FLAG_ENV_WORLD_SPACE";
+        flags &= ~Material::FLAG_ENV_WORLD_SPACE;
+        if (flags != 0) {
+            ss << " | ";
+        }
+    }
+    if (flags & Material::FLAG_ENV_VIEW_SPACE) {
+        ss << "FLAG_ENV_VIEW_SPACE";
+        flags &= ~Material::FLAG_ENV_VIEW_SPACE;
+        if (flags != 0) {
+            ss << " | ";
+        }
+    }
+    if (flags & Material::FLAG_ENV_CUBE_MAP) {
+        ss << "FLAG_ENV_CUBE_MAP";
+        flags &= ~Material::FLAG_ENV_CUBE_MAP;
+        if (flags != 0) {
+            ss << " | ";
+        }
+    }
+    if (flags & Material::FLAG_FORCE_ZFILL) {
+        ss << "FLAG_FORCE_ZFILL";
+        flags &= ~Material::FLAG_FORCE_ZFILL;
+        if (flags != 0) {
+            ss << " | ";
+        }
+    }
+    if (flags & Material::FLAG_ILLUM_USES_DIFFUSE) {
+        ss << "FLAG_ILLUM_USES_DIFFUSE";
+
+        flags &= ~Material::FLAG_ILLUM_USES_DIFFUSE;
+        if (flags != 0) {
+            ss << " | ";
+        }
+    }
+    if (flags & Material::FLAG_IS_PUNCH_THRU) {
+        ss << "FLAG_IS_PUNCH_THRU";
+
+        flags &= ~Material::FLAG_IS_PUNCH_THRU;
+        if (flags != 0) {
+            ss << " | ";
+        }
+    }
+    if (flags & Material::FLAG_IS_ADDITIVE) {
+        ss << "FLAG_IS_ADDITIVE";
+
+        flags &= ~Material::FLAG_IS_ADDITIVE;
+        if (flags != 0) {
+            ss << " | ";
+        }
+    }
+    if (flags & Material::FLAG_IS_SUBTRACTIVE) {
+        ss << "FLAG_IS_SUBTRACTIVE";
+
+        flags &= ~Material::FLAG_IS_SUBTRACTIVE;
+        if (flags != 0) {
+            ss << " *** unknown extra";
+        }
+    }
+}
+
 void Geom::describeMaterials(std::ostringstream& ss) const
 {
     if (numMaterials == 0) {
@@ -360,6 +484,12 @@ void Geom::describeMaterials(std::ostringstream& ss) const
         const auto& mat = materials[i];
         ss << "  detailScale: " << mat.detailScale << std::endl;
         ss << "  fixedAlpha: " << mat.fixedAlpha << std::endl;
+        ss << "  flags: ";
+        describeMaterialFlags(ss, mat.flags);
+        ss << std::endl;
+        ss << "  type: ";
+        describeMaterialType(ss, mat.type);
+        ss << std::endl;
         ss << "  iTexture: " << (int)mat.iTexture << std::endl;
         ss << "  nTextures: " << (int)mat.nTextures << std::endl;
         ss << "  iVirtualMat: " << (int)mat.iVirtualMat << std::endl;
@@ -660,6 +790,6 @@ uint64_t Geom::GetLODMask(uint32_t VMeshMask, uint16_t ScreenSize) const
 
 std::string Geom::GetRigidBodyName(int iRigidBody) const
 {
-    assert( ( iRigidBody >= 0 ) && ( iRigidBody < numRigidBodies ) );
-    return lookupString(rigidBodies[ iRigidBody ].nameOffset);
+    assert((iRigidBody >= 0) && (iRigidBody < numRigidBodies));
+    return lookupString(rigidBodies[iRigidBody].nameOffset);
 }
