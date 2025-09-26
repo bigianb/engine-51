@@ -93,7 +93,31 @@ bool extractAndEmbedTexture(DFSFile* dfsFile, const std::string& textureName, ti
     return true;
 }
 
-void exportGLTF(RigidGeom& rigidGeom, QString fileName, DFSFile* dfsFile)
+// Helper function to extract texture data and save as external PNG file
+bool extractAndSavePNG(DFSFile* dfsFile, const std::string& textureName, const QString& outputPath)
+{
+    tinygltf::Image tempImage;
+    if (extractAndEmbedTexture(dfsFile, textureName, tempImage)) {
+        // We have the image embedded as base64 data URI, need to extract PNG data
+        std::string dataUri = tempImage.uri;
+
+        // Find the base64 data after "data:image/png;base64,"
+        size_t commaPos = dataUri.find(',');
+        if (commaPos != std::string::npos) {
+            std::string base64Data = dataUri.substr(commaPos + 1);
+            QByteArray pngData = QByteArray::fromBase64(base64Data.c_str());
+
+            QFile file(outputPath);
+            if (file.open(QIODevice::WriteOnly)) {
+                file.write(pngData);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void exportGLTF(RigidGeom& rigidGeom, QString fileName, DFSFile* dfsFile, bool embedTextures)
 {
     tinygltf::Model m;
     tinygltf::Scene scene;
@@ -104,24 +128,35 @@ void exportGLTF(RigidGeom& rigidGeom, QString fileName, DFSFile* dfsFile)
     int materialIdx = 0;
     int textureIdx = 0;
 
+    // Get output directory for external PNG files
+    QFileInfo fileInfo(fileName);
+    QString outputDir = fileInfo.absolutePath();
+
     for (int texNo = 0; texNo < rigidGeom.getNumTextures(); ++texNo) {
         tinygltf::Image image;
         std::string tfn = rigidGeom.getTextureFilename(texNo);
 
-        // Extract and embed texture if DFS file is available
-        if (dfsFile && extractAndEmbedTexture(dfsFile, tfn, image)) {
+        // Create PNG filename
+        std::string pngName = tfn;
+        if (pngName.length() >= 4) {
+            pngName.replace(pngName.end() - 4, pngName.end(), "png");
+        }
+        for (auto& c : pngName) {
+            c = toupper(c);
+        }
+
+        if (embedTextures && dfsFile && extractAndEmbedTexture(dfsFile, tfn, image)) {
             // Successfully embedded - image object is already populated
         } else {
-            // Embedding failed or no DFS file - create clean image with URI
+            // Use external PNG file
             image = tinygltf::Image(); // Reset to clean state
-            std::string pngName = tfn;
-            if (pngName.length() >= 4) {
-                pngName.replace(pngName.end() - 4, pngName.end(), "png");
-            }
-            for (auto& c : pngName) {
-                c = toupper(c);
-            }
             image.uri = pngName;
+
+            // If DFS file is available, extract and save PNG file
+            if (dfsFile) {
+                QString pngPath = outputDir + "/" + QString::fromStdString(pngName);
+                extractAndSavePNG(dfsFile, tfn, pngPath);
+            }
         }
 
         m.images.push_back(image);
@@ -269,7 +304,7 @@ void exportGLTF(RigidGeom& rigidGeom, QString fileName, DFSFile* dfsFile)
                               false); // write binary
 }
 
-void exportGLTF(SkinGeom& geom, QString fileName, DFSFile* dfsFile)
+void exportGLTF(SkinGeom& geom, QString fileName, DFSFile* dfsFile, bool embedTextures)
 {
     tinygltf::Model m;
     tinygltf::Scene scene;
@@ -280,24 +315,35 @@ void exportGLTF(SkinGeom& geom, QString fileName, DFSFile* dfsFile)
     int materialIdx = 0;
     int textureIdx = 0;
 
+    // Get output directory for external PNG files
+    QFileInfo fileInfo(fileName);
+    QString outputDir = fileInfo.absolutePath();
+
     for (int texNo = 0; texNo < geom.getNumTextures(); ++texNo) {
         tinygltf::Image image;
         std::string tfn = geom.getTextureFilename(texNo);
 
-        // Extract and embed texture if DFS file is available
-        if (dfsFile && extractAndEmbedTexture(dfsFile, tfn, image)) {
+        // Create PNG filename
+        std::string pngName = tfn;
+        if (pngName.length() >= 4) {
+            pngName.replace(pngName.end() - 4, pngName.end(), "png");
+        }
+        for (auto& c : pngName) {
+            c = toupper(c);
+        }
+
+        if (embedTextures && dfsFile && extractAndEmbedTexture(dfsFile, tfn, image)) {
             // Successfully embedded - image object is already populated
         } else {
-            // Embedding failed or no DFS file - create clean image with URI
+            // Use external PNG file
             image = tinygltf::Image(); // Reset to clean state
-            std::string pngName = tfn;
-            if (pngName.length() >= 4) {
-                pngName.replace(pngName.end() - 4, pngName.end(), "png");
-            }
-            for (auto& c : pngName) {
-                c = toupper(c);
-            }
             image.uri = pngName;
+
+            // If DFS file is available, extract and save PNG file
+            if (dfsFile) {
+                QString pngPath = outputDir + "/" + QString::fromStdString(pngName);
+                extractAndSavePNG(dfsFile, tfn, pngPath);
+            }
         }
 
         m.images.push_back(image);
