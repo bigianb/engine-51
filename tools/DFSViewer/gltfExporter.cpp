@@ -1,12 +1,99 @@
 #include "gltfExporter.h"
 #include "../../a51lib/RigidGeom.h"
 #include "../../a51lib/SkinGeom.h"
+#include "../../a51lib/Bitmap.h"
+#include "../../a51lib/DFSFile.h"
 
 #define TINYGLTF_NO_STB_IMAGE
 #define TINYGLTF_NO_STB_IMAGE_WRITE
 #include "../../a51lib/gltf/tiny_gltf.h"
 
-void exportGLTF(RigidGeom& rigidGeom, QString fileName)
+#include <QDir>
+#include <QFileInfo>
+#include <QImage>
+#include <QImageWriter>
+#include <QBuffer>
+#include <algorithm>
+
+// Helper function to extract texture data and embed as PNG in glTF image
+bool extractAndEmbedTexture(DFSFile* dfsFile, const std::string& textureName, tinygltf::Image& image)
+{
+    // Extract base name and extension from textureName
+    std::string textureBaseName = textureName;
+    std::string textureExtension;
+
+    size_t dotPos = textureName.find_last_of('.');
+    if (dotPos != std::string::npos) {
+        textureBaseName = textureName.substr(0, dotPos);
+        textureExtension = textureName.substr(dotPos);
+    }
+
+    // Convert to uppercase for comparison
+    std::transform(textureBaseName.begin(), textureBaseName.end(), textureBaseName.begin(), ::toupper);
+    std::transform(textureExtension.begin(), textureExtension.end(), textureExtension.begin(), ::toupper);
+
+    // Find the texture file in the DFS
+    int textureIndex = -1;
+    for (int i = 0; i < dfsFile->numFiles(); ++i) {
+        std::string baseName = dfsFile->getBaseFilename(i);
+        std::string extension = dfsFile->getFileExtension(i);
+
+        // Convert to uppercase for comparison
+        std::transform(baseName.begin(), baseName.end(), baseName.begin(), ::toupper);
+        std::transform(extension.begin(), extension.end(), extension.begin(), ::toupper);
+
+        if (baseName == textureBaseName && extension == textureExtension) {
+            textureIndex = i;
+            break;
+        }
+    }
+
+    if (textureIndex == -1) {
+        return false; // Texture not found
+    }
+
+    // Load the texture data
+    uint8_t* fileData = dfsFile->getFileData(textureIndex);
+    int fileLen = dfsFile->getFileSize(textureIndex);
+
+    if (!fileData || fileLen == 0) {
+        return false;
+    }
+
+    // Load into Bitmap
+    Bitmap bitmap;
+    const bool oldVersion = dfsFile->getVersion() == 1;
+    if (!bitmap.readFile(fileData, fileLen, oldVersion)) {
+        return false;
+    }
+
+    // Let's try staying with the bitmap's original format and using RGB888
+    bitmap.convertFormat(Bitmap::FMT_24_RGB_888);
+
+    // Create QImage from RGB data
+    QImage qimage(bitmap.data.pixelData, bitmap.getWidth(), bitmap.getHeight(), bitmap.getWidth() * 3, QImage::Format_RGB888);
+
+    // Save to QByteArray as PNG
+    QByteArray pngData;
+    QBuffer buffer(&pngData);
+    buffer.open(QIODevice::WriteOnly);
+    QImageWriter writer(&buffer, "PNG");
+    if (!writer.write(qimage)) {
+        return false;
+    }
+
+    // Embed the PNG data in the glTF image using base64 data URI
+    QByteArray base64Data = pngData.toBase64();
+    std::string dataUri = "data:image/png;base64," + std::string(base64Data.constData(), base64Data.size());
+
+    // Clear all other properties and set only the data URI
+    image = tinygltf::Image(); // Reset to clean state
+    image.uri = dataUri;
+
+    return true;
+}
+
+void exportGLTF(RigidGeom& rigidGeom, QString fileName, DFSFile* dfsFile)
 {
     tinygltf::Model m;
     tinygltf::Scene scene;
@@ -20,11 +107,23 @@ void exportGLTF(RigidGeom& rigidGeom, QString fileName)
     for (int texNo = 0; texNo < rigidGeom.getNumTextures(); ++texNo) {
         tinygltf::Image image;
         std::string tfn = rigidGeom.getTextureFilename(texNo);
-        tfn.replace(tfn.end() - 4, tfn.end(), "png");
-        for (auto& c : tfn) {
-            c = toupper(c);
+
+        // Extract and embed texture if DFS file is available
+        if (dfsFile && extractAndEmbedTexture(dfsFile, tfn, image)) {
+            // Successfully embedded - image object is already populated
+        } else {
+            // Embedding failed or no DFS file - create clean image with URI
+            image = tinygltf::Image(); // Reset to clean state
+            std::string pngName = tfn;
+            if (pngName.length() >= 4) {
+                pngName.replace(pngName.end() - 4, pngName.end(), "png");
+            }
+            for (auto& c : pngName) {
+                c = toupper(c);
+            }
+            image.uri = pngName;
         }
-        image.uri = tfn;
+
         m.images.push_back(image);
     }
 
@@ -119,19 +218,20 @@ void exportGLTF(RigidGeom& rigidGeom, QString fileName)
             m.accessors.push_back(normalsAccessor);
             int normalsAccessorId = accessorIdx++;
 
+            tinygltf::Texture texture;
+            int               meshMatIdx = rigidGeom.subMeshes[submeshIdx].iMaterial;
+            texture.source = rigidGeom.materials[meshMatIdx].iTexture; // Points to image index
+            m.textures.push_back(texture);
+            int currentTextureIdx = m.textures.size() - 1;
+
             // Create a simple material
             tinygltf::Material mat;
             mat.pbrMetallicRoughness.baseColorFactor = {1.0f, 0.9f, 0.9f, 1.0f};
-            mat.pbrMetallicRoughness.baseColorTexture.index = textureIdx;
+            mat.pbrMetallicRoughness.baseColorTexture.index = currentTextureIdx;
 
             mat.doubleSided = true;
             m.materials.push_back(mat);
             int theMaterialIdx = materialIdx++;
-
-            tinygltf::Texture texture;
-            int               meshMatIdx = rigidGeom.subMeshes[submeshIdx].iMaterial;
-            texture.source = rigidGeom.materials[meshMatIdx].iTexture;
-            m.textures.push_back(texture);
             textureIdx++;
 
             // Build the mesh primitive and add it to the mesh
@@ -163,13 +263,13 @@ void exportGLTF(RigidGeom& rigidGeom, QString fileName)
     // Save it to a file
     tinygltf::TinyGLTF gltf;
     gltf.WriteGltfSceneToFile(&m, fileName.toStdString(),
-                              true,   // embedImages
+                              false,  // embedImages (we handle embedding manually)
                               true,   // embedBuffers
                               true,   // pretty print
                               false); // write binary
 }
 
-void exportGLTF(SkinGeom& geom, QString fileName)
+void exportGLTF(SkinGeom& geom, QString fileName, DFSFile* dfsFile)
 {
     tinygltf::Model m;
     tinygltf::Scene scene;
@@ -183,11 +283,23 @@ void exportGLTF(SkinGeom& geom, QString fileName)
     for (int texNo = 0; texNo < geom.getNumTextures(); ++texNo) {
         tinygltf::Image image;
         std::string tfn = geom.getTextureFilename(texNo);
-        tfn.replace(tfn.end() - 4, tfn.end(), "png");
-        for (auto& c : tfn) {
-            c = toupper(c);
+
+        // Extract and embed texture if DFS file is available
+        if (dfsFile && extractAndEmbedTexture(dfsFile, tfn, image)) {
+            // Successfully embedded - image object is already populated
+        } else {
+            // Embedding failed or no DFS file - create clean image with URI
+            image = tinygltf::Image(); // Reset to clean state
+            std::string pngName = tfn;
+            if (pngName.length() >= 4) {
+                pngName.replace(pngName.end() - 4, pngName.end(), "png");
+            }
+            for (auto& c : pngName) {
+                c = toupper(c);
+            }
+            image.uri = pngName;
         }
-        image.uri = tfn;
+
         m.images.push_back(image);
     }
 
@@ -282,19 +394,20 @@ void exportGLTF(SkinGeom& geom, QString fileName)
             m.accessors.push_back(normalsAccessor);
             int normalsAccessorId = accessorIdx++;
 
+            tinygltf::Texture texture;
+            int               meshMatIdx = geom.subMeshes[submeshIdx].iMaterial;
+            texture.source = geom.materials[meshMatIdx].iTexture; // Points to image index
+            m.textures.push_back(texture);
+            int currentTextureIdx = m.textures.size() - 1;
+
             // Create a simple material
             tinygltf::Material mat;
             mat.pbrMetallicRoughness.baseColorFactor = {1.0f, 0.9f, 0.9f, 1.0f};
-            mat.pbrMetallicRoughness.baseColorTexture.index = textureIdx;
+            mat.pbrMetallicRoughness.baseColorTexture.index = currentTextureIdx;
 
             mat.doubleSided = true;
             m.materials.push_back(mat);
             int theMaterialIdx = materialIdx++;
-
-            tinygltf::Texture texture;
-            int               meshMatIdx = geom.subMeshes[submeshIdx].iMaterial;
-            texture.source = geom.materials[meshMatIdx].iTexture;
-            m.textures.push_back(texture);
             textureIdx++;
 
             // Build the mesh primitive and add it to the mesh
@@ -326,7 +439,7 @@ void exportGLTF(SkinGeom& geom, QString fileName)
     // Save it to a file
     tinygltf::TinyGLTF gltf;
     gltf.WriteGltfSceneToFile(&m, fileName.toStdString(),
-                              true,   // embedImages
+                              false,  // embedImages (we handle embedding manually)
                               true,   // embedBuffers
                               true,   // pretty print
                               false); // write binary
