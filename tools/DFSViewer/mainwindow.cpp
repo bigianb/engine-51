@@ -301,7 +301,7 @@ void MainWindow::exportFile(int entryNo, QString exportDir)
         uint8_t*  fileData = dfsFile->getFileData(entryNo);
         int       fileLen = dfsFile->getFileSize(entryNo);
         rigidGeom.readFile(fileData, fileLen);
-        exportGLTF(rigidGeom, fileName);
+        exportGLTF(rigidGeom, fileName, dfsFile, true);
     } else if (extension == ".SKINGEOM") {
         QString fileName;
         if (exportDir.isEmpty()) {
@@ -316,7 +316,7 @@ void MainWindow::exportFile(int entryNo, QString exportDir)
         uint8_t*  fileData = dfsFile->getFileData(entryNo);
         int       fileLen = dfsFile->getFileSize(entryNo);
         geom.readFile(fileData, fileLen);
-        exportGLTF(geom, fileName);
+        exportGLTF(geom, fileName, dfsFile, true);
     } else if (extension == ".PLAYSURFACE") {
         QString fileName;
         if (exportDir.isEmpty()) {

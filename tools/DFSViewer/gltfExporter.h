@@ -4,6 +4,7 @@
 
 class RigidGeom;
 class SkinGeom;
+class DFSFile;
 
-void exportGLTF(RigidGeom& rigidGeom, QString fileName);
-void exportGLTF(SkinGeom& geom, QString fileName);
+void exportGLTF(RigidGeom& rigidGeom, QString fileName, DFSFile* dfsFile = nullptr, bool embedTextures = true);
+void exportGLTF(SkinGeom& geom, QString fileName, DFSFile* dfsFile = nullptr, bool embedTextures = true);
