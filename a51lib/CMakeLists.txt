@@ -149,6 +149,8 @@ target_sources(a51lib PRIVATE
         characters/factions.h
         characters/FloorProperties.cpp
         characters/FloorProperties.h
+        characters/God.cpp
+        characters/God.h
         collisionMgr/collisionMgr_Private.h
         collisionMgr/collisionMgr.cpp
         collisionMgr/collisionMgr.h

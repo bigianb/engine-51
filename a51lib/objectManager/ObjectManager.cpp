@@ -1003,7 +1003,7 @@ void ObjectManager::Render3dPrep(bool DoPortalWalk, const view& PortalView, uint
     // IJB g_LightMgr.ClearLights();
 
     // set up the environment map
-    cubemap::handle Handle;
+    cubemap::handle Handle(resourceManager);
     Handle.setName("DefaultEnvMap.envmap");
     render::SetAreaCubeMap(Handle);
 }
