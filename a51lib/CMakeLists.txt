@@ -1,6 +1,6 @@
 
 add_library(a51lib)
-find_package(SDL3 REQUIRED)
+find_package(SDL3 CONFIG REQUIRED)
 
 set(GLTF_SOURCES
         gltf/json.hpp

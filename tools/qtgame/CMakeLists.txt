@@ -7,8 +7,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core Widgets Gui)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets Gui ShaderTools)
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core Widgets Gui GuiPrivate)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets Gui GuiPrivate ShaderTools)
 
 set(GAME_SOURCES
         gameObject.cpp
