@@ -119,7 +119,7 @@ public:
     void AddEnd();
 
     void Save(const char* pFileName);
-    void Load(const char* pFileName);
+    void Load(const uint8_t* pData, int dataLength);
     void UpdateEar(int EarID);
     void Search(float* pVolumes, float Volume, int ZoneID, int Depth);
     void PortalWalk(const view& View, int iZone);

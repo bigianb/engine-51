@@ -22,6 +22,16 @@ public:
         return 0.0;
     }
 
+    int8_t readInt8()
+    {
+        if (cursor + 1 <= len) {
+            int8_t i = *(int8_t*)(fileData + cursor);
+            cursor += 1;
+            return i;
+        }
+        return 0;
+    }
+
     int16_t readInt16()
     {
         if (cursor + 2 <= len) {
@@ -62,7 +72,7 @@ public:
         return 0;
     }
 
-    uint32_t readUInt64()
+    uint64_t readUInt64()
     {
         if (cursor + 8 <= len) {
             uint64_t i = *(uint64_t*)(fileData + cursor);

@@ -2,7 +2,7 @@
 #include "ZoneManager.h"
 //#include "AudioMgr\AudioMgr.hpp"
 #include "../objects/Object.h"
-
+#include "../DataReader.h"
 #include <cassert>
 
 zone_mgr g_ZoneMgr;
@@ -858,46 +858,86 @@ void zone_mgr::Save(const char* pFileName)
     */
 }
 
+static void readPlane(DataReader& reader, plane& Plane)
+{
+    reader.read(Plane.Normal);
+    Plane.D = reader.readFloat();
+    reader.skip(12); // padding to 16 byte alignment.
+}
+
+static void readPortal(DataReader& reader, zone_mgr::portal& Portal)
+{
+    int start = reader.cursor;
+    reader.read(Portal.bbox);
+    for (int i = 0; i < 4; i++) {
+        reader.read(Portal.Edges[i]);
+    }
+    
+    readPlane(reader, Portal.Plane);
+    Portal.Guid = reader.readUInt64();
+    Portal.iZone[0] = reader.readInt8();
+    Portal.iZone[1] = reader.readInt8();
+    reader.skip(2); // padding
+    Portal.Flags = reader.readUInt32();
+    Portal.Occlusion = reader.readFloat();
+    Portal.BaseOcclusion = reader.readFloat();
+    reader.skip(8); // padding to 16 byte alignment.
+    int length = reader.cursor - start;
+    assert(length == 160); // Each portal should be 160 bytes in size.
+}
+
+static void logPortal(const zone_mgr::portal& Portal)
+{
+    std::cout << "Portal: " << std::endl;
+    std::cout << "  BBox: " << Portal.bbox.min.x << "," << Portal.bbox.min.y << "," << Portal.bbox.min.z
+              << " - " << Portal.bbox.max.x << "," << Portal.bbox.max.y << "," << Portal.bbox.max.z
+              << std::endl;
+    for (int i = 0; i < 4; i++) {
+        std::cout << "  Edge " << i << ": " << Portal.Edges[i].x << "," << Portal.Edges[i].y << "," << Portal.Edges[i].z
+                  << std::endl;
+    }
+    std::cout << "  Plane: Normal(" << Portal.Plane.Normal.x << "," << Portal.Plane.Normal.y << "," << Portal.Plane.Normal.z
+              << ") D: " << Portal.Plane.D
+              << std::endl;
+    std::cout << "  Zones: " << (int)Portal.iZone[0] << ", " << (int)Portal.iZone[1]
+              << std::endl;
+    std::cout << "  Flags: " << Portal.Flags
+              << std::endl;
+    std::cout << "  Occlusion: " << Portal.Occlusion
+              << std::endl;
+}
+
 //=========================================================================
 // The load is kind of hack right now
-void zone_mgr::Load(const char* pFileName)
+void zone_mgr::Load(const uint8_t* pData, int dataLength)
 {
-/*
-    X_FILE* FP = nullptr;
-
-    // Make sure we are ready to load
     Reset();
+    DataReader reader = DataReader(pData, dataLength);
+    int        version = reader.readInt32();
 
-    // Start loading
-    x_try;
+    std::cout << "Zone manager version: " << version << std::endl;
+    
+    m_nPortals = reader.readInt32();
+    m_nZones = reader.readInt32();
+    m_nZone2Portal = reader.readInt32();
 
-    FP = x_fopen(pFileName, "rb");
-    if (FP == nullptr) {
-        x_throw(xfs("Unable to load the zone file[%s]", pFileName));
-    }
-
-    int Version;
-    x_fread(&Version, 1, sizeof(int), FP);
-    if (Version != ZONE_MANAGER_VERSION) {
-        x_throw(xfs("Zone file[%s] is outdated. Please re-export the level", pFileName));
-    }
-    x_fread(&m_nPortals, 1, sizeof(m_nPortals), FP);
-    x_fread(&m_nZones, 1, sizeof(m_nZones), FP);
-    x_fread(&m_nZone2Portal, 1, sizeof(m_nZone2Portal), FP);
+    std::cout << "Number of portals: " << m_nPortals << std::endl;
+    std::cout << "Number of zones: " << m_nZones << std::endl;
+    std::cout << "Number of zone to portal mappings: " << m_nZone2Portal << std::endl;
 
     m_pPortal = new portal[m_nPortals];
     m_pZone = new zone[m_nZones];
     m_pZone2Portal = new int[m_nZone2Portal];
 
-    if (m_pPortal == nullptr || m_pZone == nullptr || m_pZone2Portal == nullptr) {
-        x_throw(xfs("Out of memory while trying to load the zone file [%s]", pFileName));
+    for (int i = 0; i < m_nPortals; i++) {
+        readPortal(reader, m_pPortal[i]);
+        logPortal(m_pPortal[i]);
     }
 
+    /*
     x_fread(m_pPortal, 1, m_nPortals * sizeof(portal), FP);
     x_fread(m_pZone, 1, m_nZones * sizeof(zone), FP);
     x_fread(m_pZone2Portal, 1, m_nZone2Portal * sizeof(int), FP);
-
-    x_fclose(FP);
 
     // make sure to add the guid lookups
     m_GuidLookup.SetCapacity(m_nPortals, false);
@@ -905,13 +945,6 @@ void zone_mgr::Load(const char* pFileName)
         m_GuidLookup.Add(m_pPortal[i].Guid, i);
     }
 
-    if (FP) {
-        x_fclose(FP);
-    }
-*/
-    Reset();
-
-/* IJB
     // Set up the zone limits in GameMgr.
     GameMgr.SetZoneLimits(0, 0, 32);
     for (int i = 1; i < m_nZones; i++) {

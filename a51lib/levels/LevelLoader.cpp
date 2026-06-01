@@ -246,13 +246,14 @@ void LevelLoader::loadLevelThreadFunction()
                         x_makepath( pPath2, NULL, g_FullPath, "level_data", ".tmpl_dct" );
                         g_TemplateMgr.LoadData(pPath, pPath2);
                     }
-
+                    */
                     {
                         //load portal/zone list
-                        x_makepath( pPath, NULL, g_FullPath, "level_data", ".zone" );
-                        g_ZoneMgr.Load(pPath);
+                        int            zoneLength = 0;
+                        const uint8_t* zoneData = fs->readFile("LEVEL_DATA.ZONE", zoneLength);
+                        g_ZoneMgr.Load(zoneData, zoneLength);
                     }
-
+                    /*
                     {
                         //load playsurfaces
                         x_makepath( pPath, NULL, g_FullPath, "level_data", ".playsurface" );
