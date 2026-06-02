@@ -12,6 +12,22 @@ public:
     {
     }
 
+    void read(uint8_t* buffer, int size)
+    {
+        if (cursor + size <= len) {
+            memcpy(buffer, fileData + cursor, size);
+            cursor += size;
+        }
+    }
+
+    void read(char* buffer, int size)
+    {
+        if (cursor + size <= len) {
+            memcpy(buffer, fileData + cursor, size);
+            cursor += size;
+        }
+    }
+
     float readFloat()
     {
         if (cursor + 4 <= len) {
@@ -50,6 +66,12 @@ public:
             return i;
         }
         return 0;
+    }
+
+    bool readBool()
+    {
+        int i = readInt32();
+        return i != 0;
     }
 
     int32_t readInt32()

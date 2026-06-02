@@ -907,6 +907,51 @@ static void logPortal(const zone_mgr::portal& Portal)
               << std::endl;
 }
 
+static void readZone(DataReader& reader, zone_mgr::zone& Zone)
+{
+    int start = reader.cursor;
+    reader.read(Zone.bbox);
+    Zone.Flags = reader.readUInt32();
+    Zone.nPortals = reader.readInt32();
+    Zone.iPortal2Portal = reader.readInt32();
+    Zone.bStack = reader.readBool();
+    Zone.SndWeight = reader.readFloat();
+    Zone.MinPlayers = reader.readUInt16();
+    Zone.MaxPlayers = reader.readUInt16();
+    reader.read(Zone.EnvMapName, 128);
+    reader.read(Zone.FogName, 128);
+    Zone.QuickFog = reader.readBool();
+    reader.skip(4); // padding to 16 byte alignment.
+    int length = reader.cursor - start;
+    assert(length == 320);
+}
+
+static void logZone(const zone_mgr::zone& Zone)
+{
+    std::cout << "Zone: " << std::endl;
+    std::cout << "  BBox: " << Zone.bbox.min.x << "," << Zone.bbox.min.y << "," << Zone.bbox.min.z
+              << " - " << Zone.bbox.max.x << "," << Zone.bbox.max.y << "," << Zone.bbox.max.z
+              << std::endl;
+    std::cout << "  Flags: " << Zone.Flags
+              << std::endl;
+    std::cout << "  nPortals: " << Zone.nPortals
+              << std::endl;
+    std::cout << "  iPortal2Portal: " << Zone.iPortal2Portal
+              << std::endl;
+    std::cout << "  SndWeight: " << Zone.SndWeight
+              << std::endl;
+    std::cout << "  MinPlayers: " << Zone.MinPlayers
+              << std::endl;
+    std::cout << "  MaxPlayers: " << Zone.MaxPlayers
+              << std::endl;
+    std::cout << "  EnvMapName: " << Zone.EnvMapName
+              << std::endl;
+    std::cout << "  FogName: " << Zone.FogName
+              << std::endl;
+    std::cout << "  QuickFog: " << (Zone.QuickFog ? "true" : "false")
+              << std::endl;
+}
+
 //=========================================================================
 // The load is kind of hack right now
 void zone_mgr::Load(const uint8_t* pData, int dataLength)
@@ -931,13 +976,17 @@ void zone_mgr::Load(const uint8_t* pData, int dataLength)
 
     for (int i = 0; i < m_nPortals; i++) {
         readPortal(reader, m_pPortal[i]);
-        logPortal(m_pPortal[i]);
+    }
+
+    for (int i = 0; i < m_nZones; i++) {
+        readZone(reader, m_pZone[i]);
+    }
+
+    for (int i = 0; i < m_nZone2Portal; i++) {
+        m_pZone2Portal[i] = reader.readInt32();
     }
 
     /*
-    x_fread(m_pPortal, 1, m_nPortals * sizeof(portal), FP);
-    x_fread(m_pZone, 1, m_nZones * sizeof(zone), FP);
-    x_fread(m_pZone2Portal, 1, m_nZone2Portal * sizeof(int), FP);
 
     // make sure to add the guid lookups
     m_GuidLookup.SetCapacity(m_nPortals, false);
