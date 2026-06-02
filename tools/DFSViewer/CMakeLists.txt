@@ -9,9 +9,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(QT_NO_PRIVATE_MODULE_WARNING ON)
 
-find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core Widgets)
-find_package(Qt6 REQUIRED COMPONENTS GuiPrivate)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets ShaderTools)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets ShaderTools)
+
+# Explicitly find GuiPrivate if not already found by the main Qt6 package.
+if(NOT TARGET Qt6::GuiPrivate)
+    find_package(Qt6 COMPONENTS GuiPrivate REQUIRED)
+endif()
+
 
 set(DFSVIEW_SOURCES
         gltfExporter.cpp

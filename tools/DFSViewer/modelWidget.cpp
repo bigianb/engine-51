@@ -1,6 +1,7 @@
 
 #include <QFile>
 #include <QPainter>
+#include <QQuaternion>
 
 #include "modelWidget.h"
 #include "cube.h"

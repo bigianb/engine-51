@@ -7,7 +7,7 @@ jobs:
   # hhttps://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v4.1.7
 
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
@@ -20,7 +20,21 @@ jobs:
       run: sudo apt-get update
 
     - name: deps
-      run: sudo apt-get install -y qt6-base-dev qt6-base-dev-tools libvulkan-dev vulkan-tools vulkan-utility-libraries-dev vulkan-validationlayers
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          qt6-base-dev \
+          qt6-base-private-dev \
+          qt6-base-dev-tools \
+          qt6-shadertools-dev \
+          libqt6shadertools6 \
+          libgl1-mesa-dev \
+          libegl1-mesa-dev \
+          libxkbcommon-dev \
+          libvulkan-dev \
+          vulkan-tools \
+          vulkan-utility-libraries-dev \
+          vulkan-validationlayers
 
     - name: Install SDL3
       uses: libsdl-org/setup-sdl@main

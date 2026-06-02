@@ -7,7 +7,7 @@ jobs:
   # https://github.com/actions/runner-images/blob/main/images/windows/Windows2025-Readme.md
     runs-on: windows-2025
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v4.1.7
 
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
@@ -20,10 +20,10 @@ jobs:
       run: vcpkg install
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v4.1.1
+      uses: jurplel/install-qt-action@v4.3.1
       with:
-        version: 6.8.1
-        modules: qtshadertools
+        version: 6.10.1
+        modules: 'qtshadertools qtquick3d'
         
     - name: Configure CMake
       run: >

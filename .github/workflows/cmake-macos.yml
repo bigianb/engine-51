@@ -7,7 +7,7 @@ jobs:
   # https://github.com/actions/runner-images/blob/main/images/macos/macos-14-arm64-Readme.md
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v4.1.7
 
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.

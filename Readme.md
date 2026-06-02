@@ -1,9 +1,14 @@
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/bigianb/engine-51/cmake-multi-platform.yml)
-
 # What is this?
 
 Some tooling to work with the Area 51 game from 2005.
 Very experimental.
+
+## Build Status
+Windows: ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/bigianb/engine-51/cmake-windows.yml)
+
+Linux: ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/bigianb/engine-51/cmake-linux.yml)
+
+MacOs: ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/bigianb/engine-51/cmake-macos.yml)
 
 # How to build
 
@@ -14,13 +19,13 @@ I use vcpkg to install sdl3.
 Github actions build for windows, linux and macos are available so you can always look at the workflow there to troubleshoot any issues you see locally.
 
 ## Specific windows guide
-This assumes you have Qt 6.8.1 installed in c:\Qt, you have visual studio 2022 installed and you have the source checked out in c:\dev\engine-51. If your paths are different, just adjust any paths below as needed.
+This assumes you have Qt 6.11.1 installed in c:\Qt, you have visual studio 2026 installed and you have the source checked out in c:\dev\engine-51. If your paths are different, just adjust any paths below as needed.
 
 ```
 cd c:\dev\engine-51
 mkdir build
 cd build
-cmake -G "Visual Studio 17 2022" -A x64 -DVCPKG_TARGET_TRIPLET=x64-windows -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" -DCMAKE_PREFIX_PATH=D:\Qt\6.8.1\msvc2022_64 ..
+cmake -G "Visual Studio 18 2026" -A x64 -DVCPKG_TARGET_TRIPLET=x64-windows -DCMAKE_TOOLCHAIN_FILE="%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" -DCMAKE_PREFIX_PATH=C:\Qt\6.11.1\msvc2022_64 ..
 ```
 This should create a Visual Studio solution in the build directory.
 Open the Engine51.sln file in Visual Studio.

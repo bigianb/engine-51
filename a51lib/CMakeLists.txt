@@ -12,8 +12,8 @@ set(ANIM_SOURCES
         animation/animData.cpp
         animation/animData.h
         animation/animDecompress.cpp
-        animation/animGroup.cpp
         animation/AnimEvent.cpp
+        animation/AnimGroup.cpp
         animation/AnimInfo.cpp
         animation/AnimKeyData.cpp
         animation/AnimPlayer.cpp
@@ -151,9 +151,9 @@ target_sources(a51lib PRIVATE
         characters/FloorProperties.h
         characters/God.cpp
         characters/God.h
-        collisionMgr/collisionMgr_Private.h
-        collisionMgr/collisionMgr.cpp
-        collisionMgr/collisionMgr.h
+        collisionMgr/CollisionMgr_Private.h
+        collisionMgr/CollisionMgr.cpp
+        collisionMgr/CollisionMgr.h
         collisionMgr/CollisionPrimatives.cpp
         collisionMgr/CollisionPrimatives.h
         collisionMgr/GridWalker.cpp
@@ -205,8 +205,8 @@ target_sources(a51lib PRIVATE
         loco/LocoAnimController.h
         loco/LocoCharAnimPlayer.cpp
         loco/LocoCharAnimPlayer.h
-        loco/locoIKSolver.cpp
-        loco/locoIKSolver.h
+        loco/LocoIKSolver.cpp
+        loco/LocoIKSolver.h
         loco/LocoMaskController.cpp
         loco/LocoMaskController.h
         loco/LocoMotionController.cpp
@@ -275,8 +275,8 @@ target_sources(a51lib PRIVATE
         tweakManager/TweakMgr.cpp
         tweakManager/TweakMgr.h
         VectorMath.h
-        View/View.cpp
-        View/View.h
+        view/View.cpp
+        view/View.h
         xfiles/scratchMem.cpp
         xfiles/scratchMem.h
         xfiles/x_plus.cpp
