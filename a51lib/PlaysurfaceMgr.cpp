@@ -41,7 +41,7 @@ void PlaysurfaceMgr::readZoneInfo(DataReader& reader, ZoneInfo& zi)
     reader.cursor = cursorToRestore;
 }
 
-bool PlaysurfaceMgr::readFile(uint8_t* fileData, int len)
+bool PlaysurfaceMgr::readFile(const uint8_t* fileData, int len)
 {
     bool okay = true;
 
@@ -253,7 +253,7 @@ void PlaysurfaceMgr::RenderZone(ObjectManager* objectManager, ZoneInfo&         
         // check for clipping against the view frustum
         int Vis = objectManager->IsBoxInView(surface.WorldBBox, 0b0111111);
         if (Vis == -1) {
-            continue;
+        //    continue;
         }
 
         // check if we have a valid instance (bad data could cause this to get hit)

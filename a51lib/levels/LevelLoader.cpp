@@ -17,6 +17,8 @@
 #include "../objectManager/ObjectManager.h"
 #include "../dataUtil/TextIn.h"
 #include "../objects/Player.h"
+#include "../PlaysurfaceMgr.h"
+#include "../decals/DecalMgr.h"
 
 void LevelLoader::mountDefaultFilesystems()
 {
@@ -63,12 +65,13 @@ void LevelLoader::loadDFS(std::string dfsName)
     }
 }
 
-void LevelLoader::loadLevel(bool fullLoad, const map_entry* pMapEntry, Level* level)
+void LevelLoader::loadLevel(bool fullLoad, const map_entry* pMapEntry, Level* level, PlaysurfaceMgr* playsurfaceManager)
 {
     m_bSpawnInfoSet= false;
     levelLoaded = false;
     loadRequested = true;
     this->fullLoad = fullLoad;
+    this->playsurfaceManager = playsurfaceManager;
     this->level = level;
     mapEntry = pMapEntry;
 
@@ -184,30 +187,29 @@ void LevelLoader::loadLevelThreadFunction()
             }
         }
         /*
-                g_DataVault.Init();
-                LoadTweaks( g_FullPath );
-                LoadPain( g_FullPath );
-*/
-        /*
+        g_DataVault.Init();
+        LoadTweaks( g_FullPath );
+        LoadPain( g_FullPath );
 
-                        // Setup resource handles to rigid color table
-                        x_makepath( pPath, NULL, g_FullPath, "level_data", ".rigidcolor" );
+        // Setup resource handles to rigid color table
+        int            rigidColourLength = 0;
+        const uint8_t* rigidColourData = fs->readFile("LEVEL_DATA.RIGIDCOLOR", rigidColourLength);
 
-                        // Force the rigid color instance to be loaded prior to level init
-                        // since it requires a large allocation
 
-                        {
-                            rhandle_base Handle;
-                            Handle.SetName(pPath);
-                            Handle.GetPointer();
-                        }
+        // Force the rigid color instance to be loaded prior to level init
+        // since it requires a large allocation
+        {
+            rhandle_base Handle;
+            Handle.SetName(pPath);
+            Handle.GetPointer();
+        }
         */
 
         const char* levelInfoData = (const char*)resourceManager->getResourceData("LEVEL_DATA.INFO");
         loadInfo( levelInfoData );
     } else {
         // not full load
-        //g_PlaySurfaceMgr.CreateProxyPlaySurfaceObject();
+        // IJB playsurfaceManager->CreateProxyPlaySurfaceObject();
     }
 
     // Create permanent objects
@@ -229,45 +231,47 @@ void LevelLoader::loadLevelThreadFunction()
     level->binLevel.loadLevel(objectManager, binLevelData, binLevelLength, levelDictData, levDictLength);
 
     if (fullLoad) {
-        /*
         {
             // load the rigid colors...they will be assigned to the
             // geometry in a moment
+            int            rigidColourLength = 0;
+            const uint8_t* rigidColourData = fs->readFile("LEVEL_DATA.RIGIDCOLOR", rigidColourLength);
+            /*
             rhandle<color_info> hRigidColor;
-            x_makepath( pPath, NULL, g_FullPath, "level_data", ".rigidcolor" );
             hRigidColor.SetName( pPath );
             hRigidColor.GetPointer();
-        }
             */
-        /*
-                    {
-                        //load templates
-                        x_makepath( pPath, NULL, g_FullPath, "level_data", ".templates" );
-                        x_makepath( pPath2, NULL, g_FullPath, "level_data", ".tmpl_dct" );
-                        g_TemplateMgr.LoadData(pPath, pPath2);
-                    }
-                    */
-                    {
-                        //load portal/zone list
-                        int            zoneLength = 0;
-                        const uint8_t* zoneData = fs->readFile("LEVEL_DATA.ZONE", zoneLength);
-                        g_ZoneMgr.Load(zoneData, zoneLength);
-                    }
-                    /*
-                    {
-                        //load playsurfaces
-                        x_makepath( pPath, NULL, g_FullPath, "level_data", ".playsurface" );
-                        g_PlaySurfaceMgr.OpenFile(pPath, TRUE);
-                        g_PlaySurfaceMgr.LoadAllZones();
-                        g_PlaySurfaceMgr.CloseFile();
-                    }
+        }
+        
+        {
+            int            templateLength = 0;
+            const uint8_t* templatesData = fs->readFile("LEVEL_DATA.TEMPLATES", templateLength);
+            int            dictLength = 0;
+            const uint8_t* dictData = fs->readFile("LEVEL_DATA.TMPL_DCT", dictLength);
+            level->templateMgr.readFile(templatesData, templateLength, dictData, dictLength);
+        }
+        
+        {
+            int            zoneLength = 0;
+            const uint8_t* zoneData = fs->readFile("LEVEL_DATA.ZONE", zoneLength);
+            g_ZoneMgr.Load(zoneData, zoneLength);
+        }
+        
+        {
+            //load playsurfaces
+            int            psLength = 0;
+            const uint8_t* psData = fs->readFile("LEVEL_DATA.PLAYSURFACE", psLength);
+            playsurfaceManager->readFile(psData, psLength);
+        }
 
-                    {
-                        //load static decals
-                        x_makepath( pPath, NULL, g_FullPath, "level_data", ".decals" );
-                        g_DecalMgr.LoadStaticDecals( pPath );
-                    }
-                        */
+        /* Editor stuff
+        {
+        
+            //load static decals
+            x_makepath( pPath, NULL, g_FullPath, "level_data", ".decals" );
+            g_DecalMgr.LoadStaticDecals( pPath );
+        }
+        */
     }
 
     //initialize player tracker

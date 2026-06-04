@@ -11,7 +11,7 @@ LevelTemplate::~LevelTemplate()
     delete[] bitstreamData;
 }
 
-bool LevelTemplate::readFile(uint8_t* fileData, int len, uint8_t* dictData, int dictDataLen)
+bool LevelTemplate::readFile(const uint8_t* fileData, int len, const uint8_t* dictData, int dictDataLen)
 {
     DataReader dictReader = DataReader(dictData, dictDataLen);
     while(dictReader.hasData()){

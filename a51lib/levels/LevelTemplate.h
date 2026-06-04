@@ -16,7 +16,7 @@ public:
     };
     ~LevelTemplate();
 
-    bool readFile(uint8_t* fileData, int len, uint8_t* dictData, int dictDataLen);
+    bool readFile(const uint8_t* fileData, int len, const uint8_t* dictData, int dictDataLen);
     void describe(std::ostringstream& ss);
 
     int version;

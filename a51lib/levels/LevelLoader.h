@@ -12,6 +12,7 @@ class FileSystem;
 class ResourceManager;
 class ObjectManager;
 class map_entry;
+class PlaysurfaceMgr;
 
 class LevelLoader
 {
@@ -32,7 +33,7 @@ public:
     void loadDFS(std::string name);
 
     /* If a level isn't already loading, start a thread to load the level. */
-    void loadLevel(bool fullLoad, const map_entry* pMapEntry, Level* level);
+    void loadLevel(bool fullLoad, const map_entry* pMapEntry, Level* level, PlaysurfaceMgr* playsurfaceManager);
 
     void finishLoading();
 
@@ -60,6 +61,8 @@ private:
     FileSystem*  fs;
     ResourceManager* resourceManager;
     ObjectManager* objectManager;
+    PlaysurfaceMgr* playsurfaceManager;
+
     // The level that is being loaded. We don't own this, it is passed into loadLevel.
     Level* level;
 

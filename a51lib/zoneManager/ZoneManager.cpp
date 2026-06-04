@@ -12,13 +12,8 @@ zone_mgr g_ZoneMgr;
 #define MAX_FARCLIP_SCALE 10.0f
 #define MIN_ZONE_VALUE 0.01f
 
-//==============================================================================
-// DEBUG
-//==============================================================================
-
 int s_ParentZone = -1;
 int s_ParentPortal = -1;
-//X_FILE* pFile               = nullptr;
 bool s_PrintPortalWalk = false;
 
 void zone_mgr::Reset()
@@ -833,10 +828,9 @@ void zone_mgr::TurnOff()
     m_nFrustums = 0;
 }
 
-//=========================================================================
-// The save is kind of hack right now
 void zone_mgr::Save(const char* pFileName)
 {
+    assert(false); // Saving is not supported yet.
     /*
     X_FILE* FP;
     FP = x_fopen(pFileName, "wb");
@@ -986,14 +980,13 @@ void zone_mgr::Load(const uint8_t* pData, int dataLength)
         m_pZone2Portal[i] = reader.readInt32();
     }
 
-    /*
-
     // make sure to add the guid lookups
     m_GuidLookup.SetCapacity(m_nPortals, false);
     for (int i = 0; i < m_nPortals; i++) {
         m_GuidLookup.Add(m_pPortal[i].Guid, i);
     }
-
+/*
+    // Only multi-player so ignore.
     // Set up the zone limits in GameMgr.
     GameMgr.SetZoneLimits(0, 0, 32);
     for (int i = 1; i < m_nZones; i++) {
