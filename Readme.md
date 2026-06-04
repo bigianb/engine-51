@@ -4,11 +4,11 @@ Some tooling to work with the Area 51 game from 2005.
 Very experimental.
 
 ## Build Status
-Windows: ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/bigianb/engine-51/cmake-windows.yml)
+[![Build Windows](https://github.com/bigianb/engine-51/actions/workflows/cmake-windows.yml/badge.svg)](https://github.com/bigianb/engine-51/actions/workflows/cmake-windows.yml)
 
-Linux: ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/bigianb/engine-51/cmake-linux.yml)
+[![Build Ubuntu](https://github.com/bigianb/engine-51/actions/workflows/cmake-linux.yml/badge.svg)](https://github.com/bigianb/engine-51/actions/workflows/cmake-linux.yml)
 
-MacOs: ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/bigianb/engine-51/cmake-macos.yml)
+[![Build Mac](https://github.com/bigianb/engine-51/actions/workflows/cmake-macos.yml/badge.svg)](https://github.com/bigianb/engine-51/actions/workflows/cmake-macos.yml)
 
 # How to build
 
