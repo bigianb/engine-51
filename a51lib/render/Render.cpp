@@ -698,12 +698,11 @@ void render::Init(ResourceManager* rm, Renderer* renderer)
     
     std::cout << s_lRenderInst.size() << std::endl;
 
-   // s_lDistortionInfo.Clear();
+    s_lDistortionInfo.clear();
    // s_lDistortionInfo.SetCapacity(kMaxDistortedInstances);
    // s_lDistortionInfo.SetLocked(true);
-   // s_lSortData.Clear();
-   // s_lSortData.SetCapacity(kMaxRenderedInstances);
-   // s_lSortData.SetCount(kMaxRenderedInstances);
+    s_lSortData.clear();
+    s_lSortData.resize(kMaxRenderedInstances);
 
     //platform_Init();
 }

@@ -271,7 +271,7 @@ void PlaysurfaceMgr::RenderZone(ObjectManager* objectManager, ZoneInfo&         
         // check for clipping against the view frustum
         int Vis = objectManager->IsBoxInView(surface.WorldBBox, 0b0111111);
         if (Vis == -1) {
-        //    continue;
+            continue;
         }
 
         // check if we have a valid instance (bad data could cause this to get hit)
