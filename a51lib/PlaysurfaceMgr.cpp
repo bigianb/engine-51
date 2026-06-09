@@ -38,6 +38,24 @@ void PlaysurfaceMgr::readZoneInfo(DataReader& reader, ZoneInfo& zi)
         }
     }
 
+    for(Surface& surface : zi.surfaces) {
+        if (surface.GeomNameIndex >= geoms.size()) {
+            std::cerr << "Warning: Surface geom index " << surface.GeomNameIndex << " is out of bounds (max " << geoms.size() << ")" << std::endl;
+            surface.GeomNameIndex = 0;
+            assert(false);
+        } else {
+            ResourceHandle<RigidGeom> geomHandle(resourceManager);
+            geomHandle.setName( geoms[surface.GeomNameIndex].c_str() );
+            RigidGeom* pGeom = geomHandle.getPointer();
+            if (pGeom) {
+                surface.RenderInst = render::RegisterRigidInstance(*pGeom, resourceManager);
+            } else {
+                std::cerr << "Warning: Failed to find geom for surface: " << geoms[surface.GeomNameIndex] << std::endl;
+                surface.RenderInst.setNull();
+            }
+        }
+    }
+
     reader.cursor = cursorToRestore;
 }
 
@@ -274,7 +292,7 @@ void PlaysurfaceMgr::RenderZone(ObjectManager* objectManager, ZoneInfo&         
 
         // render it
         render::AddRigidInstanceSimple(surface.RenderInst,
-                                       (const uint16_t*)surface.pColor,
+                                       nullptr, // TODO, use index. (const uint16_t*)surface.pColor,
                                        &surface.L2W,
                                        surface.WorldBBox,
                                        Flags);

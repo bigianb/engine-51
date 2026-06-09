@@ -55,7 +55,7 @@ bool GameObject::init()
     objectManager = new ObjectManager();
     polyCache = new poly_cache(objectManager);
 
-    playsurfaceManager = new PlaysurfaceMgr();
+    playsurfaceManager = new PlaysurfaceMgr(resourceManager);
 
     collisionManager = new collision_mgr();
     collisionManager->setPolycache(polyCache);

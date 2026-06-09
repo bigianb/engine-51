@@ -17,12 +17,14 @@ struct Surface
     uint32_t           AttrBits;
     int                ColorOffset;
     render::hgeom_inst RenderInst;
+    /* Use ColorOffset instead of this
     union
     {
         uint32_t* pColor32;
         uint16_t* pColor16;
         void*     pColor;
     };
+    */
     uint32_t DBaseQuery;
     int      NextSurface;
 
@@ -34,6 +36,8 @@ struct Surface
 class PlaysurfaceMgr
 {
 public:
+    PlaysurfaceMgr(ResourceManager* resourceManager) : m_QueryNumber(0), resourceManager(resourceManager) {}
+
     bool readFile(const uint8_t* fileData, int len);
     void describe(std::ostringstream& ss);
 
@@ -91,6 +95,8 @@ public:
     int fileLen;
 
 private:
+    ResourceManager* resourceManager;
+
     void ClearDBaseQueries();
     void readZoneInfo(DataReader& reader, ZoneInfo& zi);
 

@@ -692,9 +692,12 @@ void render::Init(ResourceManager* rm, Renderer* renderer)
     s_lRegisteredMaterials = new material_array(rm);
     s_lRegisteredMaterials->Clear();
     s_lRegisteredMaterials->GrowListBy(kMaxRegisteredMaterials);
-   // s_lRenderInst.Clear();
-   // s_lRenderInst.SetCapacity(kMaxRenderedInstances);
-   // s_lRenderInst.SetCount(kMaxRenderedInstances);
+
+    s_lRenderInst.clear();
+    s_lRenderInst.resize(kMaxRenderedInstances);
+    
+    std::cout << s_lRenderInst.size() << std::endl;
+
    // s_lDistortionInfo.Clear();
    // s_lDistortionInfo.SetCapacity(kMaxDistortedInstances);
    // s_lDistortionInfo.SetLocked(true);
@@ -717,7 +720,7 @@ void render::Kill(void)
     s_lRegisteredGeoms->Clear();
     s_lRegisteredInst->Clear();
     s_lRegisteredMaterials->Clear();
-  //  s_lRenderInst.Clear();
+    s_lRenderInst.clear();
   //  s_lSortData.Clear();
 }
 
