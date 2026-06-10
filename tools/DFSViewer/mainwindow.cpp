@@ -326,7 +326,7 @@ void MainWindow::exportFile(int entryNo, QString exportDir)
         } else {
             fileName = QDir::toNativeSeparators(exportDir + "/" + origFilename.c_str() + ".json");
         }
-        PlaysurfaceMgr playSurface;
+        PlaysurfaceMgr playSurface(nullptr);
         uint8_t*    fileData = dfsFile->getFileData(entryNo);
         int         fileLen = dfsFile->getFileSize(entryNo);
         playSurface.readFile(fileData, fileLen);
@@ -439,7 +439,7 @@ void MainWindow::treeItemClicked(const QModelIndex& index)
         setBitmap(labelBitmap, ui->imageLabel);
         exportable = true;
     } else if (extension == ".PLAYSURFACE") {
-        PlaysurfaceMgr playSurface;
+        PlaysurfaceMgr playSurface(nullptr);
         playSurface.readFile(fileData, fileLen);
         std::ostringstream ss;
         playSurface.describe(ss);
