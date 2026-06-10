@@ -151,6 +151,7 @@ int main(int argc, char** argv)
                     Object* pObj    = gameObject.objectManager->GetObjectBySlot(ID);
                     player* pPlayer = &player::GetSafeType( *pObj );
 
+                    // FIXME, this is not set.
                     if( pPlayer && (pPlayer->GetLocalSlot() != -1) )
                     {
                         pPlayers[ pPlayer->GetLocalSlot() ] = pPlayer;
