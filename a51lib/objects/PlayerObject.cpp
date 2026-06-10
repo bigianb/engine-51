@@ -1785,6 +1785,7 @@ player::animation_state player::GetNextMeleeState()
 //=============================================================================
 third_person_camera* player::GetThirdPersonCamera() const
 {
+    assert(objectManager != nullptr);
     return ((third_person_camera*)objectManager->GetObjectByGuid(m_ThirdPersonCameraGuid));
 }
 

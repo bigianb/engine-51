@@ -7,6 +7,7 @@
 #include "../../a51lib/objectManager/ObjectManager.h"
 #include "system/SDL_Renderer.h"
 #include "../../a51lib/view/View.h"
+#include "../../a51lib/objects/Player.h"
 
 view g_View;
 
@@ -22,7 +23,47 @@ struct Context
     float DeltaTime;
 };
 
-void RenderGame();
+void SetupViewAndFog( GameObject& gameObject, zone_mgr::zone_id StartZone )
+{
+    texture::handle FogPalette;
+
+    // get the default fog palette and z buffer settings
+    bool   QuickFog = false;
+    slot_id SlotID = gameObject.objectManager->GetFirst( Object::TYPE_LEVEL_SETTINGS );
+    /* IJB TODO
+    if ( SlotID != SLOT_NULL )
+    {
+        Object* pObject = gameObject.objectManager->GetObjectBySlot( SlotID );
+        
+        level_settings& Settings = level_settings::GetSafeType( *pObject );
+        g_View.SetZLimits( 10.0f, Settings.GetFarPlane() );
+
+        FogPalette = Settings.GetFogPalette();
+        
+    }
+    else
+    */
+    {
+        g_View.SetZLimits( 10.0f, 8000.0f );
+    }
+
+    // if the zone we're in has a different fog from the default, use
+    // that one instead
+    const char* pFog = g_ZoneMgr.GetZoneFog(StartZone,QuickFog);
+    if ( *pFog != '\0' ){
+        FogPalette.setName( pFog );
+    }
+
+    // set the pixel scale (aspect ratio)
+    g_View.SetPixelScale();
+
+    // Set the viewport
+    //eng_SetView( g_View );
+
+    // Set the fog
+    //render::SetCustomFogPalette( FogPalette, QuickFog, g_RenderContext.LocalPlayerIndex );
+}
+
 
 int main(int argc, char** argv)
 {
@@ -99,9 +140,46 @@ int main(int argc, char** argv)
             UpdateAudio(DeltaTime);
 */
             if (logicFramesAfterLoad > 10) {
-                uint8_t playerViewZone = 0;
+                
+
+                player* pPlayers[MAX_LOCAL_PLAYERS] = { 0 };
+                slot_id ID                          = gameObject.objectManager->GetFirst( Object::TYPE_PLAYER );
+                int     nPlayers                    = 0;
+
+                while( ID != SLOT_NULL )
+                {
+                    Object* pObj    = gameObject.objectManager->GetObjectBySlot(ID);
+                    player* pPlayer = &player::GetSafeType( *pObj );
+
+                    if( pPlayer && (pPlayer->GetLocalSlot() != -1) )
+                    {
+                        pPlayers[ pPlayer->GetLocalSlot() ] = pPlayer;
+                        nPlayers++;
+                    }
+
+                    ID = gameObject.objectManager->GetNext(ID);
+                }
+
+                assert(nPlayers > 0);
+
+                // For now assume only one local player.
+                // one view, set it to the entire screen
+                view& rView0 = pPlayers[0]->GetView();
+                int XRes, YRes;
+                gameObject.renderer->getRes(XRes, YRes);
+                rView0.SetViewport( 0, 0, XRes, YRes );
+                pPlayers[0]->ComputeView( rView0 );
+
+                //if ( !g_FreeCam )
+                {
+                    view& rView0 = pPlayers[0]->GetView();
+                    pPlayers[0]->ComputeView( rView0, player::VIEW_NULL );
+                    g_View = rView0;
+                }
+                
+                uint8_t playerViewZone = pPlayers[0]->GetPlayerViewZone();
+                SetupViewAndFog(gameObject, playerViewZone);
                 gameObject.objectManager->Render(true, g_View, playerViewZone);
-                //g_ObjMgr.Render(TRUE,g_View,pPlayers[i]->GetPlayerViewZone());
             }
         }
         gameObject.renderer->draw();
