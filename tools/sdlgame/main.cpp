@@ -151,7 +151,6 @@ int main(int argc, char** argv)
                     Object* pObj    = gameObject.objectManager->GetObjectBySlot(ID);
                     player* pPlayer = &player::GetSafeType( *pObj );
 
-                    // FIXME, this is not set.
                     if( pPlayer && (pPlayer->GetLocalSlot() != -1) )
                     {
                         pPlayers[ pPlayer->GetLocalSlot() ] = pPlayer;
@@ -180,7 +179,7 @@ int main(int argc, char** argv)
                 
                 uint8_t playerViewZone = pPlayers[0]->GetPlayerViewZone();
                 SetupViewAndFog(gameObject, playerViewZone);
-                gameObject.objectManager->Render(true, g_View, playerViewZone);
+                gameObject.objectManager->Render(true, g_View, playerViewZone, gameObject.renderer);
             }
         }
         gameObject.renderer->draw();

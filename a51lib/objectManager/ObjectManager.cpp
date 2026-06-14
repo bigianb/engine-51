@@ -899,9 +899,9 @@ void ObjectManager::SelectRay(uint32_t Attribute, const Vector3& RayStart, const
     }
 }
 
-void ObjectManager::Render(bool bDoPortalWalk, const view& PortalView, uint8_t StartZone)
+void ObjectManager::Render(bool bDoPortalWalk, const view& PortalView, uint8_t StartZone, Renderer* renderer)
 {
-    Render3dObjects(bDoPortalWalk, PortalView, StartZone);
+    Render3dObjects(bDoPortalWalk, PortalView, StartZone, renderer);
 
     // Render HUD
     Render2dObjects();
@@ -912,7 +912,7 @@ void ObjectManager::Render(bool bDoPortalWalk, const view& PortalView, uint8_t S
     // eng_End();
 }
 
-void ObjectManager::Render3dObjects(bool bDoPortalWalk, const view& PortalView, uint8_t StartZone)
+void ObjectManager::Render3dObjects(bool bDoPortalWalk, const view& PortalView, uint8_t StartZone, Renderer* renderer)
 {
     if (g_ZoneMgr.GetPortalCount() == 0) {
         bDoPortalWalk = false;
@@ -923,7 +923,7 @@ void ObjectManager::Render3dObjects(bool bDoPortalWalk, const view& PortalView, 
     //    if (eng_Begin("3d Objects")) {
     render::BeginNormalRender();
     //RenderNormalObjects();
-    playsurfaceManager->RenderPlaySurfaces(this);
+    playsurfaceManager->RenderPlaySurfaces(this, renderer);
     //g_LightMgr.EndLightCollection();
     // Check if any types need their collision rendered
 

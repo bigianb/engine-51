@@ -145,9 +145,9 @@ public:
         return Time;
     }
 
-    void Render(bool DoPortalWalk, const view& PortalView, uint8_t StartZone);
+    void Render(bool DoPortalWalk, const view& PortalView, uint8_t StartZone, Renderer* renderer);
 
-    void Render3dObjects(bool DoPortalWalk, const view& PortalView, uint8_t StartZone);
+    void Render3dObjects(bool DoPortalWalk, const view& PortalView, uint8_t StartZone, Renderer* renderer);
 
 protected:
     void DoVisibilityTests(const view& View);

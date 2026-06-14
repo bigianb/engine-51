@@ -68,7 +68,7 @@ public:
     // Rendering routines
     //---------------------------------------------------------------------
     // Object manager for visibility testing
-    void RenderPlaySurfaces(ObjectManager* om);
+    void RenderPlaySurfaces(ObjectManager* om, Renderer* renderer);
     void RenderPlaySurfacesCollision(bool bRenderHi);
 
     //---------------------------------------------------------------------

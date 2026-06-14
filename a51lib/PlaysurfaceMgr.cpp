@@ -219,7 +219,7 @@ Surface* PlaysurfaceMgr::GetNextSurface()
     return spatialDBase.GetNextSurface();
 }
 
-void PlaysurfaceMgr::RenderPlaySurfaces(ObjectManager* objectManager)
+void PlaysurfaceMgr::RenderPlaySurfaces(ObjectManager* objectManager, Renderer* renderer)
 {
     if (zones.size() == 0) {
         return;
@@ -268,13 +268,13 @@ void PlaysurfaceMgr::RenderZone(ObjectManager* objectManager, ZoneInfo&         
     for (auto& surface : zoneInfo.surfaces) {
         // check if this surface is in the zone
         if (bNotInStartingZone && !g_ZoneMgr.IsBBoxVisible(surface.WorldBBox, Zone1, Zone2)) {
-            continue;
+            // IJB hack continue;
         }
 
         // check for clipping against the view frustum
         int Vis = objectManager->IsBoxInView(surface.WorldBBox, 0b0111111);
         if (Vis == -1) {
-            continue;
+            // IJB hack continue;
         }
 
         // check if we have a valid instance (bad data could cause this to get hit)

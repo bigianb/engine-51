@@ -395,6 +395,8 @@ void LevelLoader::spawnPlayer()
 
         assert(pPlayer);
         if (pPlayer) {
+            pPlayer->SetLocalSlot(0);
+
             // Setting position in orientation
             Matrix4 L2W;
             L2W.Identity();

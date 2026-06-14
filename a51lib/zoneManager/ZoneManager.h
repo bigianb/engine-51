@@ -273,6 +273,7 @@ inline const char* zone_mgr::GetZoneFog(int ZoneID, bool& QuickFog)
 
 inline bool zone_mgr::IsZoneVisible(zone_id iZone) const
 {
+    return true;    //IJB hack
     if (m_nFrustums == 0) {
         return true;
     } else {
