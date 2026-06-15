@@ -923,11 +923,11 @@ void ObjectManager::Render3dObjects(bool bDoPortalWalk, const view& PortalView, 
     //    if (eng_Begin("3d Objects")) {
     render::BeginNormalRender();
     //RenderNormalObjects();
-    playsurfaceManager->RenderPlaySurfaces(this, renderer);
+    playsurfaceManager->RenderPlaySurfaces(this);
     //g_LightMgr.EndLightCollection();
     // Check if any types need their collision rendered
 
-    render::EndNormalRender();
+    render::EndNormalRender(renderer);
     //     eng_End();
     // }
 

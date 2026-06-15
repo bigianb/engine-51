@@ -33,6 +33,7 @@ public:
     void drawBegin(Primitive, int drawFlags) override;
     void drawEnd() override;
     void setTexture(Bitmap* tex) override;
+    void ActivateMaterial(material& mat) override;
     void drawColour(const Colour& colour) override;
     void drawVertex(float x, float y, float z, float u, float v) override;
     void drawSpriteUV(const Vector3& Position, // Hot spot (2D Left-Top), (3D Center)

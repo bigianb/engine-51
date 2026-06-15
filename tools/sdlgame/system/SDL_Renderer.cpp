@@ -724,7 +724,7 @@ void SDLRenderer::setTexture(Bitmap* tex)
 
     gpuTextures[tex] = Texture;
 }
-
+void SDLRenderer::ActivateMaterial(material& mat) {}
 void SDLRenderer::BeginRigidGeom(Geom* pGeom, int iSubMesh) {}
 void SDLRenderer::RenderRigidInstance(render_instance& Inst) {}
 void SDLRenderer::EndRigidGeom() {}

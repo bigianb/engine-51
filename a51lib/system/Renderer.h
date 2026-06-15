@@ -66,6 +66,7 @@ public:
                               const Colour&  Color) = 0;
     virtual void drawColourRect(const IntRect& pos, const Colour& colour, bool isAdditive) = 0;
 
+    virtual void ActivateMaterial(material& mat) = 0;
     virtual void BeginRigidGeom(Geom* pGeom, int iSubMesh) = 0;
     virtual void RenderRigidInstance(render_instance& Inst) = 0;
     virtual void EndRigidGeom(void) = 0;

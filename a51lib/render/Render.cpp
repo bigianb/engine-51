@@ -1042,7 +1042,7 @@ void render::BeginNormalRender()
     //platform_BeginNormalRender();
 }
 
-void render::EndNormalRender()
+void render::EndNormalRender(Renderer* renderer)
 {
     // mark that we have no distortion or alpha meshes to render during the custom phase
     s_CustomStart = s_LoHashMark;
@@ -1149,14 +1149,14 @@ void render::EndNormalRender()
                 while (iInstToRender != -1) {
 
                     assert(s_lRenderInst[iInstToRender].SortKey.Bits == Inst.SortKey.Bits);
-          //          platform_RenderRigidInstance(s_lRenderInst[iInstToRender]);
+                    renderer->RenderRigidInstance(s_lRenderInst[iInstToRender]);
                     iInstToRender = s_lRenderInst[iInstToRender].Brother;
                 };
             } else {
                 while (iInstToRender != -1) {
 
                     assert(s_lRenderInst[iInstToRender].SortKey.Bits == Inst.SortKey.Bits);
-          //          platform_RenderSkinInstance(s_lRenderInst[iInstToRender]);
+                    renderer->RenderSkinInstance(s_lRenderInst[iInstToRender]);
                     iInstToRender = s_lRenderInst[iInstToRender].Brother;
                 };
             }

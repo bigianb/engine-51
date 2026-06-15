@@ -281,9 +281,9 @@ namespace render
     // EndPostEffects()
 
     void BeginNormalRender();
-    void EndNormalRender();
+    void EndNormalRender(Renderer* renderer);
     void BeginCustomRender();
-    void EndCustomRender(); // was render_deferred...moved so render_deferred fits in i-cache
+    void EndCustomRender();
     void ResetAfterException();
     void AddRigidInstanceSimple(hgeom_inst     hInst,
                                 const void*    pCol,

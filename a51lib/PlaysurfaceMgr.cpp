@@ -219,7 +219,7 @@ Surface* PlaysurfaceMgr::GetNextSurface()
     return spatialDBase.GetNextSurface();
 }
 
-void PlaysurfaceMgr::RenderPlaySurfaces(ObjectManager* objectManager, Renderer* renderer)
+void PlaysurfaceMgr::RenderPlaySurfaces(ObjectManager* objectManager)
 {
     if (zones.size() == 0) {
         return;
@@ -248,7 +248,7 @@ void PlaysurfaceMgr::RenderPlaySurfaces(ObjectManager* objectManager, Renderer* 
     }
 }
 
-void PlaysurfaceMgr::RenderZone(ObjectManager* objectManager, ZoneInfo&         zoneInfo,
+void PlaysurfaceMgr::RenderZone(ObjectManager* objectManager, ZoneInfo& zoneInfo,
                                 zone_mgr::zone_id Zone1,
                                 zone_mgr::zone_id Zone2)
 {
