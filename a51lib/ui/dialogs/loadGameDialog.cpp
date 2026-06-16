@@ -1,4 +1,5 @@
 #include "loadGameDialog.h"
+#include <cstring>
 #include <cassert>
 
 #define MAX_TEXTURES 5

@@ -5,6 +5,7 @@
 #include "MaterialArray.h"
 #undef RENDER_PRIVATE
 
+#include <cstring>
 #include <cassert>
 
 //=============================================================================

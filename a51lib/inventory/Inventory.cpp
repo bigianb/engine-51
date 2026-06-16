@@ -1,6 +1,7 @@
 
 #include "Inventory.h"
 #include <cassert>
+#include <cstring>
 
 struct table_entry
 {

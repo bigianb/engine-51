@@ -1,5 +1,6 @@
 
 #include "animData.h"
+#include <cstring>
 
 event_data_format::event_data_format()
 {

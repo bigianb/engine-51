@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <cassert>
+#include <cstring>
 
 extern const char* const k_EnumEndStringConst;
 extern const int   k_MaxEnumInTable;

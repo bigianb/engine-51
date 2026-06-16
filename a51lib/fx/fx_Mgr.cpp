@@ -1,6 +1,7 @@
-
-
 #include "fx_Mgr.h"
+
+#include <climits>
+#include <cstring>
 
 #include "../Bitmap.h"
 #include "../xfiles/x_plus.h"

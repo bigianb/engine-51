@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <cstring>
 #include "VectorMath.h"
 
 class DataReader
@@ -124,10 +125,10 @@ public:
     }
 
     void read(Matrix4& m4){
-        read(m4.vCol0);
-        read(m4.vCol1);
-        read(m4.vCol2);
-        read(m4.vCol3);
+        read(m4.cols.vCol0);
+        read(m4.cols.vCol1);
+        read(m4.cols.vCol2);
+        read(m4.cols.vCol3);
     }
 
     const char* readString()

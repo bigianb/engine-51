@@ -5,6 +5,8 @@
 #include "PropertyDefs.h"
 #include "Helpers.h"
 #include <cfloat>
+#include <climits>
+#include <cstring>
 
 #include <algorithm>
 #include <cassert>

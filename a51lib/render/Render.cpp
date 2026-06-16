@@ -10,6 +10,7 @@
 
 #include "../system/Renderer.h"
 
+#include <cstring>
 #include <cassert>
 
 struct distortion_info

@@ -53,7 +53,7 @@ public:
             Vector4 vCol1;
             Vector4 vCol2;
             Vector4 vCol3;
-        };
+        } cols;
     };
 
     Matrix4() {}

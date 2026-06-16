@@ -4,6 +4,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <iostream>
+#include <cstring>
 #include <cassert>
 
 char text_in::s_Error[512];

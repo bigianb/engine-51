@@ -4,6 +4,8 @@
 #include "../render/RigidGeom.h"
 #include "../strings/StringTable.h"
 
+#include <cstring>
+
 class XBMPResourceLoader : public ResourceLoader
 {
 public:

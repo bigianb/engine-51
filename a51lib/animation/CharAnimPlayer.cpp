@@ -3,6 +3,7 @@
 #include "CharAnimPlayer.h"
 #include "../xfiles/scratchMem.h"
 #include "../render/Geom.h"
+#include <cstring>
 
 char_anim_player::char_anim_player(ResourceManager* rm) : m_hAnimGroup(rm), m_AnimTrack(rm)
 {

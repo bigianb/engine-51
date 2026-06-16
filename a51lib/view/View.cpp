@@ -2,6 +2,7 @@
 #include "View.h"
 
 #include <cstdlib>
+#include <cstring>
 
 #define DIRTY_W2V (1 << 0)
 #define DIRTY_V2W (1 << 1)

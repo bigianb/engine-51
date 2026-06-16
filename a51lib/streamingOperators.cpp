@@ -26,7 +26,7 @@ std::ostream& operator<<(std::ostream& os, const BBox& aBBox)
 
 std::ostream& operator<<(std::ostream& os, const Matrix4& mtx)
 {
-    os << mtx.vCol0 << mtx.vCol1 << mtx.vCol2 << mtx.vCol3;
+    os << mtx.cols.vCol0 << mtx.cols.vCol1 << mtx.cols.vCol2 << mtx.cols.vCol3;
     return os;
 }
 

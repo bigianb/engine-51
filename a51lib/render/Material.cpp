@@ -1,4 +1,5 @@
 #include "Material.h"
+#include <cstring>
 
 material::material(ResourceManager* rm) : m_DiffuseMap(rm),
     m_EnvironmentMap(rm),

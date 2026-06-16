@@ -2,6 +2,8 @@
 
 #include "DecalDefinition.h"
 
+#include <cstring>
+
 class decal_package
 {
 public:

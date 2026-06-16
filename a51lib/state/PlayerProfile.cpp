@@ -1,6 +1,7 @@
 #include "PlayerProfile.h"
 #include "../dataUtil/Crc.h"
 
+#include <cstring>
 #include <ctime>
 
 PlayerProfile::PlayerProfile()

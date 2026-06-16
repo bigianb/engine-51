@@ -1,6 +1,6 @@
 
 #include "animData.h"
-
+#include <cstring>
 
 void AnimInfo::GetRawKey(int iFrame, int iBone, AnimKey& Key) const
 {

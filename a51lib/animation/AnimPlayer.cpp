@@ -3,6 +3,7 @@
 #include "AnimPlayer.h"
 //#include "e_ScratchMem.hpp"
 
+#include <cstring>
 #include <cassert>
 
 simple_anim_player::simple_anim_player(ResourceManager* rm) : m_hGroup(rm)
