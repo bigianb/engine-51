@@ -117,7 +117,13 @@ bool SDLRenderer::init()
     }
 
     SDL_GPUShader* positionColorVertexShader = LoadShader(device, basePath, "PositionColor.vert", 0, 0, 0, 0);
-    if (vertexShader == nullptr) {
+    if (positionColorVertexShader == nullptr) {
+        SDL_Log("Failed to create vertex shader!");
+        return false;
+    }
+
+    SDL_GPUShader* positionColorTransformVertexShader = LoadShader(device, basePath, "PositionColorTransform.vert", 0, 0, 0, 0);
+    if (positionColorTransformVertexShader == nullptr) {
         SDL_Log("Failed to create vertex shader!");
         return false;
     }
@@ -301,6 +307,28 @@ bool SDLRenderer::init()
     }
     {
         SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
+            .vertex_shader = positionColorTransformVertexShader,
+            .fragment_shader = fragmentShader,
+            .vertex_input_state = vertexInputState,
+            .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+            .rasterizer_state = rasteriserState,
+            .multisample_state = multisampleState,
+            .depth_stencil_state = depthStencilState,
+            .target_info = {
+                .color_target_descriptions = ctd_alpha,
+                .num_color_targets = 1,
+            },
+            .props = 0,
+        };
+
+        normal3dPipeline = SDL_CreateGPUGraphicsPipeline(device, &pipelineCreateInfo);
+        if (normal3dPipeline == nullptr) {
+            SDL_Log("Failed to create normal3dPipeline!");
+            return false;
+        }
+    }
+    {
+        SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
             .vertex_shader = positionColorVertexShader,
             .fragment_shader = solidColorFragmentShader,
             .vertex_input_state = positionColourVertexInputState,
@@ -320,30 +348,10 @@ bool SDLRenderer::init()
             return false;
         }
     }
-    {
-        SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
-            .vertex_shader = positionColorVertexShader,
-            .fragment_shader = solidColorFragmentShader,
-            .vertex_input_state = positionColourVertexInputState,
-            .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
-            .rasterizer_state = rasteriserState,
-            .depth_stencil_state = depthStencilState,
-            .target_info = {
-                .color_target_descriptions = ctd_alpha,
-                .num_color_targets = 1,
 
-            },
-            .props = 0,
-        };
-
-        colourPipeline_alpha = SDL_CreateGPUGraphicsPipeline(device, &pipelineCreateInfo);
-        if (colourPipeline_alpha == nullptr) {
-            SDL_Log("Failed to create colourPipeline_alpha!");
-            return false;
-        }
-    }
     SDL_ReleaseGPUShader(device, vertexShader);
     SDL_ReleaseGPUShader(device, fragmentShader);
+    SDL_ReleaseGPUShader(device, positionColorTransformVertexShader);
     SDL_ReleaseGPUShader(device, positionColorVertexShader);
     SDL_ReleaseGPUShader(device, solidColorFragmentShader);
 
@@ -725,9 +733,24 @@ void SDLRenderer::setTexture(Bitmap* tex)
     gpuTextures[tex] = Texture;
 }
 void SDLRenderer::ActivateMaterial(material& mat) {}
+
 void SDLRenderer::BeginRigidGeom(Geom* pGeom, int iSubMesh) {}
-void SDLRenderer::RenderRigidInstance(render_instance& Inst) {}
+void SDLRenderer::RenderRigidInstance(render_instance& Inst)
+{
+    rigid_data& pRigid = Inst.Data.Rigid;
+
+/*
+		Matrix4x4 matrixUniform = Matrix4x4_Multiply(
+			Matrix4x4_CreateRotationZ(t),
+			Matrix4x4_CreateTranslation(-0.5f, -0.5f, 0)
+		);
+		SDL_PushGPUVertexUniformData(cmdbuf, 0, &matrixUniform, sizeof(matrixUniform));
+*/
+
+}
+
 void SDLRenderer::EndRigidGeom() {}
+
 void SDLRenderer::BeginSkinGeom(Geom* pGeom, int iSubMesh) {}
 void SDLRenderer::RenderSkinInstance(render_instance& Inst) {}
 void SDLRenderer::EndSkinGeom() {}

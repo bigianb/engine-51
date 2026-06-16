@@ -921,7 +921,7 @@ void ObjectManager::Render3dObjects(bool bDoPortalWalk, const view& PortalView, 
 
     // Handle the normal rendering
     //    if (eng_Begin("3d Objects")) {
-    render::BeginNormalRender();
+    render::BeginNormalRender(renderer);
     //RenderNormalObjects();
     playsurfaceManager->RenderPlaySurfaces(this);
     //g_LightMgr.EndLightCollection();

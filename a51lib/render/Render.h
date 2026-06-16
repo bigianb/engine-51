@@ -280,14 +280,14 @@ namespace render
     //   Render any other post effects that you like
     // EndPostEffects()
 
-    void BeginNormalRender();
+    void BeginNormalRender(Renderer* renderer);
     void EndNormalRender(Renderer* renderer);
-    void BeginCustomRender();
-    void EndCustomRender();
+    void BeginCustomRender(Renderer* renderer);
+    void EndCustomRender(Renderer* renderer);
     void ResetAfterException();
     void AddRigidInstanceSimple(hgeom_inst     hInst,
                                 const void*    pCol,
-                                const Matrix4* pL2W, // will be DMA ref'd to!
+                                const Matrix4* pL2W,
                                 const BBox&    WorldBBox,
                                 uint32_t       Flags);
     void AddRigidInstance(hgeom_inst     hInst,

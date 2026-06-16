@@ -720,7 +720,7 @@ void render::Kill(void)
     s_lRegisteredInst->Clear();
     s_lRegisteredMaterials->Clear();
     s_lRenderInst.clear();
-  //  s_lSortData.Clear();
+    s_lSortData.clear();
 }
 
 //=============================================================================
@@ -1016,7 +1016,7 @@ Colour render::GetFogValue(const Vector3& WorldPos, int PaletteIndex)
 
 //=============================================================================
 
-void render::BeginNormalRender()
+void render::BeginNormalRender(Renderer* renderer)
 {
     // clear out the distorted instance list
     s_lDistortionInfo.clear();
@@ -1093,9 +1093,9 @@ void render::EndNormalRender(Renderer* renderer)
                 if (pCurrentGeom != nullptr) {
                     assert(CurrentType != TYPE_UNKNOWN);
                     if (CurrentType == TYPE_RIGID) {
-                        //platform_EndRigidGeom();
+                        renderer->EndRigidGeom();
                     } else {
-                       // platform_EndSkinGeom();
+                       renderer->EndSkinGeom();
                     }
                     pCurrentGeom = nullptr;
                 }
@@ -1104,7 +1104,7 @@ void render::EndNormalRender(Renderer* renderer)
                 assert((Mat.m_Type != Material_Distortion) &&
                        (Mat.m_Type != Material_Distortion_PerPolyEnv));
 
-               // platform_ActivateMaterial(Mat);
+                renderer->ActivateMaterial(Mat);
 
                 CurrentSortData.MatIndex = Inst.SortKey.MatIndex;
             }
@@ -1116,31 +1116,31 @@ void render::EndNormalRender(Renderer* renderer)
                 if (pCurrentGeom != nullptr) {
                     assert(CurrentType != TYPE_UNKNOWN);
                     if (CurrentType == TYPE_RIGID) {
-                //        platform_EndRigidGeom();
+                        renderer->EndRigidGeom();
                     } else {
-                //        platform_EndSkinGeom();
+                        renderer->EndSkinGeom();
                     }
                 }
 
                 pCurrentGeom = Inst.Data.Rigid.pGeom;
                 CurrentType = TYPE_RIGID;
                 CurrentSortData.GeomSubMesh = Inst.SortKey.GeomSubMesh;
-                platformRenderer->BeginRigidGeom(pCurrentGeom, Inst.SortKey.GeomSubMesh);
+                renderer->BeginRigidGeom(pCurrentGeom, Inst.SortKey.GeomSubMesh);
             } else if (Inst.SortKey.GeomType &&
                        ((pCurrentGeom != Inst.Data.Skin.pGeom) || (CurrentSortData.GeomSubMesh != Inst.SortKey.GeomSubMesh))) {
                 if (pCurrentGeom != nullptr) {
                     assert(CurrentType != TYPE_UNKNOWN);
                     if (CurrentType == TYPE_RIGID) {
-              //          platform_EndRigidGeom();
+                        renderer->EndRigidGeom();
                     } else {
-             //           platform_EndSkinGeom();
+                        renderer->EndSkinGeom();
                     }
                 }
 
                 pCurrentGeom = Inst.Data.Skin.pGeom;
                 CurrentType = TYPE_SKIN;
                 CurrentSortData.GeomSubMesh = Inst.SortKey.GeomSubMesh;
-           //     platform_BeginSkinGeom(pCurrentGeom, Inst.SortKey.GeomSubMesh);
+                renderer->BeginSkinGeom(pCurrentGeom, Inst.SortKey.GeomSubMesh);
             }
 
             // let the platform run its render code on the instances
@@ -1166,9 +1166,9 @@ void render::EndNormalRender(Renderer* renderer)
         if (pCurrentGeom != nullptr) {
             assert(CurrentType != TYPE_UNKNOWN);
             if (CurrentType == TYPE_RIGID) {
-          //      platform_EndRigidGeom();
+                renderer->EndRigidGeom();
             } else {
-          //      platform_EndSkinGeom();
+                renderer->EndSkinGeom();
             }
         }
     }
@@ -1180,7 +1180,7 @@ void render::EndNormalRender(Renderer* renderer)
 
 //=============================================================================
 
-void render::BeginCustomRender(void)
+void render::BeginCustomRender(Renderer* renderer)
 {
     // safety check
     //assert(eng_InBeginEnd());
@@ -1190,7 +1190,7 @@ void render::BeginCustomRender(void)
 
 //=============================================================================
 
-void render::EndCustomRender()
+void render::EndCustomRender(Renderer* renderer)
 {
     // safety check
    // assert(eng_InBeginEnd());
@@ -1224,9 +1224,9 @@ void render::EndCustomRender()
             if (pCurrentGeom != nullptr) {
                 assert(CurrentType != TYPE_UNKNOWN);
                 if (CurrentType == TYPE_RIGID) {
-          //          platform_EndRigidGeom();
+                    renderer->EndRigidGeom();
                 } else {
-          //          platform_EndSkinGeom();
+                    renderer->EndSkinGeom();
                 }
                 pCurrentGeom = nullptr;
             }
@@ -1248,9 +1248,9 @@ void render::EndCustomRender()
             if (pCurrentGeom != nullptr) {
                 assert(CurrentType != TYPE_UNKNOWN);
                 if (CurrentType == TYPE_RIGID) {
-          //          platform_EndRigidGeom();
+                    renderer->EndRigidGeom();
                 } else {
-           //         platform_EndSkinGeom();
+                    renderer->EndSkinGeom();
                 }
                 pCurrentGeom = nullptr;
             }
@@ -1263,9 +1263,9 @@ void render::EndCustomRender()
             if (pCurrentGeom != nullptr) {
                 assert(CurrentType != TYPE_UNKNOWN);
                 if (CurrentType == TYPE_RIGID) {
-        //            platform_EndRigidGeom();
+                    renderer->EndRigidGeom();
                 } else {
-        //            platform_EndSkinGeom();
+                    renderer->EndSkinGeom();
                 }
                 pCurrentGeom = nullptr;
             }
@@ -1280,7 +1280,7 @@ void render::EndCustomRender()
                 }
             } else {
                 material& Mat = (*s_lRegisteredMaterials)[Inst.SortKey.MatIndex];
-        //        platform_ActivateMaterial(Mat);
+                renderer->ActivateMaterial(Mat);
             }
 
             CurrentSortData.MatIndex = Inst.SortKey.MatIndex;
@@ -1293,31 +1293,31 @@ void render::EndCustomRender()
             if (pCurrentGeom != nullptr) {
                 assert(CurrentType != TYPE_UNKNOWN);
                 if (CurrentType == TYPE_RIGID) {
-        //            platform_EndRigidGeom();
+                    renderer->EndRigidGeom();
                 } else {
-         //           platform_EndSkinGeom();
+                    renderer->EndSkinGeom();
                 }
             }
 
             pCurrentGeom = Inst.Data.Rigid.pGeom;
             CurrentType = TYPE_RIGID;
             CurrentSortData.GeomSubMesh = Inst.SortKey.GeomSubMesh;
-     //       platform_BeginRigidGeom(pCurrentGeom, Inst.SortKey.GeomSubMesh);
+            renderer->BeginRigidGeom(pCurrentGeom, Inst.SortKey.GeomSubMesh);
         } else if (Inst.SortKey.GeomType &&
                    ((pCurrentGeom != Inst.Data.Skin.pGeom) || (CurrentSortData.GeomSubMesh != Inst.SortKey.GeomSubMesh))) {
             if (pCurrentGeom != nullptr) {
                 assert(CurrentType != TYPE_UNKNOWN);
                 if (CurrentType == TYPE_RIGID) {
-     //               platform_EndRigidGeom();
+                    renderer->EndRigidGeom();
                 } else {
-     //               platform_EndSkinGeom();
+                    renderer->EndSkinGeom();
                 }
             }
 
             pCurrentGeom = Inst.Data.Skin.pGeom;
             CurrentType = TYPE_SKIN;
             CurrentSortData.GeomSubMesh = Inst.SortKey.GeomSubMesh;
-    //        platform_BeginSkinGeom(pCurrentGeom, Inst.SortKey.GeomSubMesh);
+            renderer->BeginSkinGeom(pCurrentGeom, Inst.SortKey.GeomSubMesh);
         }
 
         // let the platform run its render code on the instances
@@ -1325,13 +1325,13 @@ void render::EndCustomRender()
         if (Inst.SortKey.GeomType == 0) {
             while (iInstToRender != -1) {
                 assert(s_lRenderInst[iInstToRender].SortKey.Bits == Inst.SortKey.Bits);
-    //            platform_RenderRigidInstance(s_lRenderInst[iInstToRender]);
+                renderer->RenderRigidInstance(s_lRenderInst[iInstToRender]);
                 iInstToRender = s_lRenderInst[iInstToRender].Brother;
             };
         } else {
             while (iInstToRender != -1) {
                 assert(s_lRenderInst[iInstToRender].SortKey.Bits == Inst.SortKey.Bits);
-    //            platform_RenderSkinInstance(s_lRenderInst[iInstToRender]);
+                renderer->RenderSkinInstance(s_lRenderInst[iInstToRender]);
                 iInstToRender = s_lRenderInst[iInstToRender].Brother;
             };
         }
@@ -1341,9 +1341,9 @@ void render::EndCustomRender()
     if (pCurrentGeom != nullptr) {
         assert(CurrentType != TYPE_UNKNOWN);
         if (CurrentType == TYPE_RIGID) {
-    //        platform_EndRigidGeom();
+            renderer->EndRigidGeom();
         } else {
-    //        platform_EndSkinGeom();
+            renderer->EndSkinGeom();
         }
     }
 

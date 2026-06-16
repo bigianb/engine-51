@@ -94,8 +94,8 @@ private:
     SDL_GPUDevice*           device;
     SDL_GPUGraphicsPipeline* pipeline;
     SDL_GPUGraphicsPipeline* pipeline_tex_alpha;
+    SDL_GPUGraphicsPipeline* normal3dPipeline;
     SDL_GPUGraphicsPipeline* colourPipeline;
-    SDL_GPUGraphicsPipeline* colourPipeline_alpha;
     SDL_GPUSampler*          pointSampler;
 
     std::map<Bitmap*, SDL_GPUTexture*> gpuTextures;
