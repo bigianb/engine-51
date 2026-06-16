@@ -23,11 +23,6 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y \
-          qt6-base-dev \
-          qt6-base-private-dev \
-          qt6-base-dev-tools \
-          qt6-shadertools-dev \
-          libqt6shadertools6 \
           libgl1-mesa-dev \
           libegl1-mesa-dev \
           libxkbcommon-dev \
@@ -35,6 +30,12 @@ jobs:
           vulkan-tools \
           vulkan-utility-libraries-dev \
           vulkan-validationlayers
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4.3.1
+      with:
+        version: 6.10.1
+        modules: 'qtshadertools qtquick3d'
 
     - name: Install SDL3
       uses: libsdl-org/setup-sdl@main
