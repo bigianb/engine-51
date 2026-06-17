@@ -289,6 +289,7 @@ public:
     uint64_t GetLODMask(uint32_t VMeshMask, uint16_t ScreenSize) const;
 
     int         getNumMeshes() const { return numMeshes; }
+    int         getNumSubMeshes(int meshNo) const { return meshes[meshNo].nSubMeshes; }
     int         getNumTextures() const { return numTextures; }
     std::string getTextureFilename(int tNum);
 

@@ -118,19 +118,19 @@ bool SDLRenderer::init()
 
     SDL_GPUShader* positionColorVertexShader = LoadShader(device, basePath, "PositionColor.vert", 0, 0, 0, 0);
     if (positionColorVertexShader == nullptr) {
-        SDL_Log("Failed to create vertex shader!");
+        SDL_Log("Failed to create positionColorVertexShader vertex shader!");
         return false;
     }
 
-    SDL_GPUShader* positionColorTransformVertexShader = LoadShader(device, basePath, "PositionColorTransform.vert", 0, 0, 0, 0);
+    SDL_GPUShader* positionColorTransformVertexShader = LoadShader(device, basePath, "PositionColorTransform.vert", 0, 1, 0, 0);
     if (positionColorTransformVertexShader == nullptr) {
-        SDL_Log("Failed to create vertex shader!");
+        SDL_Log("Failed to create positionColorTransformVertexShader vertex shader!");
         return false;
     }
 
     SDL_GPUShader* solidColorFragmentShader = LoadShader(device, basePath, "SolidColor.frag", 0, 0, 0, 0);
-    if (fragmentShader == nullptr) {
-        SDL_Log("Failed to create fragment shader!");
+    if (solidColorFragmentShader == nullptr) {
+        SDL_Log("Failed to create SolidColor fragment shader!");
         return false;
     }
     SDL_GPUColorTargetDescription ctd_add[]{
@@ -324,6 +324,7 @@ bool SDLRenderer::init()
         normal3dPipeline = SDL_CreateGPUGraphicsPipeline(device, &pipelineCreateInfo);
         if (normal3dPipeline == nullptr) {
             SDL_Log("Failed to create normal3dPipeline!");
+            SDL_Log("SDL_ERROR is %s",SDL_GetError());
             return false;
         }
     }
@@ -422,6 +423,9 @@ void SDLRenderer::draw()
             if (batch.texture != nullptr) {
                 SDL_GPUTextureSamplerBinding tsb{.texture = batch.texture, .sampler = pointSampler};
                 SDL_BindGPUFragmentSamplers(renderPass, 0, &tsb, 1);
+            }
+            if (batch.transformToWorld != nullptr) {
+                SDL_PushGPUVertexUniformData(cmdbuf, 0, batch.transformToWorld, 4 * 16);
             }
             SDL_DrawGPUIndexedPrimitives(renderPass, batch.numIndices, 1, 0, 0, 0);
 
@@ -585,7 +589,7 @@ void SDLRenderer::flushTextureVertices()
         pl = pipeline_tex_alpha;
     }
 
-    batches.push_back(Batch{pl, gpuTextures[currentTex], vertexBuffer, indexBuffer, (int)accumulatedVertices.size(), currentColour});
+    batches.push_back(Batch{pl, gpuTextures[currentTex], vertexBuffer, indexBuffer, (int)accumulatedVertices.size(), currentColour, nullptr});
 
     accumulatedVertices.clear();
 }
@@ -661,7 +665,7 @@ void SDLRenderer::flushColourVertices()
     SDL_EndGPUCopyPass(copyPass);
     SDL_SubmitGPUCommandBuffer(uploadCmdBuf);
 
-    batches.push_back(Batch{colourPipeline, nullptr, vertexBuffer, indexBuffer, (int)accumulatedColourVertices.size(), currentColour});
+    batches.push_back(Batch{colourPipeline, nullptr, vertexBuffer, indexBuffer, (int)accumulatedColourVertices.size(), currentColour, nullptr});
 
     accumulatedColourVertices.clear();
 }
@@ -734,22 +738,23 @@ void SDLRenderer::setTexture(Bitmap* tex)
 }
 void SDLRenderer::ActivateMaterial(material& mat) {}
 
-void SDLRenderer::BeginRigidGeom(Geom* pGeom, int iSubMesh) {}
+void SDLRenderer::BeginRigidGeom(Geom* pGeom, int iSubMesh) {
+    renderingRigid = true;
+    rigidSubMesh = iSubMesh;
+}
+
 void SDLRenderer::RenderRigidInstance(render_instance& Inst)
 {
+    assert(renderingRigid);
     rigid_data& pRigid = Inst.Data.Rigid;
+	
 
-/*
-		Matrix4x4 matrixUniform = Matrix4x4_Multiply(
-			Matrix4x4_CreateRotationZ(t),
-			Matrix4x4_CreateTranslation(-0.5f, -0.5f, 0)
-		);
-		SDL_PushGPUVertexUniformData(cmdbuf, 0, &matrixUniform, sizeof(matrixUniform));
-*/
 
 }
 
-void SDLRenderer::EndRigidGeom() {}
+void SDLRenderer::EndRigidGeom() {
+    renderingRigid = false;
+}
 
 void SDLRenderer::BeginSkinGeom(Geom* pGeom, int iSubMesh) {}
 void SDLRenderer::RenderSkinInstance(render_instance& Inst) {}

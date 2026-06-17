@@ -81,6 +81,7 @@ private:
         SDL_GPUBuffer*           indexBuffer;
         int                      numIndices;
         Colour                   colour;
+        const Matrix4*           transformToWorld;
     };
 
     Colour currentColour;
@@ -100,4 +101,7 @@ private:
 
     std::map<Bitmap*, SDL_GPUTexture*> gpuTextures;
     Bitmap*                            currentTex;
+
+    bool renderingRigid;
+    int  rigidSubMesh;
 };
