@@ -1,10 +1,11 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <cassert>
 
-#define ALIGN_16(n) ((((size_t)(n)) + 15) & (-16))
-#define ALIGN_64(n) ((((size_t)(n)) + 63) & (-64))
+#define ALIGN_16(n) ((((std::size_t)(n)) + 15) & (-16))
+#define ALIGN_64(n) ((((std::size_t)(n)) + 63) & (-64))
 #define SMEM_ALIGN ALIGN_16
 
 void     smem_ChangeSize(int NBytes);
