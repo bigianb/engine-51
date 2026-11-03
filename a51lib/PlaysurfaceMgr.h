@@ -12,6 +12,21 @@ class ObjectManager;
 
 struct Surface
 {
+    Surface()
+        : WorldBBox(Vector3(0.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f))
+        , AttrBits(0)
+        , ColorOffset(0)
+        , RenderInst(HNULL)
+        , pColor(nullptr)
+        , DBaseQuery(0)
+        , NextSurface(-1)
+        , ZoneInfo(0)
+        , GeomNameIndex(-1)
+        , RenderFlags(0)
+    {
+        L2W.Identity();
+    }
+
     Matrix4            L2W;
     BBox               WorldBBox;
     uint32_t           AttrBits;

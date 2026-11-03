@@ -7,6 +7,7 @@
 #include "../../a51lib/objectManager/ObjectManager.h"
 #include "system/SDL_Renderer.h"
 #include "../../a51lib/view/View.h"
+#include "../../a51lib/objects/Player.h"
 
 view g_View;
 
@@ -99,9 +100,23 @@ int main(int argc, char** argv)
             UpdateAudio(DeltaTime);
 */
             if (logicFramesAfterLoad > 10) {
-                uint8_t playerViewZone = 0;
-                gameObject.objectManager->Render(true, g_View, playerViewZone);
-                //g_ObjMgr.Render(TRUE,g_View,pPlayers[i]->GetPlayerViewZone());
+
+                slot_id ID = gameObject.objectManager->GetFirst( Object::TYPE_PLAYER );
+                if (ID != SLOT_NULL){
+                    Object* pObj    = gameObject.objectManager->GetObjectBySlot(ID);
+                    player* pPlayer = &player::GetSafeType( *pObj );
+
+                    view& rView0 = pPlayer->GetView();
+                    int XRes, YRes;
+                    gameObject.renderer->getRes( XRes, YRes );
+                    rView0.SetViewport( 0, 0, XRes, YRes );
+                    pPlayer->ComputeView( rView0 );
+
+                    g_View = rView0;
+
+                    uint8_t playerViewZone = 0;
+                    gameObject.objectManager->Render(true, g_View, playerViewZone);
+                }
             }
         }
         gameObject.renderer->draw();
