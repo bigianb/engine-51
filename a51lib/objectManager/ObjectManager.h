@@ -149,6 +149,8 @@ public:
 
     void Render3dObjects(bool DoPortalWalk, const view& PortalView, uint8_t StartZone);
 
+    PlaysurfaceMgr* GetPlaysurfaceMgr() { return playsurfaceManager; }
+
 protected:
     void DoVisibilityTests(const view& View);
     void CollectShadowCasters();

@@ -34,7 +34,7 @@ struct Surface
 class PlaysurfaceMgr
 {
 public:
-    bool readFile(uint8_t* fileData, int len);
+    bool readFile(const uint8_t* fileData, int len);
     void describe(std::ostringstream& ss);
 
     struct ZoneInfo

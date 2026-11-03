@@ -682,8 +682,6 @@ void ObjectManager::AddToSpatialDBase(guid Guid)
 void ObjectManager::AddToSpatialDBase(slot_id SlotID)
 {
     // Update spatial database
-    int i;
-    int X, Y, Z;
     int MinX, MinY, MinZ;
     int MaxX, MaxY, MaxZ;
 
@@ -699,10 +697,10 @@ void ObjectManager::AddToSpatialDBase(slot_id SlotID)
     obj_cell_link* pLink = GetCellLinks();
 
     // Add ourselves
-    i = 0;
-    for (X = MinX; X <= MaxX; X++) {
-        for (Y = MinY; Y <= MaxY; Y++) {
-            for (Z = MinZ; Z <= MaxZ; Z++) {
+    int i = 0;
+    for (int X = MinX; X <= MaxX; X++) {
+        for (int Y = MinY; Y <= MaxY; Y++) {
+            for (int Z = MinZ; Z <= MaxZ; Z++) {
                 // Get index to link
                 link_id LI = ((link_id)SlotID) * 8 + i;
                 assert(i < 8);

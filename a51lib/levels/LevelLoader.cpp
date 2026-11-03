@@ -17,6 +17,7 @@
 #include "../objectManager/ObjectManager.h"
 #include "../dataUtil/TextIn.h"
 #include "../objects/Player.h"
+#include "../PlaysurfaceMgr.h"
 
 void LevelLoader::mountDefaultFilesystems()
 {
@@ -253,15 +254,15 @@ void LevelLoader::loadLevelThreadFunction()
                         const uint8_t* zoneData = fs->readFile("LEVEL_DATA.ZONE", zoneLength);
                         g_ZoneMgr.Load(zoneData, zoneLength);
                     }
-                    /*
+                    
                     {
                         //load playsurfaces
-                        x_makepath( pPath, NULL, g_FullPath, "level_data", ".playsurface" );
-                        g_PlaySurfaceMgr.OpenFile(pPath, TRUE);
-                        g_PlaySurfaceMgr.LoadAllZones();
-                        g_PlaySurfaceMgr.CloseFile();
+                        int            psLength = 0;
+                        const uint8_t* psData = fs->readFile("LEVEL_DATA.PLAYSURFACE", psLength);
+                        objectManager->GetPlaysurfaceMgr()->readFile(psData, psLength);
+                        //playsurfaceManager.LoadAllZones();
                     }
-
+/*
                     {
                         //load static decals
                         x_makepath( pPath, NULL, g_FullPath, "level_data", ".decals" );
