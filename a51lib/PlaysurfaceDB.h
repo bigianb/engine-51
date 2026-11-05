@@ -51,6 +51,8 @@ public:
     void read(DataReader&);
     void describe(std::ostringstream& ss);
 
+    void AddSurface(Surface& Surface);
+
     void CollectSurfaces(const BBox& BBox,
                          uint32_t    QueryNumber,
                          uint32_t    Attributes,

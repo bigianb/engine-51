@@ -49,15 +49,28 @@ struct Surface
 class PlaysurfaceMgr
 {
 public:
+    PlaysurfaceMgr(ResourceManager* rm)
+        : m_QueryNumber(0), resourceManager(rm)
+    {
+    }
+
     bool readFile(const uint8_t* fileData, int len);
     void describe(std::ostringstream& ss);
 
     struct ZoneInfo
     {
+        ZoneInfo()
+            : fileOffset(0)
+            , numSurfaces(0)
+            , numColors(0)
+            , resolved(false)
+        {
+        }
+
         int fileOffset;
         int numSurfaces;
         int numColors;
-
+        bool resolved;
         std::vector<Surface>  surfaces;
         std::vector<uint32_t> colours;
     };
@@ -106,6 +119,8 @@ public:
     int fileLen;
 
 private:
+    ResourceManager* resourceManager;
+
     void ClearDBaseQueries();
     void readZoneInfo(DataReader& reader, ZoneInfo& zi);
 

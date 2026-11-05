@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <cassert>
 
 class ResourceManager;
 class FileSystem;
@@ -157,5 +158,6 @@ private:
 
 inline void* ResourceHandleBase::getPointer() const
 {
+    assert(resourceManager != nullptr);
     return resourceManager->getPointer(*this);
 }

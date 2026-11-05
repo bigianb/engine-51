@@ -45,17 +45,19 @@ bool GameObject::init()
     if (!renderer->init()){
         return false;
     }
-    render::Init(resourceManager, renderer);
     
     fs = new FileSystem();
     resourceManager = new ResourceManager();
     resourceManager->setFilesystem(fs);
+
+    render::Init(resourceManager, renderer);
+
     resourceLoaders = new ResourceLoaders();
     
     objectManager = new ObjectManager();
     polyCache = new poly_cache(objectManager);
 
-    playsurfaceManager = new PlaysurfaceMgr();
+    playsurfaceManager = new PlaysurfaceMgr(resourceManager);
 
     collisionManager = new collision_mgr();
     collisionManager->setPolycache(polyCache);

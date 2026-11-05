@@ -692,15 +692,17 @@ void render::Init(ResourceManager* rm, Renderer* renderer)
     s_lRegisteredMaterials = new material_array(rm);
     s_lRegisteredMaterials->Clear();
     s_lRegisteredMaterials->GrowListBy(kMaxRegisteredMaterials);
-   // s_lRenderInst.Clear();
-   // s_lRenderInst.SetCapacity(kMaxRenderedInstances);
-   // s_lRenderInst.SetCount(kMaxRenderedInstances);
-   // s_lDistortionInfo.Clear();
-   // s_lDistortionInfo.SetCapacity(kMaxDistortedInstances);
-   // s_lDistortionInfo.SetLocked(true);
-   // s_lSortData.Clear();
-   // s_lSortData.SetCapacity(kMaxRenderedInstances);
-   // s_lSortData.SetCount(kMaxRenderedInstances);
+
+    s_lRenderInst.clear();
+    s_lRenderInst.resize(kMaxRenderedInstances);
+
+    s_lDistortionInfo.clear();
+    s_lDistortionInfo.resize(kMaxDistortedInstances);
+    // s_lDistortionInfo.SetLocked(true);
+    
+    s_lSortData.clear();
+    s_lSortData.resize(kMaxRenderedInstances);
+
 
     //platform_Init();
 }

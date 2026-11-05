@@ -5,7 +5,8 @@ void PlaysurfaceDB::read(DataReader& reader)
     cellSize = reader.readInt32();
     int dbNumCells = reader.readInt32();
     numSurfaces = reader.readInt32();
-
+    surfaces.resize(numSurfaces);
+    
     for (int i = 0; i < HASH_SIZE; ++i) {
         hashTable[i].iCells = reader.readInt32();
         hashTable[i].nCells = reader.readInt32();
@@ -29,6 +30,47 @@ void PlaysurfaceDB::describe(std::ostringstream& ss)
     ss << "DB Num cells " << cells.size() << std::endl;
     ss << "cell size: " << cellSize << std::endl;
     ss << "num surfaces: " << numSurfaces << std::endl;
+}
+
+void PlaysurfaceDB::AddSurface(Surface& Surface)
+{
+    assert( m_QueryNumber == 0 );
+
+    // which cells would this surface be in?
+    int XMin, XMax, YMin, YMax, ZMin, ZMax;
+    GetCellRange( Surface.WorldBBox, XMin, XMax, YMin, YMax, ZMin, ZMax );
+
+    // don't add the surface if it's already there somewhere
+    for ( int XCell = XMin; XCell <= XMax; XCell++ )
+    for ( int YCell = YMin; YCell <= YMax; YCell++ )
+    for ( int ZCell = ZMin; ZCell <= ZMax; ZCell++ )
+    {
+        Cell* pCell = GetCell( XCell, YCell, ZCell );
+        assert( pCell );
+        for ( int iSurface = pCell->iSurfaces;
+              iSurface < pCell->iSurfaces + pCell->nSurfaces;
+              iSurface++ )
+        {
+            if ( surfaces[iSurface] == &Surface )
+            {
+                return;
+            }
+        }
+    }
+
+    // add the surface to each of the cells that it touches
+    for ( int XCell = XMin; XCell <= XMax; XCell++ )
+    for ( int YCell = YMin; YCell <= YMax; YCell++ )
+    for ( int ZCell = ZMin; ZCell <= ZMax; ZCell++ )
+    {
+        Cell* pCell = GetCell( XCell, YCell, ZCell );
+
+        assert( pCell );
+        assert( pCell->nSurfaces < pCell->MaxSurfaces );
+
+        surfaces[pCell->iSurfaces+pCell->nSurfaces] = &Surface;
+        pCell->nSurfaces++;
+    }
 }
 
 Surface* PlaysurfaceDB::GetCurrentSurface()
@@ -79,12 +121,13 @@ const int HASH_SIZE = 1021; // keep this a prime number for good hashing
 
 int DBaseHashFn(int XCell, int YCell, int ZCell)
 {
-    return ((((XCell << 10) + YCell) << 10) + ZCell) % HASH_SIZE;
+    return (uint32_t)((((XCell << 10) + YCell) << 10) + ZCell) % HASH_SIZE;
 }
 
 PlaysurfaceDB::Cell* PlaysurfaceDB::GetCell(int XCell, int YCell, int ZCell)
 {
     int HashIndex = DBaseHashFn(XCell, YCell, ZCell);
+    assert((HashIndex >= 0) && (HashIndex < HASH_SIZE));
 
     for (int iCell = hashTable[HashIndex].iCells;
          iCell < hashTable[HashIndex].iCells + hashTable[HashIndex].nCells;
@@ -95,7 +138,15 @@ PlaysurfaceDB::Cell* PlaysurfaceDB::GetCell(int XCell, int YCell, int ZCell)
         }
     }
 
-    return NULL;
+    // Didn't find it so linear search.
+    for (int iCell = 0; iCell < (int)cells.size(); iCell++) {
+        Cell& cell = cells[iCell];
+        if ((cell.X == XCell) && (cell.Y == YCell) && (cell.Z == ZCell)) {
+            return &cell;
+        }
+    }
+
+    return nullptr;
 }
 
 void PlaysurfaceDB::GetCell(float XPos, float YPos, float ZPos,

@@ -43,9 +43,45 @@ void PlaysurfaceMgr::readZoneInfo(DataReader& reader, ZoneInfo& zi)
     ResolveSurfaceData( zi );
 }
 
-void PlaysurfaceMgr::ResolveSurfaceData(ZoneInfo& zi)
+void PlaysurfaceMgr::ResolveSurfaceData(ZoneInfo& Zone)
 {
+    assert( !Zone.resolved );
+    assert( resourceManager != nullptr );
+    Zone.resolved = true;
 
+
+    for (int iSurface = 0; iSurface < Zone.numSurfaces; iSurface++ )
+    {
+        Surface* pSurface = &Zone.surfaces[iSurface];
+
+        // fix up the color pointer
+        //pSurface->pColor = ((byte*)Zone.pColorData)+pSurface->ColorOffset;
+
+        // fix up the geometry
+        int iGeomName = pSurface->GeomNameIndex;
+        assert( (iGeomName>=0) && (iGeomName < geoms.size()) );
+        ResourceHandle<RigidGeom> hRigidGeom(resourceManager);
+        resourceManager->addRHandle( hRigidGeom, geoms[iGeomName] );
+
+        RigidGeom* pGeom = hRigidGeom.getPointer();
+        if ( pGeom ){
+            pSurface->RenderInst = render::RegisterRigidInstance( *pGeom, resourceManager );
+        } else {
+            pSurface->RenderInst = HNULL;
+        }
+
+        // make sure our database queries will work out the first time through
+        assert( pSurface->DBaseQuery == 0 );
+    }
+
+    // sort the surfaces by their geometry indices. *hopefully* this will
+    // improve the data cache slightly for rendering...
+    //SortSurfaces( Zone );
+
+    // add the surfaces to our spatial database
+    for (int iSurface = 0; iSurface < Zone.numSurfaces; iSurface++ ){
+        spatialDBase.AddSurface( Zone.surfaces[iSurface] );
+    }
 }
 
 bool PlaysurfaceMgr::readFile(const uint8_t* fileData, int len)
