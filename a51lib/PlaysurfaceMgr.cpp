@@ -39,6 +39,13 @@ void PlaysurfaceMgr::readZoneInfo(DataReader& reader, ZoneInfo& zi)
     }
 
     reader.cursor = cursorToRestore;
+
+    ResolveSurfaceData( zi );
+}
+
+void PlaysurfaceMgr::ResolveSurfaceData(ZoneInfo& zi)
+{
+
 }
 
 bool PlaysurfaceMgr::readFile(const uint8_t* fileData, int len)
@@ -77,6 +84,12 @@ bool PlaysurfaceMgr::readFile(const uint8_t* fileData, int len)
 
     endPortalOffset = reader.cursor;
     fileLen = reader.len;
+
+    // sanity check time
+    if ( g_ZoneMgr.GetZoneCount() && (zones.size() != g_ZoneMgr.GetZoneCount()) )
+        throw( "playsurface data and zones don't match" );
+    if ( g_ZoneMgr.GetPortalCount() && (portals.size() != g_ZoneMgr.GetPortalCount()) )
+        throw( "playsurface data and portals don't match" );
 
     return okay;
 }

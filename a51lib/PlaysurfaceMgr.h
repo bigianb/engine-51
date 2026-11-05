@@ -109,7 +109,8 @@ private:
     void ClearDBaseQueries();
     void readZoneInfo(DataReader& reader, ZoneInfo& zi);
 
-    void RenderZone(ObjectManager* objectManager, ZoneInfo&         Zone,
+    void RenderZone(ObjectManager* objectManager, ZoneInfo& zi,
                     zone_mgr::zone_id Zone1,
                     zone_mgr::zone_id Zone2);
+    void ResolveSurfaceData(ZoneInfo& zi);
 };
