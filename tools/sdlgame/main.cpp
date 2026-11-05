@@ -113,7 +113,8 @@ int main(int argc, char** argv)
                     pPlayer->ComputeView( rView0 );
 
                     g_View = rView0;
-
+                    //eng_SetView( g_View );
+                    gameObject.renderer->setView( g_View );
                     uint8_t playerViewZone = 0;
                     gameObject.objectManager->Render(true, g_View, playerViewZone);
                 }

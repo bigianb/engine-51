@@ -1,12 +1,19 @@
 #include "SDL_Renderer.h"
 
 #include <SDL3/SDL.h>
+#include <algorithm>
 #include <cassert>
+#include <memory>
+#include <type_traits>
 
 #include "../../../a51lib/Bitmap.h"
+#include "../../../a51lib/PlatformDef.h"
+#include "../../../a51lib/view/View.h"
 
 SDLRenderer::SDLRenderer()
 {
+    worldToView.Identity();
+    viewToClip.Identity();
 }
 
 SDL_GPUShader* LoadShader(
@@ -157,20 +164,20 @@ bool SDLRenderer::init()
         {
             .location = 0,
             .buffer_slot = 0,
-            .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+            .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4,
             .offset = 0,
         },
         {
             .location = 1,
             .buffer_slot = 0,
             .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
-            .offset = sizeof(float) * 3,
+            .offset = sizeof(float) * 4,
         },
         {
             .location = 2,
             .buffer_slot = 0,
             .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4,
-            .offset = sizeof(float) * 5,
+            .offset = sizeof(float) * 6,
         }};
 
     SDL_GPUVertexBufferDescription vbd[]{
@@ -192,14 +199,14 @@ bool SDLRenderer::init()
         {
             .location = 0,
             .buffer_slot = 0,
-            .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+            .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4,
             .offset = 0,
         },
         {
             .location = 1,
             .buffer_slot = 0,
             .format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4,
-            .offset = sizeof(float) * 3,
+            .offset = sizeof(float) * 4,
         }};
 
     SDL_GPUVertexBufferDescription positionColourVbd[]{
@@ -360,6 +367,12 @@ bool SDLRenderer::init()
     return true;
 }
 
+void SDLRenderer::setView(const view& View)
+{
+    worldToView = View.GetW2V();
+    viewToClip = View.GetV2C();
+}
+
 void SDLRenderer::quit()
 {
     SDL_ReleaseGPUGraphicsPipeline(device, pipeline);
@@ -448,14 +461,14 @@ void SDLRenderer::drawVertex(float x, float y, float z, float u, float v)
     float   wx = (x - 320.0f) / 320.0f;
     float   wy = (240.0f - y) / 240.0f;
     Colour& c = currentColour;
-    accumulatedVertices.push_back({wx, wy, z, u, v, c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 255.0f});
+    accumulatedVertices.push_back({wx, wy, z, 1.0f, u, v, c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 255.0f});
 }
 
 void SDLRenderer::drawColourVertex(float x, float y, float z, const Colour& c)
 {
     float wx = (x - 320.0f) / 320.0f;
     float wy = (240.0f - y) / 240.0f;
-    accumulatedColourVertices.push_back({wx, wy, z, c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 255.0f});
+    accumulatedColourVertices.push_back({wx, wy, z, 1.0f, c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 255.0f});
 }
 
 void SDLRenderer::drawSpriteUV(const Vector3& position, // Hot spot (2D Left-Top), (3D Center)
@@ -725,8 +738,221 @@ void SDLRenderer::setTexture(Bitmap* tex)
     gpuTextures[tex] = Texture;
 }
 
-void SDLRenderer::BeginRigidGeom(Geom* pGeom, int iSubMesh) {}
-void SDLRenderer::RenderRigidInstance(render_instance& Inst) {}
+void SDLRenderer::BeginRigidGeom(Geom* pGeom, int iSubMesh)
+{
+    currentRigidGeom = static_cast<RigidGeom*>(pGeom);
+    currentRigidSubmesh = iSubMesh;
+}
+
+void SDLRenderer::RenderRigidInstance(render_instance& Inst)
+{
+    if (currentRigidGeom == nullptr || Inst.Data.Rigid.pGeom != currentRigidGeom ||
+        currentRigidSubmesh < 0 || currentRigidSubmesh >= currentRigidGeom->numSubMeshes) {
+        SDL_Log("RenderRigidInstance called without a matching rigid geometry");
+        return;
+    }
+
+    const int numVertices = currentRigidGeom->getNumSubmeshVertices(currentRigidSubmesh);
+    if (numVertices < 3) {
+        return;
+    }
+
+    std::unique_ptr<float[]> puv(currentRigidGeom->getSubmeshVerticesPUV(currentRigidSubmesh));
+    if (puv == nullptr) {
+        SDL_Log("Failed to extract rigid geometry vertices");
+        return;
+    }
+
+    SDL_GPUTexture* texture = nullptr;
+    if (currentTex != nullptr) {
+        const auto textureIt = gpuTextures.find(currentTex);
+        if (textureIt != gpuTextures.end()) {
+            texture = textureIt->second;
+        }
+    }
+
+    const auto* pcDlist = currentRigidGeom->platform == PLATFORM_PC
+                              ? &currentRigidGeom->system.pPC[
+                                    currentRigidGeom->subMeshes[currentRigidSubmesh].iDList]
+                              : nullptr;
+
+    std::vector<PositionTextureVertex> texturedVertices;
+    std::vector<PositionColourVertex> colourVertices;
+    if (texture != nullptr) {
+        texturedVertices.reserve(numVertices);
+    } else {
+        colourVertices.reserve(numVertices);
+    }
+
+    const float instanceAlpha = Inst.Alpha / 255.0f;
+    bool usesAlpha = Inst.Alpha < 255;
+    for (int i = 0; i < numVertices; ++i) {
+        Vector4 position(puv[i * 3], puv[i * 3 + 1], puv[i * 3 + 2], 1.0f);
+        if (Inst.Data.Rigid.pL2W != nullptr) {
+            position = *Inst.Data.Rigid.pL2W * position;
+        }
+        position = viewToClip * (worldToView * position);
+
+        Colour vertexColour = COLOR_WHITE;
+        if (pcDlist != nullptr) {
+            vertexColour = pcDlist->verts[pcDlist->indices[i]].colour;
+        }
+        usesAlpha |= vertexColour.a < 255;
+        const float red = vertexColour.r / 255.0f;
+        const float green = vertexColour.g / 255.0f;
+        const float blue = vertexColour.b / 255.0f;
+        const float alpha = (vertexColour.a / 255.0f) * instanceAlpha;
+
+        if (texture != nullptr) {
+            texturedVertices.push_back({
+                position.x,
+                position.y,
+                position.z,
+                position.w,
+                puv[numVertices * 3 + i * 2],
+                puv[numVertices * 3 + i * 2 + 1],
+                red,
+                green,
+                blue,
+                alpha});
+        } else {
+            colourVertices.push_back({
+                position.x,
+                position.y,
+                position.z,
+                position.w,
+                red,
+                green,
+                blue,
+                alpha});
+        }
+    }
+
+    const size_t maxVerticesPerBatch = 65535;
+    for (size_t firstVertex = 0; firstVertex < static_cast<size_t>(numVertices);) {
+        size_t vertexCount = std::min(maxVerticesPerBatch, static_cast<size_t>(numVertices) - firstVertex);
+        vertexCount -= vertexCount % 3;
+        if (vertexCount == 0) {
+            SDL_Log("Rigid geometry vertex count is not a triangle list");
+            break;
+        }
+
+        auto uploadBatch = [this, firstVertex, vertexCount](const auto& vertices,
+                                                            SDL_GPUGraphicsPipeline* batchPipeline,
+                                                            SDL_GPUTexture* batchTexture) {
+            using Vertex = typename std::decay_t<decltype(vertices)>::value_type;
+            const Uint32 vertexBytes = static_cast<Uint32>(sizeof(Vertex) * vertexCount);
+            const Uint32 indexBytes = static_cast<Uint32>(sizeof(Uint16) * vertexCount);
+
+            SDL_GPUBufferCreateInfo vbci{
+                .usage = SDL_GPU_BUFFERUSAGE_VERTEX,
+                .size = vertexBytes};
+            SDL_GPUBuffer* vertexBuffer = SDL_CreateGPUBuffer(device, &vbci);
+            SDL_GPUBufferCreateInfo ibci{
+                .usage = SDL_GPU_BUFFERUSAGE_INDEX,
+                .size = indexBytes};
+            SDL_GPUBuffer* indexBuffer = SDL_CreateGPUBuffer(device, &ibci);
+            if (vertexBuffer == nullptr || indexBuffer == nullptr) {
+                SDL_Log("Failed to create rigid geometry GPU buffers: %s", SDL_GetError());
+                if (vertexBuffer != nullptr) {
+                    SDL_ReleaseGPUBuffer(device, vertexBuffer);
+                }
+                if (indexBuffer != nullptr) {
+                    SDL_ReleaseGPUBuffer(device, indexBuffer);
+                }
+                return false;
+            }
+
+            SDL_GPUTransferBufferCreateInfo tbci{
+                .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+                .size = vertexBytes + indexBytes};
+            SDL_GPUTransferBuffer* transferBuffer = SDL_CreateGPUTransferBuffer(device, &tbci);
+            if (transferBuffer == nullptr) {
+                SDL_Log("Failed to create rigid geometry transfer buffer: %s", SDL_GetError());
+                SDL_ReleaseGPUBuffer(device, vertexBuffer);
+                SDL_ReleaseGPUBuffer(device, indexBuffer);
+                return false;
+            }
+
+            auto* transferData = static_cast<Uint8*>(SDL_MapGPUTransferBuffer(device, transferBuffer, false));
+            if (transferData == nullptr) {
+                SDL_Log("Failed to map rigid geometry transfer buffer: %s", SDL_GetError());
+                SDL_ReleaseGPUTransferBuffer(device, transferBuffer);
+                SDL_ReleaseGPUBuffer(device, vertexBuffer);
+                SDL_ReleaseGPUBuffer(device, indexBuffer);
+                return false;
+            }
+            SDL_memcpy(transferData, vertices.data() + firstVertex, vertexBytes);
+            auto* indexData = reinterpret_cast<Uint16*>(transferData + vertexBytes);
+            for (size_t i = 0; i < vertexCount; ++i) {
+                indexData[i] = static_cast<Uint16>(i);
+            }
+            SDL_UnmapGPUTransferBuffer(device, transferBuffer);
+
+            SDL_GPUCommandBuffer* uploadCommandBuffer = SDL_AcquireGPUCommandBuffer(device);
+            if (uploadCommandBuffer == nullptr) {
+                SDL_Log("Failed to acquire rigid geometry upload command buffer: %s", SDL_GetError());
+                SDL_ReleaseGPUTransferBuffer(device, transferBuffer);
+                SDL_ReleaseGPUBuffer(device, vertexBuffer);
+                SDL_ReleaseGPUBuffer(device, indexBuffer);
+                return false;
+            }
+            SDL_GPUCopyPass* copyPass = SDL_BeginGPUCopyPass(uploadCommandBuffer);
+            if (copyPass == nullptr) {
+                SDL_Log("Failed to begin rigid geometry upload pass: %s", SDL_GetError());
+                SDL_CancelGPUCommandBuffer(uploadCommandBuffer);
+                SDL_ReleaseGPUTransferBuffer(device, transferBuffer);
+                SDL_ReleaseGPUBuffer(device, vertexBuffer);
+                SDL_ReleaseGPUBuffer(device, indexBuffer);
+                return false;
+            }
+
+            SDL_GPUTransferBufferLocation vertexLocation{
+                .transfer_buffer = transferBuffer,
+                .offset = 0};
+            SDL_GPUBufferRegion vertexRegion{
+                .buffer = vertexBuffer,
+                .offset = 0,
+                .size = vertexBytes};
+            SDL_UploadToGPUBuffer(copyPass, &vertexLocation, &vertexRegion, false);
+
+            SDL_GPUTransferBufferLocation indexLocation{
+                .transfer_buffer = transferBuffer,
+                .offset = vertexBytes};
+            SDL_GPUBufferRegion indexRegion{
+                .buffer = indexBuffer,
+                .offset = 0,
+                .size = indexBytes};
+            SDL_UploadToGPUBuffer(copyPass, &indexLocation, &indexRegion, false);
+            SDL_EndGPUCopyPass(copyPass);
+            if (!SDL_SubmitGPUCommandBuffer(uploadCommandBuffer)) {
+                SDL_Log("Failed to submit rigid geometry upload: %s", SDL_GetError());
+                SDL_ReleaseGPUTransferBuffer(device, transferBuffer);
+                SDL_ReleaseGPUBuffer(device, vertexBuffer);
+                SDL_ReleaseGPUBuffer(device, indexBuffer);
+                return false;
+            }
+            SDL_ReleaseGPUTransferBuffer(device, transferBuffer);
+
+            batches.push_back(Batch{
+                batchPipeline,
+                batchTexture,
+                vertexBuffer,
+                indexBuffer,
+                static_cast<int>(vertexCount),
+                COLOR_WHITE});
+            return true;
+        };
+
+        const bool uploaded = texture != nullptr
+                                  ? uploadBatch(texturedVertices, usesAlpha ? pipeline_tex_alpha : pipeline, texture)
+                                  : uploadBatch(colourVertices, usesAlpha ? colourPipeline_alpha : colourPipeline, nullptr);
+        if (!uploaded) {
+            break;
+        }
+        firstVertex += vertexCount;
+    }
+}
 void SDLRenderer::EndRigidGeom() {}
 void SDLRenderer::BeginSkinGeom(Geom* pGeom, int iSubMesh) {}
 void SDLRenderer::RenderSkinInstance(render_instance& Inst) {}

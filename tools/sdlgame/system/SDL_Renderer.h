@@ -8,6 +8,7 @@
 
 class SDL_Window;
 class SDL_GPUDevice;
+class view;
 
 class SDLRenderer : public Renderer
 {
@@ -19,6 +20,7 @@ public:
     bool init();
     void quit();
     void draw();
+    void setView(const view& View);
 
     void renderRect(const IntRect& rect, const Colour& colour, bool doWire) override
     {
@@ -61,14 +63,14 @@ private:
 
     struct PositionTextureVertex
     {
-        float x, y, z;
+        float x, y, z, w;
         float u, v;
         float r, g, b, a;
     };
 
     struct PositionColourVertex
     {
-        float x, y, z;
+        float x, y, z, w;
         float r, g, b, a;
     };
 
@@ -98,5 +100,9 @@ private:
     SDL_GPUSampler*          pointSampler;
 
     std::map<Bitmap*, SDL_GPUTexture*> gpuTextures;
-    Bitmap*                            currentTex;
+    Bitmap*                            currentTex = nullptr;
+    RigidGeom*                         currentRigidGeom = nullptr;
+    int                                currentRigidSubmesh = -1;
+    Matrix4                            worldToView;
+    Matrix4                            viewToClip;
 };
