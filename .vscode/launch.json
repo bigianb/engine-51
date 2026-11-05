@@ -15,6 +15,18 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "lldb"
+        },
+        {
+            "name": "imac",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/tools/sdlgame/SDL_game",
+            "args": ["--wireframe"],
+            "stopAtEntry": false,
+            "cwd": "${env:HOME}/a51/pc/resources/app/game",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb"
         }
     ]
 }

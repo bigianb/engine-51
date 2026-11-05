@@ -1,5 +1,6 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include <cstring>
 
 #include "gameObject.h"
 #include "../../a51lib/state/StateMachine.h"
@@ -37,6 +38,12 @@ int main(int argc, char** argv)
     GameObject gameObject;
     if (!gameObject.init()) {
         return 1;
+    }
+
+    for (int i = 1; i < argc; ++i) {
+        if (std::strcmp(argv[i], "--wireframe") == 0) {
+            gameObject.renderer->setWireframe(true);
+        }
     }
 
     int logicFramesAfterLoad = 0;
@@ -113,7 +120,6 @@ int main(int argc, char** argv)
                     pPlayer->ComputeView( rView0 );
 
                     g_View = rView0;
-                    //eng_SetView( g_View );
                     gameObject.renderer->setView( g_View );
                     uint8_t playerViewZone = 0;
                     gameObject.objectManager->Render(true, g_View, playerViewZone);

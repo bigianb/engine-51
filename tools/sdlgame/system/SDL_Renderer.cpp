@@ -332,6 +332,27 @@ bool SDLRenderer::init()
             .vertex_shader = positionColorVertexShader,
             .fragment_shader = solidColorFragmentShader,
             .vertex_input_state = positionColourVertexInputState,
+            .primitive_type = SDL_GPU_PRIMITIVETYPE_LINELIST,
+            .rasterizer_state = rasteriserState,
+            .depth_stencil_state = depthStencilState,
+            .target_info = {
+                .color_target_descriptions = ctd_add,
+                .num_color_targets = 1,
+            },
+            .props = 0,
+        };
+
+        wireframePipeline = SDL_CreateGPUGraphicsPipeline(device, &pipelineCreateInfo);
+        if (wireframePipeline == nullptr) {
+            SDL_Log("Failed to create wireframe pipeline!");
+            return false;
+        }
+    }
+    {
+        SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
+            .vertex_shader = positionColorVertexShader,
+            .fragment_shader = solidColorFragmentShader,
+            .vertex_input_state = positionColourVertexInputState,
             .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
             .rasterizer_state = rasteriserState,
             .depth_stencil_state = depthStencilState,
@@ -380,6 +401,9 @@ void SDLRenderer::quit()
 
     SDL_ReleaseGPUGraphicsPipeline(device, colourPipeline);
     colourPipeline = nullptr;
+
+    SDL_ReleaseGPUGraphicsPipeline(device, wireframePipeline);
+    wireframePipeline = nullptr;
 
     for (const auto& [key, value] : gpuTextures) {
         SDL_ReleaseGPUTexture(device, value);
@@ -778,10 +802,14 @@ void SDLRenderer::RenderRigidInstance(render_instance& Inst)
 
     std::vector<PositionTextureVertex> texturedVertices;
     std::vector<PositionColourVertex> colourVertices;
+    std::vector<PositionColourVertex> wireVertices;
     if (texture != nullptr) {
         texturedVertices.reserve(numVertices);
     } else {
         colourVertices.reserve(numVertices);
+    }
+    if (wireframe) {
+        wireVertices.reserve(static_cast<size_t>(numVertices) * 2);
     }
 
     const float instanceAlpha = Inst.Alpha / 255.0f;
@@ -828,12 +856,32 @@ void SDLRenderer::RenderRigidInstance(render_instance& Inst)
         }
     }
 
+    if (wireframe) {
+        auto appendEdge = [&wireVertices](const auto& from, const auto& to) {
+            wireVertices.push_back({from.x, from.y, from.z, from.w, from.r, from.g, from.b, from.a});
+            wireVertices.push_back({to.x, to.y, to.z, to.w, to.r, to.g, to.b, to.a});
+        };
+        for (int i = 0; i + 2 < numVertices; i += 3) {
+            if (texture != nullptr) {
+                appendEdge(texturedVertices[i], texturedVertices[i + 1]);
+                appendEdge(texturedVertices[i + 1], texturedVertices[i + 2]);
+                appendEdge(texturedVertices[i + 2], texturedVertices[i]);
+            } else {
+                appendEdge(colourVertices[i], colourVertices[i + 1]);
+                appendEdge(colourVertices[i + 1], colourVertices[i + 2]);
+                appendEdge(colourVertices[i + 2], colourVertices[i]);
+            }
+        }
+    }
+
     const size_t maxVerticesPerBatch = 65535;
-    for (size_t firstVertex = 0; firstVertex < static_cast<size_t>(numVertices);) {
-        size_t vertexCount = std::min(maxVerticesPerBatch, static_cast<size_t>(numVertices) - firstVertex);
-        vertexCount -= vertexCount % 3;
+    const size_t renderVertexCount = wireframe ? wireVertices.size() : static_cast<size_t>(numVertices);
+    const size_t verticesPerPrimitive = wireframe ? 2 : 3;
+    for (size_t firstVertex = 0; firstVertex < renderVertexCount;) {
+        size_t vertexCount = std::min(maxVerticesPerBatch, renderVertexCount - firstVertex);
+        vertexCount -= vertexCount % verticesPerPrimitive;
         if (vertexCount == 0) {
-            SDL_Log("Rigid geometry vertex count is not a triangle list");
+            SDL_Log("Rigid geometry has an incomplete primitive");
             break;
         }
 
@@ -944,9 +992,11 @@ void SDLRenderer::RenderRigidInstance(render_instance& Inst)
             return true;
         };
 
-        const bool uploaded = texture != nullptr
-                                  ? uploadBatch(texturedVertices, usesAlpha ? pipeline_tex_alpha : pipeline, texture)
-                                  : uploadBatch(colourVertices, usesAlpha ? colourPipeline_alpha : colourPipeline, nullptr);
+        const bool uploaded = wireframe
+                                  ? uploadBatch(wireVertices, wireframePipeline, nullptr)
+                                  : (texture != nullptr
+                                         ? uploadBatch(texturedVertices, usesAlpha ? pipeline_tex_alpha : pipeline, texture)
+                                         : uploadBatch(colourVertices, usesAlpha ? colourPipeline_alpha : colourPipeline, nullptr));
         if (!uploaded) {
             break;
         }

@@ -1721,6 +1721,7 @@ void player::ComputeView(view& View, view_flags Flags)
         level_settings& LevelSettings = level_settings::GetSafeType(*pObj);
         View.SetZLimits(10.0f, LevelSettings.GetFarPlane());
         */
+        View.SetZLimits(10.0f, 8000.0f); // TODO
     } else {
         View.SetZLimits(10.0f, 8000.0f);
     }

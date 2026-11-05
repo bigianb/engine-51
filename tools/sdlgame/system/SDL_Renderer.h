@@ -21,6 +21,7 @@ public:
     void quit();
     void draw();
     void setView(const view& View);
+    void setWireframe(bool enabled) { wireframe = enabled; }
 
     void renderRect(const IntRect& rect, const Colour& colour, bool doWire) override
     {
@@ -97,6 +98,7 @@ private:
     SDL_GPUGraphicsPipeline* pipeline_tex_alpha;
     SDL_GPUGraphicsPipeline* colourPipeline;
     SDL_GPUGraphicsPipeline* colourPipeline_alpha;
+    SDL_GPUGraphicsPipeline* wireframePipeline;
     SDL_GPUSampler*          pointSampler;
 
     std::map<Bitmap*, SDL_GPUTexture*> gpuTextures;
@@ -105,4 +107,5 @@ private:
     int                                currentRigidSubmesh = -1;
     Matrix4                            worldToView;
     Matrix4                            viewToClip;
+    bool                               wireframe = false;
 };
