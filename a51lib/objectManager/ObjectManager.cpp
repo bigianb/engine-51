@@ -910,6 +910,48 @@ void ObjectManager::Render(bool bDoPortalWalk, const view& PortalView, uint8_t S
     // eng_End();
 }
 
+void ObjectManager::RenderNormalObjects()
+{
+    for( int type=0; type< Object::TYPE_END_OF_LIST; type++ ) {
+        // If a type is renderable then render
+        if( m_ObjectType[type].pDesc && m_ObjectType[type].pDesc->OnBeginRender() ) 
+        {
+            // Go through all the objects in the given type
+            for(slot_id ID = m_ObjectType[type].FirstVis; ID != SLOT_NULL; ID = GetNextVis( ID ) )
+            {
+                // Get the object
+                Object* pObject = GetObjectBySlot( ID );
+
+                // These guys rendered last.
+                if( pObject->GetAttrBits() & Object::ATTR_DRAW_2D ){
+                    continue;
+                }
+                // Render the object finally
+                if( pObject->GetAttrBits() & Object::ATTR_TRANSPARENT )
+                {
+                    // IJB: TODO
+                    /*
+                    special_render_obj& SpecialObj = g_SpecialRenderObj.Append();
+                    SpecialObj.pObject = pObject;
+                    */
+                }
+
+                pObject->OnRender();
+            }
+        
+            // Done rendering this type
+            m_ObjectType[type].pDesc->OnEndRender();
+        }
+
+        // if we've just finished adding all the lights, do some collection
+        if ( type == Object::TYPE_DYNAMIC_LIGHT ){
+            // IJB: TODO
+            //g_LightMgr.BeginLightCollection();
+        }
+    }
+
+}
+
 void ObjectManager::Render3dObjects(bool bDoPortalWalk, const view& PortalView, uint8_t StartZone)
 {
     if (g_ZoneMgr.GetPortalCount() == 0) {
@@ -920,7 +962,7 @@ void ObjectManager::Render3dObjects(bool bDoPortalWalk, const view& PortalView, 
     // Handle the normal rendering
     //    if (eng_Begin("3d Objects")) {
     render::BeginNormalRender();
-    //RenderNormalObjects();
+    RenderNormalObjects();
     playsurfaceManager->RenderPlaySurfaces(this);
     //g_LightMgr.EndLightCollection();
     // Check if any types need their collision rendered

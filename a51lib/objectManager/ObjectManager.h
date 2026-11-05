@@ -43,8 +43,8 @@ public:
 protected:
     virtual Object* Create(ObjectManager*, collision_mgr*, ResourceManager*) = 0;
     void            AddObjectCount(int n) const { m_ObjectCount += n; }
-    virtual bool    OnBeginRender() { return CanRender() && m_CommonAttrBits & Object::ATTR_RENDERABLE; }
-    virtual void    OnEndRender() {}
+    virtual bool    OnBeginRender() const { return CanRender() && m_CommonAttrBits & Object::ATTR_RENDERABLE; }
+    virtual void    OnEndRender() const {}
     virtual bool    OnBeginLogic() { return m_bLogic && m_CommonAttrBits & Object::ATTR_NEEDS_LOGIC_TIME; }
     virtual void    OnEndLogic() {}
 
@@ -337,3 +337,11 @@ private:
 
     xtick m_GameTime;
 };
+
+inline
+slot_id ObjectManager::GetNextVis( slot_id SlotID )
+{
+    assert(m_ObjectSlot[ SlotID ].pObject );
+
+    return m_ObjectSlot[ SlotID ].NextVis;
+}

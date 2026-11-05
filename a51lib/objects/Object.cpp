@@ -294,21 +294,18 @@ const char* Object::GetLogicalName()
 
 void Object::SetNewZoneInfo(uint16_t ZoneInfo)
 {
-    // TODO: Implement this function to set the new zone information.
-    /*
     // remove any current zone link information
-    g_ObjMgr.RemoveSlotFromZone(m_SlotID);
+    objectManager->RemoveSlotFromZone(m_SlotID);
     if (GetAttrBits() & Object::ATTR_RENDERABLE) {
-        g_ObjMgr.RemoveSlotFromRenderable(m_SlotID);
+        objectManager->RemoveSlotFromRenderable(m_SlotID);
     }
 
     // set in the new zone and add the zone links back in
     m_ZoneInfo = ZoneInfo;
-    g_ObjMgr.AddSlotToZone(m_SlotID);
+    objectManager->AddSlotToZone(m_SlotID);
     if (GetAttrBits() & Object::ATTR_RENDERABLE) {
-        g_ObjMgr.AddSlotToRenderable(m_SlotID);
+        objectManager->AddSlotToRenderable(m_SlotID);
     }
-        */
 }
 
 void Object::UpdateTransform()
