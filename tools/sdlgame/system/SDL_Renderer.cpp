@@ -147,6 +147,10 @@ bool SDLRenderer::init()
              .enable_blend = true,
              .enable_color_write_mask = false}}};
 
+    SDL_GPUColorTargetDescription ctd_opaque[]{
+        {.format = SDL_GetGPUSwapchainTextureFormat(device, window),
+         .blend_state = {.enable_blend = false}}};
+
     SDL_GPUColorTargetDescription ctd_alpha[]{
         {.format = SDL_GetGPUSwapchainTextureFormat(device, window),
          .blend_state = {
@@ -295,6 +299,10 @@ bool SDLRenderer::init()
                               SDL_GPU_PRIMITIVETYPE_TRIANGLELIST, ctd_add, true);
     pipeline_no_depth_write = createPipeline(vertexShader, fragmentShader, vertexInputState,
                                              SDL_GPU_PRIMITIVETYPE_TRIANGLELIST, ctd_add, false);
+    rigidOpaquePipeline = createPipeline(vertexShader, fragmentShader, vertexInputState,
+                                         SDL_GPU_PRIMITIVETYPE_TRIANGLELIST, ctd_opaque, true);
+    rigidOpaquePipeline_no_depth_write = createPipeline(vertexShader, fragmentShader, vertexInputState,
+                                                        SDL_GPU_PRIMITIVETYPE_TRIANGLELIST, ctd_opaque, false);
     pipeline_tex_alpha = createPipeline(vertexShader, fragmentShader, vertexInputState,
                                         SDL_GPU_PRIMITIVETYPE_TRIANGLELIST, ctd_alpha, true);
     pipeline_tex_alpha_no_depth_write = createPipeline(vertexShader, fragmentShader, vertexInputState,
@@ -305,6 +313,12 @@ bool SDLRenderer::init()
     colourPipeline_no_depth_write = createPipeline(positionColorVertexShader, solidColorFragmentShader,
                                                    positionColourVertexInputState, SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
                                                    ctd_add, false);
+    rigidOpaqueColourPipeline = createPipeline(positionColorVertexShader, solidColorFragmentShader,
+                                               positionColourVertexInputState, SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+                                               ctd_opaque, true);
+    rigidOpaqueColourPipeline_no_depth_write = createPipeline(positionColorVertexShader, solidColorFragmentShader,
+                                                              positionColourVertexInputState, SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+                                                              ctd_opaque, false);
     colourPipeline_alpha = createPipeline(positionColorVertexShader, solidColorFragmentShader,
                                           positionColourVertexInputState, SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
                                           ctd_alpha, true);
@@ -317,9 +331,11 @@ bool SDLRenderer::init()
     wireframePipeline_no_depth_write = createPipeline(positionColorVertexShader, solidColorFragmentShader,
                                                       positionColourVertexInputState, SDL_GPU_PRIMITIVETYPE_LINELIST,
                                                       ctd_add, false);
-    if (pipeline == nullptr || pipeline_no_depth_write == nullptr || pipeline_tex_alpha == nullptr ||
+    if (pipeline == nullptr || pipeline_no_depth_write == nullptr || rigidOpaquePipeline == nullptr ||
+        rigidOpaquePipeline_no_depth_write == nullptr || pipeline_tex_alpha == nullptr ||
         pipeline_tex_alpha_no_depth_write == nullptr || colourPipeline == nullptr ||
-        colourPipeline_no_depth_write == nullptr || colourPipeline_alpha == nullptr ||
+        colourPipeline_no_depth_write == nullptr || rigidOpaqueColourPipeline == nullptr ||
+        rigidOpaqueColourPipeline_no_depth_write == nullptr || colourPipeline_alpha == nullptr ||
         colourPipeline_alpha_no_depth_write == nullptr || wireframePipeline == nullptr ||
         wireframePipeline_no_depth_write == nullptr) {
         SDL_Log("Failed to create a depth-enabled graphics pipeline: %s", SDL_GetError());
@@ -334,8 +350,8 @@ bool SDLRenderer::init()
         .min_filter = SDL_GPU_FILTER_NEAREST,
         .mag_filter = SDL_GPU_FILTER_NEAREST,
         .mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST,
-        .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
-        .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
+        .address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
+        .address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_REPEAT,
         .address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE,
     };
     pointSampler = SDL_CreateGPUSampler(device, &sci);
@@ -356,6 +372,10 @@ void SDLRenderer::quit()
 
     SDL_ReleaseGPUGraphicsPipeline(device, pipeline_no_depth_write);
     pipeline_no_depth_write = nullptr;
+    SDL_ReleaseGPUGraphicsPipeline(device, rigidOpaquePipeline);
+    rigidOpaquePipeline = nullptr;
+    SDL_ReleaseGPUGraphicsPipeline(device, rigidOpaquePipeline_no_depth_write);
+    rigidOpaquePipeline_no_depth_write = nullptr;
     SDL_ReleaseGPUGraphicsPipeline(device, pipeline_tex_alpha);
     pipeline_tex_alpha = nullptr;
     SDL_ReleaseGPUGraphicsPipeline(device, pipeline_tex_alpha_no_depth_write);
@@ -364,6 +384,10 @@ void SDLRenderer::quit()
     colourPipeline = nullptr;
     SDL_ReleaseGPUGraphicsPipeline(device, colourPipeline_no_depth_write);
     colourPipeline_no_depth_write = nullptr;
+    SDL_ReleaseGPUGraphicsPipeline(device, rigidOpaqueColourPipeline);
+    rigidOpaqueColourPipeline = nullptr;
+    SDL_ReleaseGPUGraphicsPipeline(device, rigidOpaqueColourPipeline_no_depth_write);
+    rigidOpaqueColourPipeline_no_depth_write = nullptr;
     SDL_ReleaseGPUGraphicsPipeline(device, colourPipeline_alpha);
     colourPipeline_alpha = nullptr;
     SDL_ReleaseGPUGraphicsPipeline(device, colourPipeline_alpha_no_depth_write);
@@ -843,7 +867,7 @@ void SDLRenderer::RenderRigidInstance(render_instance& Inst)
     }
 
     const float instanceAlpha = Inst.Alpha / 255.0f;
-    bool usesAlpha = Inst.Alpha < 255;
+    const bool usesAlpha = alphaMaterial || Inst.Alpha < 255;
     for (int i = 0; i < numVertices; ++i) {
         Vector4 position(puv[i * 3], puv[i * 3 + 1], puv[i * 3 + 2], 1.0f);
         if (Inst.Data.Rigid.pL2W != nullptr) {
@@ -860,7 +884,6 @@ void SDLRenderer::RenderRigidInstance(render_instance& Inst)
             vertexColour.g = 255;
             vertexColour.b = 255;
         }
-        usesAlpha |= vertexColour.a < 255;
         const float red = vertexColour.r / 255.0f;
         const float green = vertexColour.g / 255.0f;
         const float blue = vertexColour.b / 255.0f;
@@ -1036,14 +1059,15 @@ void SDLRenderer::RenderRigidInstance(render_instance& Inst)
                                                        usesAlpha
                                                            ? (writesDepth ? pipeline_tex_alpha
                                                                           : pipeline_tex_alpha_no_depth_write)
-                                                           : (writesDepth ? pipeline : pipeline_no_depth_write),
+                                                           : (writesDepth ? rigidOpaquePipeline
+                                                                          : rigidOpaquePipeline_no_depth_write),
                                                        texture)
                                          : uploadBatch(colourVertices,
                                                        usesAlpha
                                                            ? (writesDepth ? colourPipeline_alpha
                                                                           : colourPipeline_alpha_no_depth_write)
-                                                           : (writesDepth ? colourPipeline
-                                                                          : colourPipeline_no_depth_write),
+                                                           : (writesDepth ? rigidOpaqueColourPipeline
+                                                                          : rigidOpaqueColourPipeline_no_depth_write),
                                                        nullptr));
         if (!uploaded) {
             break;

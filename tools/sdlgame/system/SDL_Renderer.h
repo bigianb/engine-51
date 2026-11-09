@@ -96,10 +96,14 @@ private:
     SDL_GPUDevice*           device;
     SDL_GPUGraphicsPipeline* pipeline;
     SDL_GPUGraphicsPipeline* pipeline_no_depth_write;
+    SDL_GPUGraphicsPipeline* rigidOpaquePipeline;
+    SDL_GPUGraphicsPipeline* rigidOpaquePipeline_no_depth_write;
     SDL_GPUGraphicsPipeline* pipeline_tex_alpha;
     SDL_GPUGraphicsPipeline* pipeline_tex_alpha_no_depth_write;
     SDL_GPUGraphicsPipeline* colourPipeline;
     SDL_GPUGraphicsPipeline* colourPipeline_no_depth_write;
+    SDL_GPUGraphicsPipeline* rigidOpaqueColourPipeline;
+    SDL_GPUGraphicsPipeline* rigidOpaqueColourPipeline_no_depth_write;
     SDL_GPUGraphicsPipeline* colourPipeline_alpha;
     SDL_GPUGraphicsPipeline* colourPipeline_alpha_no_depth_write;
     SDL_GPUGraphicsPipeline* wireframePipeline;
