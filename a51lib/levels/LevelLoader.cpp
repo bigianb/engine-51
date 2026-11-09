@@ -343,12 +343,10 @@ void LevelLoader::loadInfo( const char* levelInfoData )
         if ( strcasecmp( InfoTextIn.GetHeaderName(), "Info" ) == 0 )
         {
             BBox WorldBBox;
-            /*
             WorldBBox.Clear();
             InfoTextIn.ReadFields();
             InfoTextIn.GetBBox( "WorldBBox", WorldBBox );
-            g_ObjMgr.SetSafeBBox( WorldBBox );
-            */
+            objectManager->SetSafeBBox( WorldBBox );
         }
 
         if ( strcasecmp( InfoTextIn.GetHeaderName(), "PlayerInfo" ) == 0 )

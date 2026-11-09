@@ -95,11 +95,19 @@ private:
     SDL_Window*              window;
     SDL_GPUDevice*           device;
     SDL_GPUGraphicsPipeline* pipeline;
+    SDL_GPUGraphicsPipeline* pipeline_no_depth_write;
     SDL_GPUGraphicsPipeline* pipeline_tex_alpha;
+    SDL_GPUGraphicsPipeline* pipeline_tex_alpha_no_depth_write;
     SDL_GPUGraphicsPipeline* colourPipeline;
+    SDL_GPUGraphicsPipeline* colourPipeline_no_depth_write;
     SDL_GPUGraphicsPipeline* colourPipeline_alpha;
+    SDL_GPUGraphicsPipeline* colourPipeline_alpha_no_depth_write;
     SDL_GPUGraphicsPipeline* wireframePipeline;
+    SDL_GPUGraphicsPipeline* wireframePipeline_no_depth_write;
     SDL_GPUSampler*          pointSampler;
+    SDL_GPUTexture*          depthTexture = nullptr;
+    Uint32                   depthTextureWidth = 0;
+    Uint32                   depthTextureHeight = 0;
 
     std::map<Bitmap*, SDL_GPUTexture*> gpuTextures;
     Bitmap*                            currentTex = nullptr;

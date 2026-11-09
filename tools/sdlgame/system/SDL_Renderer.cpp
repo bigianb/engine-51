@@ -242,7 +242,7 @@ bool SDLRenderer::init()
     };
 
     SDL_GPUDepthStencilState depthStencilState{
-        .compare_op = SDL_GPU_COMPAREOP_INVALID,
+        .compare_op = SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
         .back_stencil_state = {
             .fail_op = SDL_GPU_STENCILOP_INVALID,
             .pass_op = SDL_GPU_STENCILOP_INVALID,
@@ -257,118 +257,73 @@ bool SDLRenderer::init()
         },
         .compare_mask = 0,
         .write_mask = 0,
-        .enable_depth_test = false,
-        .enable_depth_write = false,
+        .enable_depth_test = true,
+        .enable_depth_write = true,
         .enable_stencil_test = false,
     };
 
-    {
-        SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
-            .vertex_shader = vertexShader,
-            .fragment_shader = fragmentShader,
-            .vertex_input_state = vertexInputState,
-            .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+    constexpr SDL_GPUTextureFormat depthFormat = SDL_GPU_TEXTUREFORMAT_D16_UNORM;
+    const auto createPipeline = [this, &rasteriserState, &multisampleState, &depthStencilState, depthFormat](
+                                    SDL_GPUShader* vertex,
+                                    SDL_GPUShader* fragment,
+                                    const SDL_GPUVertexInputState& vertexInput,
+                                    SDL_GPUPrimitiveType primitiveType,
+                                    SDL_GPUColorTargetDescription* colorTarget,
+                                    bool enableDepthWrite) {
+        SDL_GPUDepthStencilState pipelineDepthState = depthStencilState;
+        pipelineDepthState.enable_depth_write = enableDepthWrite;
+        SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo{
+            .vertex_shader = vertex,
+            .fragment_shader = fragment,
+            .vertex_input_state = vertexInput,
+            .primitive_type = primitiveType,
             .rasterizer_state = rasteriserState,
             .multisample_state = multisampleState,
-            .depth_stencil_state = depthStencilState,
+            .depth_stencil_state = pipelineDepthState,
             .target_info = {
-                .color_target_descriptions = ctd_add,
+                .color_target_descriptions = colorTarget,
                 .num_color_targets = 1,
+                .depth_stencil_format = depthFormat,
+                .has_depth_stencil_target = true,
             },
             .props = 0,
         };
+        return SDL_CreateGPUGraphicsPipeline(device, &pipelineCreateInfo);
+    };
 
-        pipeline = SDL_CreateGPUGraphicsPipeline(device, &pipelineCreateInfo);
-        if (pipeline == nullptr) {
-            SDL_Log("Failed to create pipeline!");
-            return false;
-        }
-    }
-    {
-        SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
-            .vertex_shader = vertexShader,
-            .fragment_shader = fragmentShader,
-            .vertex_input_state = vertexInputState,
-            .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
-            .rasterizer_state = rasteriserState,
-            .multisample_state = multisampleState,
-            .depth_stencil_state = depthStencilState,
-            .target_info = {
-                .color_target_descriptions = ctd_alpha,
-                .num_color_targets = 1,
-            },
-            .props = 0,
-        };
-
-        pipeline_tex_alpha = SDL_CreateGPUGraphicsPipeline(device, &pipelineCreateInfo);
-        if (pipeline_tex_alpha == nullptr) {
-            SDL_Log("Failed to create pipeline_tex_alpha!");
-            return false;
-        }
-    }
-    {
-        SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
-            .vertex_shader = positionColorVertexShader,
-            .fragment_shader = solidColorFragmentShader,
-            .vertex_input_state = positionColourVertexInputState,
-            .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
-            .rasterizer_state = rasteriserState,
-            .depth_stencil_state = depthStencilState,
-            .target_info = {
-                .color_target_descriptions = ctd_add,
-                .num_color_targets = 1,
-            },
-            .props = 0,
-        };
-
-        colourPipeline = SDL_CreateGPUGraphicsPipeline(device, &pipelineCreateInfo);
-        if (colourPipeline == nullptr) {
-            SDL_Log("Failed to create colourPipeline!");
-            return false;
-        }
-    }
-    {
-        SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
-            .vertex_shader = positionColorVertexShader,
-            .fragment_shader = solidColorFragmentShader,
-            .vertex_input_state = positionColourVertexInputState,
-            .primitive_type = SDL_GPU_PRIMITIVETYPE_LINELIST,
-            .rasterizer_state = rasteriserState,
-            .depth_stencil_state = depthStencilState,
-            .target_info = {
-                .color_target_descriptions = ctd_add,
-                .num_color_targets = 1,
-            },
-            .props = 0,
-        };
-
-        wireframePipeline = SDL_CreateGPUGraphicsPipeline(device, &pipelineCreateInfo);
-        if (wireframePipeline == nullptr) {
-            SDL_Log("Failed to create wireframe pipeline!");
-            return false;
-        }
-    }
-    {
-        SDL_GPUGraphicsPipelineCreateInfo pipelineCreateInfo = {
-            .vertex_shader = positionColorVertexShader,
-            .fragment_shader = solidColorFragmentShader,
-            .vertex_input_state = positionColourVertexInputState,
-            .primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
-            .rasterizer_state = rasteriserState,
-            .depth_stencil_state = depthStencilState,
-            .target_info = {
-                .color_target_descriptions = ctd_alpha,
-                .num_color_targets = 1,
-
-            },
-            .props = 0,
-        };
-
-        colourPipeline_alpha = SDL_CreateGPUGraphicsPipeline(device, &pipelineCreateInfo);
-        if (colourPipeline_alpha == nullptr) {
-            SDL_Log("Failed to create colourPipeline_alpha!");
-            return false;
-        }
+    pipeline = createPipeline(vertexShader, fragmentShader, vertexInputState,
+                              SDL_GPU_PRIMITIVETYPE_TRIANGLELIST, ctd_add, true);
+    pipeline_no_depth_write = createPipeline(vertexShader, fragmentShader, vertexInputState,
+                                             SDL_GPU_PRIMITIVETYPE_TRIANGLELIST, ctd_add, false);
+    pipeline_tex_alpha = createPipeline(vertexShader, fragmentShader, vertexInputState,
+                                        SDL_GPU_PRIMITIVETYPE_TRIANGLELIST, ctd_alpha, true);
+    pipeline_tex_alpha_no_depth_write = createPipeline(vertexShader, fragmentShader, vertexInputState,
+                                                       SDL_GPU_PRIMITIVETYPE_TRIANGLELIST, ctd_alpha, false);
+    colourPipeline = createPipeline(positionColorVertexShader, solidColorFragmentShader,
+                                    positionColourVertexInputState, SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+                                    ctd_add, true);
+    colourPipeline_no_depth_write = createPipeline(positionColorVertexShader, solidColorFragmentShader,
+                                                   positionColourVertexInputState, SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+                                                   ctd_add, false);
+    colourPipeline_alpha = createPipeline(positionColorVertexShader, solidColorFragmentShader,
+                                          positionColourVertexInputState, SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+                                          ctd_alpha, true);
+    colourPipeline_alpha_no_depth_write = createPipeline(positionColorVertexShader, solidColorFragmentShader,
+                                                         positionColourVertexInputState, SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+                                                         ctd_alpha, false);
+    wireframePipeline = createPipeline(positionColorVertexShader, solidColorFragmentShader,
+                                       positionColourVertexInputState, SDL_GPU_PRIMITIVETYPE_LINELIST,
+                                       ctd_add, true);
+    wireframePipeline_no_depth_write = createPipeline(positionColorVertexShader, solidColorFragmentShader,
+                                                      positionColourVertexInputState, SDL_GPU_PRIMITIVETYPE_LINELIST,
+                                                      ctd_add, false);
+    if (pipeline == nullptr || pipeline_no_depth_write == nullptr || pipeline_tex_alpha == nullptr ||
+        pipeline_tex_alpha_no_depth_write == nullptr || colourPipeline == nullptr ||
+        colourPipeline_no_depth_write == nullptr || colourPipeline_alpha == nullptr ||
+        colourPipeline_alpha_no_depth_write == nullptr || wireframePipeline == nullptr ||
+        wireframePipeline_no_depth_write == nullptr) {
+        SDL_Log("Failed to create a depth-enabled graphics pipeline: %s", SDL_GetError());
+        return false;
     }
     SDL_ReleaseGPUShader(device, vertexShader);
     SDL_ReleaseGPUShader(device, fragmentShader);
@@ -399,17 +354,35 @@ void SDLRenderer::quit()
     SDL_ReleaseGPUGraphicsPipeline(device, pipeline);
     pipeline = nullptr;
 
+    SDL_ReleaseGPUGraphicsPipeline(device, pipeline_no_depth_write);
+    pipeline_no_depth_write = nullptr;
+    SDL_ReleaseGPUGraphicsPipeline(device, pipeline_tex_alpha);
+    pipeline_tex_alpha = nullptr;
+    SDL_ReleaseGPUGraphicsPipeline(device, pipeline_tex_alpha_no_depth_write);
+    pipeline_tex_alpha_no_depth_write = nullptr;
     SDL_ReleaseGPUGraphicsPipeline(device, colourPipeline);
     colourPipeline = nullptr;
-
+    SDL_ReleaseGPUGraphicsPipeline(device, colourPipeline_no_depth_write);
+    colourPipeline_no_depth_write = nullptr;
+    SDL_ReleaseGPUGraphicsPipeline(device, colourPipeline_alpha);
+    colourPipeline_alpha = nullptr;
+    SDL_ReleaseGPUGraphicsPipeline(device, colourPipeline_alpha_no_depth_write);
+    colourPipeline_alpha_no_depth_write = nullptr;
     SDL_ReleaseGPUGraphicsPipeline(device, wireframePipeline);
     wireframePipeline = nullptr;
+    SDL_ReleaseGPUGraphicsPipeline(device, wireframePipeline_no_depth_write);
+    wireframePipeline_no_depth_write = nullptr;
 
     for (const auto& [key, value] : gpuTextures) {
         SDL_ReleaseGPUTexture(device, value);
     }
 
     gpuTextures.clear();
+
+    if (depthTexture != nullptr) {
+        SDL_ReleaseGPUTexture(device, depthTexture);
+        depthTexture = nullptr;
+    }
 
     SDL_ReleaseGPUSampler(device, pointSampler);
 
@@ -427,12 +400,42 @@ void SDLRenderer::draw()
     }
 
     SDL_GPUTexture* swapchainTexture;
-    if (!SDL_WaitAndAcquireGPUSwapchainTexture(cmdbuf, window, &swapchainTexture, nullptr, nullptr)) {
+    Uint32 swapchainWidth;
+    Uint32 swapchainHeight;
+    if (!SDL_WaitAndAcquireGPUSwapchainTexture(
+            cmdbuf, window, &swapchainTexture, &swapchainWidth, &swapchainHeight)) {
         SDL_Log("WaitAndAcquireGPUSwapchainTexture failed: %s", SDL_GetError());
+        SDL_CancelGPUCommandBuffer(cmdbuf);
         return;
     }
 
     if (swapchainTexture != nullptr) {
+        if (depthTexture == nullptr || depthTextureWidth != swapchainWidth ||
+            depthTextureHeight != swapchainHeight) {
+            SDL_GPUTextureCreateInfo depthTextureInfo{
+                .type = SDL_GPU_TEXTURETYPE_2D,
+                .format = SDL_GPU_TEXTUREFORMAT_D16_UNORM,
+                .usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET,
+                .width = swapchainWidth,
+                .height = swapchainHeight,
+                .layer_count_or_depth = 1,
+                .num_levels = 1,
+                .sample_count = SDL_GPU_SAMPLECOUNT_1,
+            };
+            SDL_GPUTexture* newDepthTexture = SDL_CreateGPUTexture(device, &depthTextureInfo);
+            if (newDepthTexture == nullptr) {
+                SDL_Log("Failed to create depth texture: %s", SDL_GetError());
+                SDL_CancelGPUCommandBuffer(cmdbuf);
+                return;
+            }
+            if (depthTexture != nullptr) {
+                SDL_ReleaseGPUTexture(device, depthTexture);
+            }
+            depthTexture = newDepthTexture;
+            depthTextureWidth = swapchainWidth;
+            depthTextureHeight = swapchainHeight;
+        }
+
         SDL_FColor             black{0.0f, 0.0f, 0.0f, 1.0f};
         SDL_GPUColorTargetInfo colorTargetInfo = {0};
         colorTargetInfo.texture = swapchainTexture;
@@ -440,7 +443,16 @@ void SDLRenderer::draw()
         colorTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
         colorTargetInfo.store_op = SDL_GPU_STOREOP_STORE;
 
-        SDL_GPURenderPass* renderPass = SDL_BeginGPURenderPass(cmdbuf, &colorTargetInfo, 1, NULL);
+        SDL_GPUDepthStencilTargetInfo depthTargetInfo{
+            .texture = depthTexture,
+            .clear_depth = 1.0f,
+            .load_op = SDL_GPU_LOADOP_CLEAR,
+            .store_op = SDL_GPU_STOREOP_DONT_CARE,
+            .stencil_load_op = SDL_GPU_LOADOP_DONT_CARE,
+            .stencil_store_op = SDL_GPU_STOREOP_DONT_CARE,
+        };
+        SDL_GPURenderPass* renderPass =
+            SDL_BeginGPURenderPass(cmdbuf, &colorTargetInfo, 1, &depthTargetInfo);
 
         for (auto& batch : batches) {
             SDL_BindGPUGraphicsPipeline(renderPass, batch.pipeline);
@@ -721,9 +733,11 @@ void SDLRenderer::setTexture(Bitmap* tex)
     SDL_GPUTexture* Texture = SDL_CreateGPUTexture(device, &ci);
 
     // Set up texture data
+    const Uint32 sourcePitch = static_cast<Uint32>(tex->physicalWidth);
+    const Uint32 sourceSize = sourcePitch * static_cast<Uint32>(tex->height) * 4;
     SDL_GPUTransferBufferCreateInfo tbci{
         .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-        .size = (Uint32)(tex->width * tex->height * 4),
+        .size = sourceSize,
     };
     SDL_GPUTransferBuffer* textureTransferBuffer = SDL_CreateGPUTransferBuffer(
         device,
@@ -733,7 +747,7 @@ void SDLRenderer::setTexture(Bitmap* tex)
         device,
         textureTransferBuffer,
         false);
-    SDL_memcpy(textureTransferPtr, (const uint8_t*)tex->getPixelData(0), tex->width * tex->height * 4);
+    SDL_memcpy(textureTransferPtr, tex->getPixelData(0), sourceSize);
     SDL_UnmapGPUTransferBuffer(device, textureTransferBuffer);
 
     // Upload the transfer data to the GPU resources
@@ -742,7 +756,9 @@ void SDLRenderer::setTexture(Bitmap* tex)
 
     SDL_GPUTextureTransferInfo tti{
         .transfer_buffer = textureTransferBuffer,
-        .offset = 0, /* Zeros out the rest */
+        .offset = 0,
+        .pixels_per_row = sourcePitch,
+        .rows_per_layer = static_cast<Uint32>(tex->height),
     };
     SDL_GPUTextureRegion tr{
         .texture = Texture,
@@ -787,14 +803,28 @@ void SDLRenderer::RenderRigidInstance(render_instance& Inst)
         return;
     }
 
+    const material& activeMaterial = render::GetMaterial(Inst.SortKey.MatIndex);
+    const bool alphaMaterial = activeMaterial.m_Type == Material_Alpha ||
+                               activeMaterial.m_Type == Material_Alpha_PerPolyEnv ||
+                               activeMaterial.m_Type == Material_Alpha_PerPixelIllum ||
+                               activeMaterial.m_Type == Material_Alpha_PerPolyIllum;
+    const bool writesDepth = !alphaMaterial ||
+                             (activeMaterial.m_Flags & Geom::Material::FLAG_FORCE_ZFILL) != 0;
+
+    Bitmap* diffuseBitmap = nullptr;
+    texture* diffuseTexture = activeMaterial.m_DiffuseMap.getPointer();
+    if (diffuseTexture != nullptr) {
+        diffuseBitmap = &diffuseTexture->m_Bitmap;
+        setTexture(diffuseBitmap);
+    }
+
     SDL_GPUTexture* texture = nullptr;
-    if (currentTex != nullptr) {
-        const auto textureIt = gpuTextures.find(currentTex);
+    if (diffuseBitmap != nullptr) {
+        const auto textureIt = gpuTextures.find(diffuseBitmap);
         if (textureIt != gpuTextures.end()) {
             texture = textureIt->second;
         }
     }
-
     const auto* pcDlist = currentRigidGeom->platform == PLATFORM_PC
                               ? &currentRigidGeom->system.pPC[
                                     currentRigidGeom->subMeshes[currentRigidSubmesh].iDList]
@@ -820,10 +850,15 @@ void SDLRenderer::RenderRigidInstance(render_instance& Inst)
             position = *Inst.Data.Rigid.pL2W * position;
         }
         position = viewToClip * (worldToView * position);
-
         Colour vertexColour = COLOR_WHITE;
         if (pcDlist != nullptr) {
             vertexColour = pcDlist->verts[pcDlist->indices[i]].colour;
+        }
+        if (texture != nullptr &&
+            vertexColour.r == 0 && vertexColour.g == 0 && vertexColour.b == 0) {
+            vertexColour.r = 255;
+            vertexColour.g = 255;
+            vertexColour.b = 255;
         }
         usesAlpha |= vertexColour.a < 255;
         const float red = vertexColour.r / 255.0f;
@@ -993,10 +1028,23 @@ void SDLRenderer::RenderRigidInstance(render_instance& Inst)
         };
 
         const bool uploaded = wireframe
-                                  ? uploadBatch(wireVertices, wireframePipeline, nullptr)
+                                  ? uploadBatch(wireVertices,
+                                                writesDepth ? wireframePipeline : wireframePipeline_no_depth_write,
+                                                nullptr)
                                   : (texture != nullptr
-                                         ? uploadBatch(texturedVertices, usesAlpha ? pipeline_tex_alpha : pipeline, texture)
-                                         : uploadBatch(colourVertices, usesAlpha ? colourPipeline_alpha : colourPipeline, nullptr));
+                                         ? uploadBatch(texturedVertices,
+                                                       usesAlpha
+                                                           ? (writesDepth ? pipeline_tex_alpha
+                                                                          : pipeline_tex_alpha_no_depth_write)
+                                                           : (writesDepth ? pipeline : pipeline_no_depth_write),
+                                                       texture)
+                                         : uploadBatch(colourVertices,
+                                                       usesAlpha
+                                                           ? (writesDepth ? colourPipeline_alpha
+                                                                          : colourPipeline_alpha_no_depth_write)
+                                                           : (writesDepth ? colourPipeline
+                                                                          : colourPipeline_no_depth_write),
+                                                       nullptr));
         if (!uploaded) {
             break;
         }

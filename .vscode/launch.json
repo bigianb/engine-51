@@ -17,6 +17,18 @@
             "MIMode": "lldb"
         },
         {
+            "name": "Run wf SDL_game",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/tools/sdlgame/SDL_game",
+            "args": ["--wireframe"],
+            "stopAtEntry": false,
+            "cwd": "${env:HOME}/dev/a51/game",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb"
+        },
+        {
             "name": "imac",
             "type": "cppdbg",
             "request": "launch",

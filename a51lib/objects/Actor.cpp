@@ -441,7 +441,7 @@ bool actor::OnProperty(prop_query& rPropQuery)
     if (Object::OnProperty(rPropQuery)) {
         // Initialize zone tracker?
         if (rPropQuery.IsVar("Base\\Position")) {
-            //       g_ZoneMgr.InitZoneTracking(*this, m_ZoneTracker);
+            g_ZoneMgr.InitZoneTracking(*this, m_ZoneTracker);
         }
 
         // Initialize locomotion?
@@ -2009,7 +2009,7 @@ void actor::Teleport(const Vector3& Position,
 void actor::InitZoneTracking()
 {
     // Update the zone tracker
-    //g_ZoneMgr.InitZoneTracking(*this, m_ZoneTracker);
+    g_ZoneMgr.InitZoneTracking(*this, m_ZoneTracker);
 }
 
 //==============================================================================
@@ -2017,7 +2017,7 @@ void actor::InitZoneTracking()
 void actor::UpdateZoneTrack()
 {
     // Update tracker
-    //g_ZoneMgr.UpdateZoneTracking(*this, m_ZoneTracker, GetPosition());
+    g_ZoneMgr.UpdateZoneTracking(*this, m_ZoneTracker, GetPosition());
 }
 
 //==============================================================================

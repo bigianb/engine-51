@@ -46,7 +46,11 @@ void PlaysurfaceMgr::readZoneInfo(DataReader& reader, ZoneInfo& zi)
 void PlaysurfaceMgr::ResolveSurfaceData(ZoneInfo& Zone)
 {
     assert( !Zone.resolved );
-    assert( resourceManager != nullptr );
+    if (!resourceManager){
+        // DFSViewer sets this to null
+        return;
+    }
+
     Zone.resolved = true;
 
 

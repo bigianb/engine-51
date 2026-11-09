@@ -319,6 +319,7 @@ namespace render
     // material access
     material& GetMaterial(hgeom_inst hInst,
                           int        iSubMesh);
+    material& GetMaterial(int MaterialIndex);
     texture*  GetVTexture(const Geom* pGeom,
                           int         iMaterial,
                           int         VTextureMask);

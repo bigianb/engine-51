@@ -4,3 +4,4 @@ build*
 *.txt.user
 *.qsb
 /vcpkg_installed
+extracted

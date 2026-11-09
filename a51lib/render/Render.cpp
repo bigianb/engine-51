@@ -2106,6 +2106,13 @@ material& render::GetMaterial(hgeom_inst hInst, int iSubMesh)
 
 //=============================================================================
 
+material& render::GetMaterial(int MaterialIndex)
+{
+    return (*s_lRegisteredMaterials)[MaterialIndex];
+}
+
+//=============================================================================
+
 texture* render::GetVTexture(const Geom* pGeom,
                              int         iMaterial,
                              int         VTextureMask)
@@ -2558,4 +2565,3 @@ void render::AddSkinReceiver(render::hgeom_inst hInst,
                              uint64_t           ProjMask)
 {
 }
-
