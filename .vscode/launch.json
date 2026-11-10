@@ -33,7 +33,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/tools/sdlgame/SDL_game",
-            "args": ["--wireframe"],
+            "args": [],
             "stopAtEntry": false,
             "cwd": "${env:HOME}/a51/pc/resources/app/game",
             "environment": [],
