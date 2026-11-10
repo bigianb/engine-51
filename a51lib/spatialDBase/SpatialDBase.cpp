@@ -129,7 +129,7 @@ void spatial_dbase::FreeCell(uint16_t ID)
     }
 
     m_Hash[H].nCells--;
-    assert(m_Hash[H].nCells >= 0);
+    // IJB assert(m_Hash[H].nCells >= 0);
 
     //
     // Add node to free list

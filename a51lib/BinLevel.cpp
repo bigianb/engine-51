@@ -54,6 +54,8 @@ bool BinLevel::loadData(const uint8_t* fileData, int len, const uint8_t* dictDat
     return true;
 }
 
+std::string getPropStringVal(PropertyType type, Bitstream& bs);
+
 void BinLevel::loadLevel(ObjectManager* objectManager, const uint8_t* binLevelData, int binLevelDataLen, const uint8_t* levelDictData, int levelDictDataLen)
 {
     loadData(binLevelData, binLevelDataLen, levelDictData, levelDictDataLen);
@@ -94,11 +96,22 @@ void BinLevel::loadLevel(ObjectManager* objectManager, const uint8_t* binLevelDa
         }
         Object* pObject = objectManager->GetObjectByGuid(ObjGuid);
         if (pObject) {
+            std::cout << "Loading properties from cursor " << bs.getCursor() << std::endl;
+            std::cout << "iProperty: " << object.iProperty << " nProperty: " << object.nProperty << std::endl;
             pObject->LoadStart();
-
             //set all the objects properties
             for (int k = object.iProperty; k < (object.iProperty + object.nProperty); k++) {
-                AddPropertyToObject(bs, properties[k], pObject);
+                auto& property = properties[k];
+/*
+                std::cout << "          '" << dictionary[property.nameIndex] << "' = ";
+                int saveCursor = bs.getCursor();
+                std::cout << getPropStringVal(property.type, bs) << std::endl;
+                int endCursor = bs.getCursor();
+                bs.setCursor(saveCursor);
+*/                
+                AddPropertyToObject(bs, property, pObject);
+//                assert(bs.getCursor() == endCursor);
+
             }
 
             pObject->LoadEnd();
@@ -119,7 +132,14 @@ void BinLevel::loadLevel(ObjectManager* objectManager, const uint8_t* binLevelDa
             }*/
 
         } else {
-            //assert(false); // Error loading couldn't create an object
+            std::cout << "No Object found for guid " << ObjGuid << std::endl;
+            std::cout << "Skipping properties from cursor " << bs.getCursor() << std::endl;
+            // Need to skip the properties for this object since we couldn't create it
+            for (int ip = object.iProperty; ip < (object.iProperty + object.nProperty); ++ip) {
+                auto& property = properties[ip];
+                // wasteful but fine because it should not be called often
+                getPropStringVal(property.type, bs);
+            }
         }
     }
     ClearData(true);
@@ -145,31 +165,31 @@ void BinLevel::AddPropertyToObject(Bitstream& bs, PropertyEntry& pe, Object* pOb
     switch (pe.type) {
     case PROP_TYPE_EXTERNAL:
     {
-        bs.readString(cData);
+        bs.readString(cData, 255);
         pq.WQueryExternal(dictionary[pe.nameIndex].c_str(), cData);
         pObject->OnProperty(pq);
     } break;
     case PROP_TYPE_BUTTON:
     {
-        bs.readString(cData);
+        bs.readString(cData, 255);
         pq.WQueryButton(dictionary[pe.nameIndex].c_str(), cData);
         pObject->OnProperty(pq);
     } break;
     case PROP_TYPE_FILENAME:
     {
-        bs.readString(cData);
+        bs.readString(cData, 255);
         pq.WQueryFileName(dictionary[pe.nameIndex].c_str(), cData);
         pObject->OnProperty(pq);
     } break;
     case PROP_TYPE_ENUM:
     {
-        bs.readString(cData);
+        bs.readString(cData, 255);
         pq.WQueryEnum(dictionary[pe.nameIndex].c_str(), cData);
         pObject->OnProperty(pq);
     } break;
     case PROP_TYPE_STRING:
     {
-        bs.readString(cData);
+        bs.readString(cData, 255);
         pq.WQueryString(dictionary[pe.nameIndex].c_str(), cData);
         pObject->OnProperty(pq);
     } break;
@@ -189,8 +209,7 @@ void BinLevel::AddPropertyToObject(Bitstream& bs, PropertyEntry& pe, Object* pOb
     } break;
     case PROP_TYPE_BOOL:
     {
-        bool bData;
-        bData = bs.readFlag();
+        bool bData = bs.readFlag();
         pq.WQueryBool(dictionary[pe.nameIndex].c_str(), bData);
         pObject->OnProperty(pq);
     } break;
@@ -244,7 +263,6 @@ void BinLevel::AddPropertyToObject(Bitstream& bs, PropertyEntry& pe, Object* pOb
     }
 }
 
-std::string getPropStringVal(PropertyType type, Bitstream& bs);
 
 void BinLevel::describe(std::ostringstream& ss)
 {
@@ -261,6 +279,8 @@ void BinLevel::describe(std::ostringstream& ss)
     ss << "Objects: " << std::endl;
     for (auto& object : objects) {
         ss << "    Type: " << dictionary[object.typeIndex] << std::endl;
+        ss << "    Bitstream Position: " << bs.getCursor() << std::endl;
+        ss << "    iProperty: " << object.iProperty << " nProperty: " << object.nProperty << std::endl;
         ss << "    Properties:" << std::endl;
         for (int ip = object.iProperty; ip < object.iProperty + object.nProperty; ++ip) {
             auto& property = properties[ip];

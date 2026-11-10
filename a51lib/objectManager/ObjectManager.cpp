@@ -703,7 +703,11 @@ void ObjectManager::AddToSpatialDBase(slot_id SlotID)
             for (int Z = MinZ; Z <= MaxZ; Z++) {
                 // Get index to link
                 link_id LI = ((link_id)SlotID) * 8 + i;
-                assert(i < 8);
+                if (i >= 8) {
+                    std::cout << "ERROR: ObjectManager::AddToSpatialDBase: Too many cells for object " << pObject->GetGuid() << std::endl;
+                    assert(false);
+                    return;
+                }
 
                 // Get access to cell
                 pLink[LI].SpacialCellID = spatialDatabase->GetCellIndex(X, Y, Z, Level, true);

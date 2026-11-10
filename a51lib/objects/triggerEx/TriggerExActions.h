@@ -11,6 +11,10 @@ class object_affecter;
 
 struct action_ex_create_function;
 
+#ifndef BIT
+#define BIT(x) (1 << (x))
+#endif
+
 class actions_ex_base : public prop_interface
 {  
 public:

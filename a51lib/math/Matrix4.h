@@ -56,7 +56,7 @@ public:
         };
     };
 
-    Matrix4() {}
+    Matrix4() {Identity();}
     Matrix4(const Radian3& r) { Setup(r); }
     Matrix4(const Quaternion& q) { Setup(q); }
     Matrix4(const Vector3&    Scale,

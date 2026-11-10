@@ -150,7 +150,42 @@ struct BBox
     }
     bool Intersect(const plane& Plane) const;
     bool Intersect(float& t, const Vector3& P0, const Vector3& P1) const;
-    bool Intersect(const Vector3& Center, float Radius) const;
+
+    bool Intersect(const Vector3& Center, float Radius) const
+    {
+        float d;
+        float dmin = 0.0f;
+
+        // X Axis
+        if (Center.GetX() < min.GetX()) {
+            d = Center.GetX() - min.GetX();
+            dmin += d * d;
+        } else if (Center.GetX() > max.GetX()) {
+            d = Center.GetX() - max.GetX();
+            dmin += d * d;
+        }
+
+        // Y Axis
+        if (Center.GetY() < min.GetY()) {
+            d = Center.GetY() - min.GetY();
+            dmin += d * d;
+        } else if (Center.GetY() > max.GetY()) {
+            d = Center.GetY() - max.GetY();
+            dmin += d * d;
+        }
+
+        // Z Axis
+        if (Center.GetZ() < min.GetZ()) {
+            d = Center.GetZ() - min.GetZ();
+            dmin += d * d;
+        } else if (Center.GetZ() > max.GetZ()) {
+            d = Center.GetZ() - max.GetZ();
+            dmin += d * d;
+        }
+
+        return (dmin <= Radius * Radius);
+    }
+
     bool Intersect(const Vector3* pVert, int nVerts) const;
 
     bool IntersectTriBBox(const Vector3& P0,

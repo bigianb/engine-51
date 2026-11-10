@@ -108,7 +108,7 @@ public:
 
     // String
     void writeString(const char* pBuf);
-    void readString(char* pBuf, int32_t MaxLength = 0) const;
+    void readString(char* pBuf, int32_t MaxLength) const;
 
     // Wide string
     //void writeWString(const wchar* pBuf);

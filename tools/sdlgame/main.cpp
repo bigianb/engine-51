@@ -25,6 +25,9 @@ struct Context
     float DeltaTime;
 };
 
+bool g_game_running = true;
+bool g_first_person = true;
+
 void RenderGame();
 
 int main(int argc, char** argv)

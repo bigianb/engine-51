@@ -83,6 +83,10 @@ set(OBJECTS_SOURCES
         objects/render/VirtualTextureMask.h
         objects/sound/EventSoundEmitter.cpp
         objects/sound/EventSoundEmitter.h
+        objects/triggerEx/TriggerExActions.cpp
+        objects/triggerEx/TriggerExActions.h
+        objects/triggerEx/TriggerExObject.cpp
+        objects/triggerEx/TriggerExObject.h
         objects/Actor.cpp
         objects/Actor.h
         objects/AnimSurface.h
@@ -221,6 +225,7 @@ target_sources(a51lib PRIVATE
         math/Radian3.h
         math/Random.cpp
         math/Random.h
+        math/Sphere.h
         math/Vector3.cpp
         math/Vector3.h
         painManager/Pain.cpp
