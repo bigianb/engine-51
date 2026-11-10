@@ -9,6 +9,7 @@
 #include "system/SDL_Renderer.h"
 #include "../../a51lib/view/View.h"
 #include "../../a51lib/objects/Player.h"
+#include "../../a51lib/physics/PhysicsMgr.h"
 
 view g_View;
 
@@ -86,26 +87,26 @@ int main(int argc, char** argv)
                 std::cout << "Playing game..." << std::endl;
             }
             logicFramesAfterLoad++;
-/*
-            render::Update(DeltaTime);
-            g_TracerMgr.OnUpdate(DeltaTime);
 
-            corpse::LimitCount();
+            // render::Update(DeltaTime);
+            // g_TracerMgr.OnUpdate(DeltaTime);
 
-            g_PhysicsMgr.Advance(DeltaTime);
-            {
-                STAT_LOGGER(temp, k_stats_OnAdvance);
-                g_ObjMgr.AdvanceAllLogic(DeltaTime);
-            }
-            g_LightMgr.OnUpdate(DeltaTime);
-            g_PostEffectMgr.OnUpdate(DeltaTime);
-            g_DecalMgr.OnUpdate(DeltaTime);
-            g_AlienGlobMgr.Advance(DeltaTime);
-            g_TriggerExMgr.OnUpdate(DeltaTime);
-            g_NetworkMgr.Update( DeltaTime );       // runs the character logic
-            g_GameTextMgr.Update(DeltaTime);
-            UpdateAudio(DeltaTime);
-*/
+            // corpse::LimitCount();
+
+            g_PhysicsMgr.Advance(context.DeltaTime, gameObject.objectManager);
+            // {
+            //     STAT_LOGGER(temp, k_stats_OnAdvance);
+            //     g_ObjMgr.AdvanceAllLogic(DeltaTime);
+            // }
+            // g_LightMgr.OnUpdate(DeltaTime);
+            // g_PostEffectMgr.OnUpdate(DeltaTime);
+            // g_DecalMgr.OnUpdate(DeltaTime);
+            // g_AlienGlobMgr.Advance(DeltaTime);
+            // g_TriggerExMgr.OnUpdate(DeltaTime);
+            // g_NetworkMgr.Update( DeltaTime );       // runs the character logic
+            // g_GameTextMgr.Update(DeltaTime);
+            // UpdateAudio(DeltaTime);
+
             if (logicFramesAfterLoad > 10) {
 
                 slot_id ID = gameObject.objectManager->GetFirst( Object::TYPE_PLAYER );

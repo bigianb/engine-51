@@ -14,6 +14,7 @@
 #include "../../a51lib/collisionMgr/CollisionMgr.h"
 #include "../../a51lib/collisionMgr/PolyCache.h"
 #include "../../a51lib/PlaysurfaceMgr.h"
+#include "../../a51lib/physics/PhysicsMgr.h"
 #include "system/SDL_Engine.h"
 #include "system/SDL_Renderer.h"
 
@@ -109,12 +110,12 @@ bool GameObject::init()
     levelLoader->loadDFS("PRELOAD");
     
 
-/*
-        g_TracerMgr.Init();
-        g_PhysicsMgr.Init();
 
-        LoadCamera();
-*/
+    //g_TracerMgr.Init();
+    g_PhysicsMgr.Init();
+
+    //LoadCamera();
+
     uiManager = new ui::Manager();
     uiManager->init(*renderer, resourceManager);
     uiManager->setRes();
