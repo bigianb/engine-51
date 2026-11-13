@@ -85,6 +85,8 @@ set(OBJECTS_SOURCES
         objects/sound/EventSoundEmitter.h
         objects/triggerEx/TriggerExActions.cpp
         objects/triggerEx/TriggerExActions.h
+        objects/triggerEx/TriggerExManager.cpp
+        objects/triggerEx/TriggerExManager.h
         objects/triggerEx/TriggerExObject.cpp
         objects/triggerEx/TriggerExObject.h
         objects/Actor.cpp

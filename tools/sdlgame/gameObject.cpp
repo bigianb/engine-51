@@ -6,6 +6,7 @@
 #include "../../a51lib/resourceManager/ResourceManager.h"
 #include "../../a51lib/objectManager/ObjectManager.h"
 #include "../../a51lib/objects/ObjectRegistrar.h"
+#include "../../a51lib/objects/triggerEx/TriggerExManager.h"
 #include "../../a51lib/resourceManager/ResourceLoaders.h"
 #include "../../a51lib/ui/UIManager.h"
 #include "../../a51lib/state/StateMachine.h"
@@ -58,6 +59,8 @@ bool GameObject::init()
     objectManager = new ObjectManager();
     polyCache = new poly_cache(objectManager);
 
+    triggerExManager = new TriggerExManager(objectManager);
+
     playsurfaceManager = new PlaysurfaceMgr(resourceManager);
 
     collisionManager = new collision_mgr();
@@ -68,7 +71,7 @@ bool GameObject::init()
     ObjectRegistrarInterface* objectRegistrar = new ObjectRegistrar();
     spatial_dbase* spatialDatabase = new spatial_dbase();
     spatialDatabase->Init(400.0f);
-    objectManager->Init(objectRegistrar, spatialDatabase, collisionManager, resourceManager, playsurfaceManager);
+    objectManager->Init(objectRegistrar, spatialDatabase, collisionManager, resourceManager, playsurfaceManager, triggerExManager);
     delete objectRegistrar;
 
     engine = new SDLEngine();

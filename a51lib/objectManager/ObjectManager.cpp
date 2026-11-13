@@ -82,12 +82,13 @@ ObjectManager::~ObjectManager()
 {
 }
 
-void ObjectManager::Init(ObjectRegistrarInterface* objectRegistrar, spatial_dbase* sdb, collision_mgr* cm, ResourceManager* rm, PlaysurfaceMgr* psm)
+void ObjectManager::Init(ObjectRegistrarInterface* objectRegistrar, spatial_dbase* sdb, collision_mgr* cm, ResourceManager* rm, PlaysurfaceMgr* psm, TriggerExManager* tem)
 {
     spatialDatabase = sdb;
     collisionMgr = cm;
     resourceManager = rm;
     playsurfaceManager = psm;
+    triggerExManager = tem;
     objectDescriptors.clear();
     objectRegistrar->RegisterObjects(objectDescriptors);
 
@@ -254,6 +255,7 @@ slot_id ObjectManager::AllocSlot()
     return Slot;
 }
 
+// All the object creation is done through this function.  It will create the object and add it to the hash table.
 Object* ObjectManager::CreateObject(const object_desc& Desc, slot_id Slot)
 {
     Object* pObject;
@@ -293,7 +295,6 @@ Object* ObjectManager::CreateObject(const object_desc& Desc, slot_id Slot)
         SaveDesc.AddObjectCount(1);
         assert(pObject);
 
-        // Inser the object in its slot
         m_ObjectSlot[Slot].pObject = pObject;
     }
 
@@ -321,6 +322,7 @@ Object* ObjectManager::CreateObject(const object_desc& Desc, slot_id Slot)
     return pObject;
 }
 
+// This is what the bin level loader calls.
 void ObjectManager::CreateObject(const object_desc& desc, guid Guid)
 {
     assert(Guid != 0);
@@ -1314,11 +1316,26 @@ void ObjectManager::AdvanceAllLogic(float DeltaTime)
     EmptyDeleteObjectList();
 }
 
-void ObjectManager::EmptyDeleteObjectList( void )
+void ObjectManager::EmptyDeleteObjectList(void)
 {
-    for(int i=0; i<m_DeleteObject.size(); i++ ) {
-        UnlinkAndFreeObject( m_DeleteObject[i] );
+    for (int i = 0; i < m_DeleteObject.size(); i++) {
+        UnlinkAndFreeObject(m_DeleteObject[i]);
     }
 
     m_DeleteObject.clear();
+}
+
+bool ObjectManager::IsGuidOfType(Object** ppObject, const guid& rGuid, const rtti& rRunTimeInfo)
+{
+    if (ppObject == nullptr || rGuid == NULL_GUID) {
+        return false;
+    }
+
+    *ppObject = GetObjectByGuid(rGuid);
+
+    if (*ppObject == nullptr || !(*ppObject)->IsKindOf(rRunTimeInfo)) {
+        return false;
+    }
+
+    return true;
 }

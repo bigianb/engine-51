@@ -2,6 +2,7 @@
 
 #include "../../objectManager/ObjectManager.h"
 #include "TriggerExActions.h"
+#include "TriggerExManager.h"
 
 //=========================================================================
 // TRIGGER_OBJECT
@@ -350,7 +351,7 @@ private:
     //////////////////////////////////////////////////////////////////////////////////////////////
     // FRIEND CLASSES
 
-    // IJB friend trigger_ex_mngr;
+    friend TriggerExManager;
     // IJB friend focus_object;
     // IJB friend check_point_mgr;
     friend void RunGame(void);

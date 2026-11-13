@@ -226,7 +226,7 @@ void trigger_ex_object::OnInit()
     SetAttrBits(GetAttrBits() & ~Object::ATTR_NEEDS_LOGIC_TIME);
 
     // Register myself too the global Trigger_Manager Object...
-    // IJB g_TriggerExMgr.RegisterTrigger(*this);
+    getObjectManager()->GetTriggerExManager()->RegisterTrigger(*this);
 
     PreUpdateState();
 }
@@ -255,6 +255,9 @@ void trigger_ex_object::PreUpdateState()
         // Set the activation type
         m_ActivationType = SPATIAL_ACTIVATE_ON_INTERNAL;
         break;
+    case TRIGGER_TYPES_INVALID:
+    case TRIGGER_TYPES_END:
+        break;
     }
 
     m_IsSpatialActivated = false;
@@ -267,7 +270,7 @@ void trigger_ex_object::OnKill()
     Object::OnKill();
 
     // Unregister myself too the global Trigger_Manager Object...
-    // IJB g_TriggerExMgr.UnregisterTrigger(*this);
+    getObjectManager()->GetTriggerExManager()->UnregisterTrigger(*this);
 }
 
 //=========================================================================
@@ -966,14 +969,14 @@ void trigger_ex_object::SetTriggerState(const trigger_ex_state State)
     switch (m_State) {
     case STATE_SLEEPING:
         // tell the manager that were asleep so we dont get anymore updates..
-        // IJB g_TriggerExMgr.TriggerSleep(*this);
+        getObjectManager()->GetTriggerExManager()->TriggerSleep(*this);
         m_CurrentColor = s_TriggerColor_Sleep;
         break;
 
     case STATE_CHECKING:
         // tell the manager that were awake so we get moved into the updating list.
         ForceNextUpdate();
-        // IJB g_TriggerExMgr.TriggerAwake(*this);
+        getObjectManager()->GetTriggerExManager()->TriggerAwake(*this);
         m_DrawActivationIcon = 0;
         m_CurrentColor = s_TriggerColor_Checking;
         break;
@@ -1209,7 +1212,7 @@ void trigger_ex_object::ForceNextUpdate()
 void trigger_ex_object::ExecuteSleeping(float DeltaTime)
 {
     // Sleep state puts the trigger into an inactive mode
-    // IJB g_TriggerExMgr.TriggerSleep(*this);
+    getObjectManager()->GetTriggerExManager()->TriggerSleep(*this);
 }
 
 //=============================================================================
@@ -2057,6 +2060,8 @@ void trigger_ex_object::ForceStartTrigger()
 
 //=============================================================================
 
+extern view* g_View;
+
 void trigger_ex_object::OnAdvanceLogic(float DeltaTime)
 {
     g_TriggerAdvLogicCount++;
@@ -2066,11 +2071,11 @@ void trigger_ex_object::OnAdvanceLogic(float DeltaTime)
     //   not sure what action status it should fall under.
     //   Nick - I'm leaving it up to you to relocate it.
 
-    /* IJB - needs GetView
+
     if (m_bRequiresLineOfSight && !m_bLOSVerified) {
         bool bViewable = false;
 
-        const view* pView = eng_GetView();
+        const view* pView = g_View;
 
         collisionManager->LineOfSightSetup(GetGuid(), pView->GetPosition(), GetPosition());
         // Only need one collision to say that we can't see the trigger
@@ -2094,7 +2099,7 @@ void trigger_ex_object::OnAdvanceLogic(float DeltaTime)
             return;
         }
     }
-*/
+
     if (m_OnActivate) {
         if (m_CurrentActionStatus == ACTION_ONHOLD) {
             // we need a valid index???

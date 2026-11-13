@@ -9,6 +9,7 @@
 #include "system/SDL_Renderer.h"
 #include "../../a51lib/view/View.h"
 #include "../../a51lib/objects/Player.h"
+#include "../../a51lib/objects/triggerEx/TriggerExObject.h"
 #include "../../a51lib/physics/PhysicsMgr.h"
 
 view g_View;
@@ -32,6 +33,7 @@ void RenderGame();
 
 int main(int argc, char** argv)
 {
+    x_TimeInit();
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD)) {
         SDL_Log("Failed to initialize SDL: %s", SDL_GetError());
         return 1;
@@ -99,14 +101,14 @@ int main(int argc, char** argv)
             g_PhysicsMgr.Advance(context.DeltaTime, gameObject.objectManager);
             gameObject.objectManager->AdvanceAllLogic(context.DeltaTime);
 
-            // g_LightMgr.OnUpdate(DeltaTime);
-            // g_PostEffectMgr.OnUpdate(DeltaTime);
-            // g_DecalMgr.OnUpdate(DeltaTime);
-            // g_AlienGlobMgr.Advance(DeltaTime);
-            // g_TriggerExMgr.OnUpdate(DeltaTime);
-            // g_NetworkMgr.Update( DeltaTime );       // runs the character logic
-            // g_GameTextMgr.Update(DeltaTime);
-            // UpdateAudio(DeltaTime);
+            // g_LightMgr.OnUpdate(context.DeltaTime);
+            // g_PostEffectMgr.OnUpdate(context.DeltaTime);
+            // g_DecalMgr.OnUpdate(context.DeltaTime);
+            // g_AlienGlobMgr.Advance(context.DeltaTime);
+            gameObject.triggerExManager->OnUpdate(context.DeltaTime);
+            // g_NetworkMgr.Update( context.DeltaTime );       // runs the character logic
+            // g_GameTextMgr.Update(context.DeltaTime);
+            // UpdateAudio(context.DeltaTime);
 
             if (logicFramesAfterLoad > 10) {
 

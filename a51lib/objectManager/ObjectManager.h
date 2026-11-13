@@ -12,6 +12,7 @@ class view;
 class ObjectManager;
 class collision_mgr;
 class PlaysurfaceMgr;
+class TriggerExManager;
 
 class object_desc : public prop_interface
 {
@@ -134,7 +135,7 @@ public:
 
     ObjectManager();
     ~ObjectManager();
-    void Init(ObjectRegistrarInterface* objectRegistrar, spatial_dbase*, collision_mgr* cm, ResourceManager*, PlaysurfaceMgr*);
+    void Init(ObjectRegistrarInterface* objectRegistrar, spatial_dbase*, collision_mgr* cm, ResourceManager*, PlaysurfaceMgr*, TriggerExManager*);
     void Kill();
 
     xtick GetGameTime() const { return m_GameTime; };
@@ -152,6 +153,9 @@ public:
     void Render3dObjects(bool DoPortalWalk, const view& PortalView, uint8_t StartZone);
 
     PlaysurfaceMgr* GetPlaysurfaceMgr() { return playsurfaceManager; }
+    TriggerExManager* GetTriggerExManager() { return triggerExManager; }
+
+    bool IsGuidOfType ( Object** ppObject, const guid& rGuid, const rtti& rRunTimeInfo );
 
 protected:
     void DoVisibilityTests(const view& View);
@@ -339,7 +343,8 @@ private:
     collision_mgr*   collisionMgr;
     ResourceManager* resourceManager;
     PlaysurfaceMgr*  playsurfaceManager;
-
+    TriggerExManager* triggerExManager;
+    
     xtick m_GameTime;
 };
 

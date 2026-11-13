@@ -16,6 +16,7 @@ class StateMachine;
 class collision_mgr;
 class poly_cache;
 class PlaysurfaceMgr;
+class TriggerExManager;
 
 /*
  * Used to hold game global objects.
@@ -41,4 +42,5 @@ class GameObject
     collision_mgr* collisionManager;
     poly_cache* polyCache;
     PlaysurfaceMgr* playsurfaceManager;
+    TriggerExManager* triggerExManager;
 };
