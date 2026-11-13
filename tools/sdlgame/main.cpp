@@ -97,10 +97,8 @@ int main(int argc, char** argv)
             // corpse::LimitCount();
 
             g_PhysicsMgr.Advance(context.DeltaTime, gameObject.objectManager);
-            // {
-            //     STAT_LOGGER(temp, k_stats_OnAdvance);
-            //     g_ObjMgr.AdvanceAllLogic(DeltaTime);
-            // }
+            gameObject.objectManager->AdvanceAllLogic(context.DeltaTime);
+
             // g_LightMgr.OnUpdate(DeltaTime);
             // g_PostEffectMgr.OnUpdate(DeltaTime);
             // g_DecalMgr.OnUpdate(DeltaTime);

@@ -45,7 +45,7 @@ protected:
     void            AddObjectCount(int n) const { m_ObjectCount += n; }
     virtual bool    OnBeginRender() const { return CanRender() && m_CommonAttrBits & Object::ATTR_RENDERABLE; }
     virtual void    OnEndRender() const {}
-    virtual bool    OnBeginLogic() { return m_bLogic && m_CommonAttrBits & Object::ATTR_NEEDS_LOGIC_TIME; }
+    virtual bool    OnBeginLogic() const { return m_bLogic && m_CommonAttrBits & Object::ATTR_NEEDS_LOGIC_TIME; }
     virtual void    OnEndLogic() {}
 
     virtual void OnEnumProp(prop_enum& List);
@@ -144,6 +144,8 @@ public:
         float   Time = ((float)Delta) * (1 / 1000.0f);
         return Time;
     }
+
+    void AdvanceAllLogic(float DeltaTime);
 
     void Render(bool DoPortalWalk, const view& PortalView, uint8_t StartZone);
 
@@ -302,6 +304,9 @@ private:
         slot_id FirstZone[2];
         slot_id FirstRenderable[2];
     };
+
+public:
+    void EmptyDeleteObjectList();
 
 private:
     std::vector<const object_desc*> objectDescriptors;

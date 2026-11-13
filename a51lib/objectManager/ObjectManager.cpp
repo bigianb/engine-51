@@ -916,23 +916,20 @@ void ObjectManager::Render(bool bDoPortalWalk, const view& PortalView, uint8_t S
 
 void ObjectManager::RenderNormalObjects()
 {
-    for( int type=0; type< Object::TYPE_END_OF_LIST; type++ ) {
+    for (int type = 0; type < Object::TYPE_END_OF_LIST; type++) {
         // If a type is renderable then render
-        if( m_ObjectType[type].pDesc && m_ObjectType[type].pDesc->OnBeginRender() ) 
-        {
+        if (m_ObjectType[type].pDesc && m_ObjectType[type].pDesc->OnBeginRender()) {
             // Go through all the objects in the given type
-            for(slot_id ID = m_ObjectType[type].FirstVis; ID != SLOT_NULL; ID = GetNextVis( ID ) )
-            {
+            for (slot_id ID = m_ObjectType[type].FirstVis; ID != SLOT_NULL; ID = GetNextVis(ID)) {
                 // Get the object
-                Object* pObject = GetObjectBySlot( ID );
+                Object* pObject = GetObjectBySlot(ID);
 
                 // These guys rendered last.
-                if( pObject->GetAttrBits() & Object::ATTR_DRAW_2D ){
+                if (pObject->GetAttrBits() & Object::ATTR_DRAW_2D) {
                     continue;
                 }
                 // Render the object finally
-                if( pObject->GetAttrBits() & Object::ATTR_TRANSPARENT )
-                {
+                if (pObject->GetAttrBits() & Object::ATTR_TRANSPARENT) {
                     // IJB: TODO
                     /*
                     special_render_obj& SpecialObj = g_SpecialRenderObj.Append();
@@ -942,18 +939,17 @@ void ObjectManager::RenderNormalObjects()
 
                 pObject->OnRender();
             }
-        
+
             // Done rendering this type
             m_ObjectType[type].pDesc->OnEndRender();
         }
 
         // if we've just finished adding all the lights, do some collection
-        if ( type == Object::TYPE_DYNAMIC_LIGHT ){
+        if (type == Object::TYPE_DYNAMIC_LIGHT) {
             // IJB: TODO
             //g_LightMgr.BeginLightCollection();
         }
     }
-
 }
 
 void ObjectManager::Render3dObjects(bool bDoPortalWalk, const view& PortalView, uint8_t StartZone)
@@ -1279,4 +1275,50 @@ void ObjectManager::DoVisibilityTests(const view& View)
             SlotID = NextSlotID;
         }
     }
+}
+
+void ObjectManager::AdvanceAllLogic(float DeltaTime)
+{
+    m_nLogicLoops++;
+
+    //
+    // Deal with the game time
+    //
+    if (DeltaTime > 0.1f) {
+        DeltaTime = 0.1f;
+    }
+
+    // Increment the game time (the units are in ticks).
+    m_GameTime += (xtick)(((int64_t)(DeltaTime * 1000)) * x_GetTicksPerMs());
+
+    for (int i = 0; i < Object::TYPE_END_OF_LIST; i++) {
+        if (m_ObjectType[i].pDesc && m_ObjectType[i].pDesc->OnBeginLogic()) {
+            slot_id SlotID = GetFirst((Object::type)i);
+
+            while (SlotID != SLOT_NULL) {
+                // The object had better exist if we have a slot for it.
+                Object* pObject = GetObjectBySlot(SlotID);
+                assert(pObject);
+                SlotID = GetNext(SlotID);
+
+                if (pObject->GetAttrBits() & Object::ATTR_NEEDS_LOGIC_TIME) {
+                    pObject->OnAdvanceLogic(DeltaTime);
+                }
+            }
+        }
+    }
+
+    //
+    // Empty the delete list
+    //
+    EmptyDeleteObjectList();
+}
+
+void ObjectManager::EmptyDeleteObjectList( void )
+{
+    for(int i=0; i<m_DeleteObject.size(); i++ ) {
+        UnlinkAndFreeObject( m_DeleteObject[i] );
+    }
+
+    m_DeleteObject.clear();
 }
