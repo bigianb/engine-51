@@ -83,8 +83,13 @@ set(OBJECTS_SOURCES
         objects/render/VirtualTextureMask.h
         objects/sound/EventSoundEmitter.cpp
         objects/sound/EventSoundEmitter.h
+        objects/triggerEx/affecters/ConditionalAffecter.cpp
+        objects/triggerEx/affecters/ConditionalAffecter.h
+        objects/triggerEx/affecters/ObjectAffecter.h
+        objects/triggerEx/conditions/ConditionObjectExists.h
         objects/triggerEx/TriggerExActions.cpp
         objects/triggerEx/TriggerExActions.h
+        objects/triggerEx/TriggerExConditionals.h
         objects/triggerEx/TriggerExManager.cpp
         objects/triggerEx/TriggerExManager.h
         objects/triggerEx/TriggerExObject.cpp

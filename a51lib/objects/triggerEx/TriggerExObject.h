@@ -3,6 +3,7 @@
 #include "../../objectManager/ObjectManager.h"
 #include "TriggerExActions.h"
 #include "TriggerExManager.h"
+#include "affecters/ConditionalAffecter.h"
 
 //=========================================================================
 // TRIGGER_OBJECT
@@ -160,7 +161,6 @@ public:
 
     // specifically for description's debug rendering
     trigger_ex_types GetTriggerType() { return m_TriggerType; }
-    void             OnRenderSpatial();
 
     inline bool IsActive()  override { return m_OnActivate; }
 
@@ -256,7 +256,7 @@ protected:
     actions_ex_base* m_IfActions[MAX_ACTION_ARRAY_SIZE];   // Ptr array for actions
     actions_ex_base* m_ElseActions[MAX_ACTION_ARRAY_SIZE]; // Ptr array for actions
 
-    // IJB conditional_affecter    m_ConditionAffecter;
+    conditional_affecter    m_ConditionAffecter;
 
     trigger_ex_types m_TriggerType; // What kind of Trigger is this, simple, spatial, viewable
 

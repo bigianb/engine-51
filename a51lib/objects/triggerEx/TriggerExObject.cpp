@@ -159,7 +159,7 @@ trigger_ex_object::trigger_ex_object(ObjectManager* om, collision_mgr* cm)
     , m_DrawError(false)
     , m_CurrentColor(s_TriggerColor_Sleep)
     ,
-    // IJB m_ConditionAffecter(true, 0),
+    m_ConditionAffecter(true, 0),
     m_TriggerType(TRIGGER_TYPE_SIMPLE)
     , m_UpdateRate(1.0f)
     , m_RecoveryRate(0.0f)
@@ -561,15 +561,15 @@ void trigger_ex_object::OnEnumProp(prop_enum& rPropList)
     // data intergrity must happen prior to the actual conditions and actions
     rPropList.PropEnumInt("Trigger Object\\NumIfActions", "", PROP_TYPE_DONT_SHOW);
     rPropList.PropEnumInt("Trigger Object\\NumElseActions", "", PROP_TYPE_DONT_SHOW);
-    // IJB m_ConditionAffecter.EnumPropConditionData(rPropList);
+    m_ConditionAffecter.EnumPropConditionData(rPropList);
 
-    /* IJB
+    
     // enum actual conditions and actions
     m_ConditionAffecter.EnumPropConditions(rPropList);
     EnumPropActions(rPropList);
     m_ConditionAffecter.EnumPropElseConditions(rPropList);
     EnumPropElseActions(rPropList);
-*/
+
     if (m_TriggerType != TRIGGER_TYPE_SIMPLE) {
         EnumPropSpatial(rPropList);
     }
@@ -699,7 +699,7 @@ bool trigger_ex_object::OnProperty(prop_query& rPropQuery)
         return true;
     }
 
-    /* IJB
+    
     if (m_ConditionAffecter.OnPropertyConditionData(rPropQuery)) {
         return true;
     }
@@ -707,7 +707,7 @@ bool trigger_ex_object::OnProperty(prop_query& rPropQuery)
     if (m_ConditionAffecter.OnPropertyConditions(rPropQuery)) {
         return true;
     }
-*/
+
     if (OnPropertyActions(rPropQuery)) {
         return true;
     }
@@ -1225,7 +1225,7 @@ void trigger_ex_object::ExecuteChecking(float DeltaTime)
     if (CheckNextTime(DeltaTime) == false) {
         return;
     }
-/* IJB
+
     // Evaluate the conditions, only update the time if we don't get a true evaluation because
     // we don't want to time penalize the next state...
     switch (m_ConditionAffecter.EvaluateConditions(GetGuid())) {
@@ -1246,7 +1246,7 @@ void trigger_ex_object::ExecuteChecking(float DeltaTime)
         m_CurrentActionStatus = ACTION_ONHOLD;
         break;
     }
-*/
+
     m_DrawActivationIcon = 1;
 
     if (m_TriggerType == TRIGGER_TYPE_SIMPLE) {
@@ -1341,10 +1341,7 @@ void trigger_ex_object::ExecuteDelaying(float DeltaTime)
 //=============================================================================
 
 bool trigger_ex_object::AddAction(actions_ex_base::action_ex_types ActionType, int Number, bool bAsElse)
-{
-    // IJB
-    return false;
-    
+{   
     if (Number >= 0 && Number < MAX_ACTION_ARRAY_SIZE) {
         if (!bAsElse) {
             if (m_IfActions[Number]) {
