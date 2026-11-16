@@ -159,7 +159,7 @@ trigger_ex_object::trigger_ex_object(ObjectManager* om, collision_mgr* cm)
     , m_DrawError(false)
     , m_CurrentColor(s_TriggerColor_Sleep)
     ,
-    m_ConditionAffecter(true, 0),
+    m_ConditionAffecter(om, true, 0),
     m_TriggerType(TRIGGER_TYPE_SIMPLE)
     , m_UpdateRate(1.0f)
     , m_RecoveryRate(0.0f)
@@ -1133,7 +1133,6 @@ void trigger_ex_object::ExecuteLogic(float DeltaTime)
                 } break;
                 default:
                     assert(0);
-                    break;
                     break;
                 }
             } break;

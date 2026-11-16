@@ -7,6 +7,7 @@
 
 
 class trigger_ex_object;
+class ObjectManager;
 
 class conditional_affecter
 {
@@ -20,7 +21,7 @@ public:
         EVAL_NOT_MET
     };
 
-    conditional_affecter(bool bAllowElse, int PropertyLevel);
+    conditional_affecter(ObjectManager*, bool bAllowElse, int PropertyLevel);
     virtual ~conditional_affecter();
 
     void EnumPropSelector(prop_enum& rList);
@@ -48,6 +49,8 @@ public:
 
     void RemoveAllConditions();
 
+    ObjectManager* objectManager;
+    
 protected:
     enum
     {
@@ -82,7 +85,7 @@ protected:
 protected:
     bool m_AllowElseInfo;  //does this condition allow else info?
     int  m_PropIndexLevel; //in the property grid, low many arrays deep is this?
-
+    
     conditional_ex_base* m_IfConditions[MAX_CONDITION_ARRAY_SIZE];   // Ptr array for condtions
     conditional_ex_base* m_ElseConditions[MAX_CONDITION_ARRAY_SIZE]; // Ptr array for condtions
     int                  m_NumIfConditions;                          // Number of if conditions..

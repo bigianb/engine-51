@@ -153,6 +153,7 @@ public:
     void SetVarString(const char* Data, int MaxStrLen);
     void SetVarEnum(const char* Data);
     void SetVarExternal(const char* Data, int MaxStrLen);
+    void SetVarExternal(const std::string& pData);
     void SetVarButton(const char* Data);
 
     // Get ranges

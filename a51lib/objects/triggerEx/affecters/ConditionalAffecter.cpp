@@ -94,11 +94,12 @@ bool conditional_affecter::condition_selector::OnProperty(prop_query& rPropQuery
 // CLASS FUNCTIONS
 //=========================================================================
 
-conditional_affecter::conditional_affecter(bool bAllowElse, int PropertyLevel)
+conditional_affecter::conditional_affecter(ObjectManager* om, bool bAllowElse, int PropertyLevel)
     : m_AllowElseInfo(bAllowElse)
     , m_PropIndexLevel(PropertyLevel)
     , m_NumIfConditions(0)
     , m_NumElseConditions(0)
+    , objectManager(om)
 {
     for (int i = 0; i < MAX_CONDITION_ARRAY_SIZE; i++) {
         m_IfConditions[i] = nullptr;
@@ -319,9 +320,9 @@ bool conditional_affecter::OnPropertyConditions(prop_query& rPropQuery)
             if (rPropQuery.IsVar("If\\Condition[]")) {
                 if (rPropQuery.IsRead()) {
                     if (IsFirstInConditionSet(m_IfConditions[iIndex])) {
-                        rPropQuery.SetVarString(m_IfConditions[iIndex]->GetDescription(), MAX_STRING_LEN);
+                        rPropQuery.SetVarString(m_IfConditions[iIndex]->GetDescription().c_str(), MAX_STRING_LEN);
                     } else {
-                        rPropQuery.SetVarString(xfs("%s %s", m_IfConditions[iIndex]->GetFlagStr(), m_IfConditions[iIndex]->GetDescription()), MAX_STRING_LEN);
+                        rPropQuery.SetVarString(xfs("%s %s", m_IfConditions[iIndex]->GetFlagStr(), m_IfConditions[iIndex]->GetDescription().c_str()), MAX_STRING_LEN);
                     }
                 }
 
@@ -348,9 +349,9 @@ bool conditional_affecter::OnPropertyConditions(prop_query& rPropQuery)
             if (rPropQuery.IsVar("Else If\\Else Condition[]")) {
                 if (rPropQuery.IsRead()) {
                     if (IsFirstInConditionSet(m_ElseConditions[iIndex])) {
-                        rPropQuery.SetVarString(m_ElseConditions[iIndex]->GetDescription(), MAX_STRING_LEN);
+                        rPropQuery.SetVarString(m_ElseConditions[iIndex]->GetDescription().c_str(), MAX_STRING_LEN);
                     } else {
-                        rPropQuery.SetVarString(xfs("%s %s", m_ElseConditions[iIndex]->GetFlagStr(), m_ElseConditions[iIndex]->GetDescription()), MAX_STRING_LEN);
+                        rPropQuery.SetVarString(xfs("%s %s", m_ElseConditions[iIndex]->GetFlagStr(), m_ElseConditions[iIndex]->GetDescription().c_str()), MAX_STRING_LEN);
                     }
                 }
 
@@ -378,9 +379,9 @@ bool conditional_affecter::OnPropertyConditions(prop_query& rPropQuery)
             if (rPropQuery.IsVar("Conditional[]")) {
                 if (rPropQuery.IsRead()) {
                     if (IsFirstInConditionSet(m_IfConditions[iIndex])) {
-                        rPropQuery.SetVarString(m_IfConditions[iIndex]->GetDescription(), MAX_STRING_LEN);
+                        rPropQuery.SetVarString(m_IfConditions[iIndex]->GetDescription().c_str(), MAX_STRING_LEN);
                     } else {
-                        rPropQuery.SetVarString(xfs("%s %s", m_IfConditions[iIndex]->GetFlagStr(), m_IfConditions[iIndex]->GetDescription()), MAX_STRING_LEN);
+                        rPropQuery.SetVarString(xfs("%s %s", m_IfConditions[iIndex]->GetFlagStr(), m_IfConditions[iIndex]->GetDescription().c_str()), MAX_STRING_LEN);
                     }
                 }
 
@@ -407,9 +408,9 @@ bool conditional_affecter::OnPropertyConditions(prop_query& rPropQuery)
             if (rPropQuery.IsVar("Else Conditional[]")) {
                 if (rPropQuery.IsRead()) {
                     if (IsFirstInConditionSet(m_ElseConditions[iIndex])) {
-                        rPropQuery.SetVarString(m_ElseConditions[iIndex]->GetDescription(), MAX_STRING_LEN);
+                        rPropQuery.SetVarString(m_ElseConditions[iIndex]->GetDescription().c_str(), MAX_STRING_LEN);
                     } else {
-                        rPropQuery.SetVarString(xfs("%s %s", m_ElseConditions[iIndex]->GetFlagStr(), m_ElseConditions[iIndex]->GetDescription()), MAX_STRING_LEN);
+                        rPropQuery.SetVarString(xfs("%s %s", m_ElseConditions[iIndex]->GetFlagStr(), m_ElseConditions[iIndex]->GetDescription().c_str()), MAX_STRING_LEN);
                     }
                 }
 

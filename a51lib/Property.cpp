@@ -493,6 +493,13 @@ void prop_query::SetVarExternal(const char* pData, int MaxStrLen)
     m_MaxStringLength = MaxStrLen;
 }
 
+void prop_query::SetVarExternal(const std::string& pData)
+{
+    assert(PROP_TYPE_EXTERNAL == GetQueryType());
+    strsavecpy((char*)m_pData, pData.c_str(), 256);
+    m_MaxStringLength = 256;
+}
+
 int prop_query::PushPath(const char* pRootPath)
 {
     int i;

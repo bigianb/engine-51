@@ -5,6 +5,7 @@
 #include "../../../xfiles/xHandle.h"
 
 class Object;
+class ObjectManager;
 
 class object_affecter
 {
@@ -17,13 +18,13 @@ public:
         OBJECT_GUID_CODES_END
     };
 
-    object_affecter(void);
+    object_affecter();
 
-    virtual void OnEnumProp(prop_enum& rList, const char* pPropName, u32 Flags = 0);
+    virtual void OnEnumProp(prop_enum& rList, const char* pPropName, uint32_t Flags = 0);
     virtual bool OnProperty(prop_query& rPropQuery, const char* pPropName);
 
-    Object*     GetObjectPtr(void);
-    const char* GetObjectInfo(void);
+    Object*     GetObjectPtr(ObjectManager* objectManager);
+    const char* GetObjectInfo(ObjectManager* objectManager);
 
     inline guid_codes GetObjectCode(void) { return (guid_codes)m_GuidCode; }
     void              SetStaticGuid(guid Guid);

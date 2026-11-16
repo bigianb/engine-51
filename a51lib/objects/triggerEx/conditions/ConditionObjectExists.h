@@ -8,14 +8,14 @@ class condition_object_exists : public conditional_ex_base
 public:
     condition_object_exists(conditional_affecter* pParent);
 
-    virtual conditional_ex_types GetType() { return GetTypeStatic(); }
+    virtual conditional_ex_types GetType() override { return GetTypeStatic(); }
     static conditional_ex_types  GetTypeStatic() { return TYPE_CONDITION_OBJECT_EXISTS; }
-    virtual const char*          GetTypeInfo() { return "Check whether or not a specified object exists."; }
-    virtual const char*          GetDescription();
+    virtual const char*          GetTypeInfo() override { return "Check whether or not a specified object exists."; }
+    std::string  GetDescription() override;
 
-    virtual bool Execute(guid TriggerGuid);
-    virtual void OnEnumProp(prop_enum& rList);
-    virtual bool OnProperty(prop_query& rPropQuery);
+    virtual bool Execute(guid TriggerGuid) override;
+    virtual void OnEnumProp(prop_enum& rList) override;
+    virtual bool OnProperty(prop_query& rPropQuery) override;
 
 protected:
     enum check_codes

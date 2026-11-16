@@ -61,7 +61,7 @@ public:
 
     virtual conditional_ex_types GetType() { return INVALID_CONDITIONAL_TYPES; }
     virtual const char*          GetTypeInfo() { return "Base condition class, null funtionality"; }
-    virtual const char*          GetDescription() { return "\0"; }
+    virtual std::string          GetDescription() { return ""; }
     virtual bool                 Execute(guid TriggerGuid) = 0;
     virtual void                 OnEnumProp(prop_enum& rList);
     virtual bool                 OnProperty(prop_query& rPropQuery);

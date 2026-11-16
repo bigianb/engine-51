@@ -85,10 +85,13 @@ set(OBJECTS_SOURCES
         objects/sound/EventSoundEmitter.h
         objects/triggerEx/affecters/ConditionalAffecter.cpp
         objects/triggerEx/affecters/ConditionalAffecter.h
+        objects/triggerEx/affecters/ObjectAffecter.cpp
         objects/triggerEx/affecters/ObjectAffecter.h
+        objects/triggerEx/conditions/ConditionObjectExists.cpp
         objects/triggerEx/conditions/ConditionObjectExists.h
         objects/triggerEx/TriggerExActions.cpp
         objects/triggerEx/TriggerExActions.h
+        objects/triggerEx/TriggerExConditionals.cpp
         objects/triggerEx/TriggerExConditionals.h
         objects/triggerEx/TriggerExManager.cpp
         objects/triggerEx/TriggerExManager.h
@@ -192,6 +195,8 @@ target_sources(a51lib PRIVATE
         fx/fx_Mgr.cpp
         fx/fx_Mgr.h
         GameGlobals.cpp
+        GlobalDictionary.cpp
+        GlobalDictionary.h
         Guid.cpp
         Guid.h
         Helpers.cpp
