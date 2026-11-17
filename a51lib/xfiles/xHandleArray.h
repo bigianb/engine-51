@@ -1,7 +1,10 @@
 #pragma once
 
 #include "xHandle.h"
+#include <algorithm>
 #include <cassert>
+
+class ResourceManager;
 
 template <class T>
 class xharray

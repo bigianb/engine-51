@@ -3,6 +3,7 @@
 #include "../../../objectManager/ObjectManager.h"
 #include "../TriggerExObject.h"
 #include "../../../GlobalDictionary.h"
+#include "../../../GlobalVariablesManager.h"
 #include "../../../xfiles/xfs.h"
 #include "../../../xfiles/x_plus.h"
 
@@ -63,7 +64,7 @@ bool object_affecter::OnProperty(prop_query& rPropQuery, const char* pPropName)
                 m_GuidVarName = g_StringMgr.Add(rPropQuery.GetVarExternal());
                 if (m_GuidVarName == -1) {
                     m_GuidVarHandle = HNULL;
-                } else if (!g_VarMgr.GetGuidHandle(g_StringMgr.GetString(m_GuidVarName), &m_GuidVarHandle)) {
+                } else if (!g_VarMgr.GetGuidHandle(g_StringMgr.GetString(m_GuidVarName).c_str(), &m_GuidVarHandle)) {
                     m_GuidVarHandle = HNULL;
                 }
                 return true;

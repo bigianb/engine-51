@@ -1,4 +1,5 @@
 #include "TriggerExObject.h"
+#include "../../GlobalVariablesManager.h"
 #include "../../math/Sphere.h"
 #include "../../collisionMgr/CollisionMgr.h"
 #include "../Player.h"
@@ -840,7 +841,7 @@ bool trigger_ex_object::OnPropertySpatial(prop_query& rPropQuery)
     // always check for a valid guid handle
     if (m_ActorGuidVarName == -1) {
         m_ActorGuidVarHandle = HNULL;
-    } else if (!g_VarMgr.GetGuidHandle(g_StringMgr.GetString(m_ActorGuidVarName), &m_ActorGuidVarHandle)) {
+    } else if (!g_VarMgr.GetGuidHandle(g_StringMgr.GetString(m_ActorGuidVarName).c_str(), &m_ActorGuidVarHandle)) {
         m_ActorGuidVarHandle = HNULL;
     }
 

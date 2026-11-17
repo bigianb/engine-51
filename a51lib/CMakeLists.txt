@@ -197,6 +197,8 @@ target_sources(a51lib PRIVATE
         GameGlobals.cpp
         GlobalDictionary.cpp
         GlobalDictionary.h
+        GlobalVariablesManager.cpp
+        GlobalVariablesManager.h
         Guid.cpp
         Guid.h
         Helpers.cpp
