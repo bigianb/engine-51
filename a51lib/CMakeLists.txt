@@ -160,11 +160,17 @@ target_sources(a51lib PRIVATE
         Bitmap.h
         characters/ActorEffects.h
         characters/ActorEffects.cpp
+        characters/Character.cpp
+        characters/Character.h
+        characters/CharacterState.cpp
+        characters/CharacterState.h
         characters/factions.h
         characters/FloorProperties.cpp
         characters/FloorProperties.h
         characters/God.cpp
         characters/God.h
+        characters/ResponseList.cpp
+        characters/ResponseList.h
         collisionMgr/CollisionMgr_Private.h
         collisionMgr/CollisionMgr.cpp
         collisionMgr/CollisionMgr.h
@@ -284,6 +290,7 @@ target_sources(a51lib PRIVATE
         render/RigidGeom.h
         render/SkinGeom.cpp
         render/SkinGeom.h
+        SimpleUtils.h
         spatialDBase/SpatialDBase.cpp
         spatialDBase/SpatialDBase.h
         spatialDBase/SpatialDBase_inline.h

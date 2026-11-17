@@ -86,7 +86,7 @@ public:
         ACTION_TYPES_END
     };
     
-                    actions_ex_base                         ( guid ParentGuid );
+                    actions_ex_base                         ( guid ParentGuid, ObjectManager* om);
     virtual        ~actions_ex_base                         ();
 
     virtual         action_ex_types     GetType             () { return INVALID_ACTION_TYPES;}
@@ -138,7 +138,7 @@ protected:
    bool                                    m_bErrorInExecute;  // was an error detected?
 
 protected:
-    
+    ObjectManager*                 objectManager;
    static action_ex_create_function*        m_CreateHead;       // Autotmatic registration list head node
 
 };

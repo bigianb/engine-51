@@ -253,10 +253,11 @@ actions_ex_base* actions_ex_base::CreateAction ( const action_ex_types& rType , 
 // ACTIONS_BASE
 //=========================================================================
 
-actions_ex_base:: actions_ex_base ( guid ParentGuid ) : m_TriggerGuid ( ParentGuid ), 
+actions_ex_base:: actions_ex_base ( guid ParentGuid, ObjectManager* om) : m_TriggerGuid ( ParentGuid ), 
 m_pTaskOwner(nullptr),
 m_ElseFlag( false ),
-m_bErrorInExecute(false)
+m_bErrorInExecute(false),
+objectManager(om)
 {
 }
  
@@ -294,31 +295,33 @@ bool actions_ex_base::OnProperty ( prop_query& rPropQuery )
  
 //=========================================================================
 
-Vector3 actions_ex_base::GetPositionOwner( void )
+Vector3 actions_ex_base::GetPositionOwner( )
 {
     Vector3 ZeroPos;
 
     ZeroPos.Zero();
-/* IJB
+
     if (m_TriggerGuid)
     {
-        object_ptr<Object> ObjectPtr( m_TriggerGuid );
+        object_ptr<Object> ObjectPtr( m_TriggerGuid, objectManager );
     
         if (ObjectPtr.IsValid()) 
             return ObjectPtr.m_pObject->GetPosition();
     }
     else if (m_pTaskOwner)
     {
+        /* IJB needs character task
         guid TaskSet = m_pTaskOwner->GetSetGuid();
         if (TaskSet)
         {
-            object_ptr<Object> ObjectPtr( TaskSet );
+            object_ptr<Object> ObjectPtr( TaskSet, objectManager);
     
             if (!ObjectPtr.IsValid()) 
                 return ObjectPtr.m_pObject->GetPosition();
         }
+                */
     }
-*/
+
     return ZeroPos;
 }
 

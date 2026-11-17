@@ -1,10 +1,12 @@
 #include "TriggerExObject.h"
 #include "../../GlobalVariablesManager.h"
+#include "../../GlobalDictionary.h"
 #include "../../math/Sphere.h"
 #include "../../collisionMgr/CollisionMgr.h"
 #include "../Player.h"
 #include "../../xfiles/x_plus.h"
 #include "../../xfiles/xfs.h"
+#include "../../SimpleUtils.h"
 
 static float  s_SphereRadius = 100.0f;
 static Sphere s_EditSphere(Vector3(0, 0, 0), s_SphereRadius);
@@ -483,7 +485,7 @@ void trigger_ex_object::OnColNotify(Object& Object)
         if (bCollide) {
             ActivateSpatialTrigger();
             if (m_ActorGuidVarHandle.IsNonNull()) {
-                // IJB g_VarMgr.SetGuid(m_ActorGuidVarHandle, Object.GetGuid());
+                g_VarMgr.SetGuid(m_ActorGuidVarHandle, Object.GetGuid());
             }
         }
     }
@@ -837,7 +839,7 @@ void trigger_ex_object::EnumPropSpatial(prop_enum& rPropList)
 bool trigger_ex_object::OnPropertySpatial(prop_query& rPropQuery)
 {
     SetFlagBits(GetFlagBits() | FLAG_DIRTY_TRANSLATION);
-/* IJB
+
     // always check for a valid guid handle
     if (m_ActorGuidVarName == -1) {
         m_ActorGuidVarHandle = HNULL;
@@ -848,7 +850,7 @@ bool trigger_ex_object::OnPropertySpatial(prop_query& rPropQuery)
     if (rPropQuery.IsVar("Spatial Trigger\\ActivaterVar")) {
         if (rPropQuery.IsRead()) {
             if (m_ActorGuidVarName >= 0) {
-                rPropQuery.SetVarExternal(g_StringMgr.GetString(m_ActorGuidVarName), 256);
+                rPropQuery.SetVarExternal(g_StringMgr.GetString(m_ActorGuidVarName).c_str(), 256);
             } else {
                 rPropQuery.SetVarExternal("", 256);
             }
@@ -889,7 +891,7 @@ bool trigger_ex_object::OnPropertySpatial(prop_query& rPropQuery)
                                                                                                            m_ResponseType, s_ResponseEnumTable)) {
         return true;
     }
-*/
+
     if (rPropQuery.VarFloat("Spatial Trigger\\Cube Width", m_Dimensions[0])) {
         return true;
     }
